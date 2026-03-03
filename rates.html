@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VenFinance">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#080810">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <title>VenFinance — Tasas</title>
@@ -17,123 +17,64 @@
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 
 <style>
-  :root {
-    --bg:        #0a0a0f;
-    --bg2:       #111118;
-    --bg3:       #18181f;
-    --border:    #2a2a38;
-    --gold:      #f0b429;
-    --gold-dim:  #a07818;
-    --teal:      #00d4aa;
-    --red:       #ff4d6d;
-    --text:      #e8e8f0;
-    --muted:     #6b6b80;
-    --card-glow: rgba(240,180,41,0.08);
-    --safe-top:  env(safe-area-inset-top, 0px);
-    --safe-bot:  env(safe-area-inset-bottom, 0px);
-  }
+  /* ═══════════════════════════════════════
+     RATES — Page-specific styles only
+     (Shared styles in style.css)
+  ═══════════════════════════════════════ */
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { background: var(--bg); }
-
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100dvh;
-    padding-bottom: calc(80px + var(--safe-bot));
-    overflow-x: hidden;
-  }
-
-  /* ── NOISE TEXTURE ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none; opacity: 0.4;
-  }
-
-  /* ── TOP SCANLINE ── */
-  body::after {
-    content: '';
-    position: fixed; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    animation: scanPulse 3s ease-in-out infinite;
-    z-index: 100;
-  }
-  @keyframes scanPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
-
-  /* ── HEADER ── */
   .header {
-    position: sticky; top: 0; z-index: 50;
-    padding: calc(var(--safe-top) + 14px) 20px 14px;
-    background: linear-gradient(180deg, var(--bg) 70%, transparent);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  .header-left { display: flex; flex-direction: column; gap: 2px; }
-
-  .app-eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; letter-spacing: .18em;
-    color: var(--gold); text-transform: uppercase; opacity: .7;
+    padding: calc(var(--safe-top) + 16px) 16px 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
   }
 
   .header h1 {
     font-size: 22px; font-weight: 800;
     letter-spacing: -.02em; line-height: 1;
-    background: linear-gradient(90deg, var(--gold), #ffd700);
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-
-  .header-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted); text-align: right; line-height: 1.5;
   }
 
   /* ── ALERT BANNER ── */
   .alert-banner {
     margin: 0 16px 16px;
     padding: 10px 14px;
-    background: rgba(255,77,109,.1);
-    border: 1px solid rgba(255,77,109,.3);
-    border-radius: 10px;
+    background: var(--red-dim);
+    border: 1px solid rgba(224,82,82,.3);
+    border-radius: var(--r-sm);
     display: flex; align-items: center; gap: 10px;
     animation: alertPulse 2s ease-in-out infinite;
   }
   .alert-banner.hidden { display: none; }
-  @keyframes alertPulse { 0%,100%{border-color:rgba(255,77,109,.3)} 50%{border-color:rgba(255,77,109,.7)} }
 
   .alert-icon { font-size: 18px; }
   .alert-text { font-size: 12px; font-weight: 600; color: var(--red); line-height: 1.4; }
 
   /* ── MAIN CONTENT ── */
-  .content { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+  .content {
+    padding: 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
 
   /* ── CARD ── */
-  .card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-    position: relative; overflow: hidden;
-  }
-  .card::before {
-    content: ''; position: absolute; inset: 0; border-radius: 16px;
-    background: var(--card-glow);
-    opacity: 0; transition: opacity .3s;
-  }
-  .card:focus-within::before { opacity: 1; }
-
   .card-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; letter-spacing: .2em;
-    color: var(--muted); text-transform: uppercase; margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
+    font-size: 9px;
+    letter-spacing: .2em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .card-label::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
@@ -143,7 +84,7 @@
   .rates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 
   .rate-cell {
-    background: var(--bg3);
+    background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 12px;
@@ -152,48 +93,48 @@
   }
   .rate-cell.active {
     border-color: var(--gold);
-    background: rgba(240,180,41,.06);
+    background: rgba(212,168,67,.06);
   }
 
   .rate-cell-label {
     font-size: 10px; font-weight: 600; letter-spacing: .06em;
-    color: var(--muted); margin-bottom: 4px;
+    color: var(--text-2); margin-bottom: 4px;
     display: flex; align-items: center; gap: 6px;
   }
-  .rate-cell-label .dot { width:6px;height:6px;border-radius:50%;background:var(--muted); }
+  .rate-cell-label .dot { width:6px;height:6px;border-radius:50%;background:var(--text-2); }
   .rate-cell.bcv .dot  { background: #3b9eff; }
   .rate-cell.para .dot { background: #b084ff; }
   .rate-cell.mine .dot { background: var(--gold); }
 
   .rate-cell-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 22px; font-weight: 700; line-height: 1;
-    color: var(--text);
+    color: var(--text-1);
   }
-  .rate-cell-value span { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+  .rate-cell-value span { font-size: 11px; font-weight: 400; color: var(--text-2); margin-left: 2px; }
 
   .rate-cell-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; color: var(--muted); margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px; color: var(--text-2); margin-top: 4px;
   }
 
   /* Span full width for "mine" */
   .rates-grid .rate-mine-wrap { grid-column: span 2; }
 
   .rate-mine-card {
-    background: linear-gradient(135deg, rgba(240,180,41,.12), rgba(240,180,41,.04));
-    border: 1px solid rgba(240,180,41,.35);
+    background: linear-gradient(135deg, rgba(212,168,67,.12), rgba(212,168,67,.04));
+    border: 1px solid rgba(212,168,67,.35);
     border-radius: 12px; padding: 12px;
     display: flex; align-items: center; gap: 14px;
   }
   .rate-mine-icon { font-size: 28px; }
   .rate-mine-info { flex: 1; }
-  .rate-mine-label { font-size: 10px; font-weight: 600; color: var(--gold-dim); letter-spacing: .06em; }
+  .rate-mine-label { font-size: 10px; font-weight: 600; color: var(--gold); letter-spacing: .06em; opacity: .7; }
   .rate-mine-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 28px; font-weight: 700; color: var(--gold); line-height: 1;
   }
-  .rate-mine-sub { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); margin-top:3px; }
+  .rate-mine-sub { font-family: var(--font-mono); font-size:9px; color:var(--text-2); margin-top:3px; }
 
   /* ── INPUT SECTION ── */
   .input-row { display: flex; flex-direction: column; gap: 10px; }
@@ -202,67 +143,35 @@
     display: flex; flex-direction: column; gap: 5px;
   }
   .input-group label {
-    font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+    font-size: 10px; font-weight: 600; color: var(--text-2); letter-spacing: .1em; text-transform: uppercase;
   }
   .input-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  input[type="number"], input[type="date"] {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px; font-weight: 500;
-    padding: 11px 14px;
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-    -moz-appearance: textfield;
-  }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input[type="number"]:focus, input[type="date"]:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(240,180,41,.15);
-  }
-
   /* ── BUTTONS ── */
-  .btn-row { display: flex; gap: 10px; margin-top: 4px; }
-
-  .btn {
-    flex: 1;
-    padding: 13px 10px;
-    border-radius: 12px; border: none;
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    cursor: pointer;
-    transition: all .2s;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .btn-primary {
-    background: var(--gold); color: #0a0a0f;
-  }
-  .btn-primary:active { background: #d49d20; transform: scale(.97); }
-
-  .btn-secondary {
-    background: var(--bg3); color: var(--text); border: 1px solid var(--border);
-  }
-  .btn-secondary:active { background: var(--border); transform: scale(.97); }
-
   .btn-fetch {
     background: linear-gradient(135deg, #0e2a40, #0a1f30);
     color: #3b9eff; border: 1px solid rgba(59,158,255,.3);
   }
   .btn-fetch:active { transform: scale(.97); }
 
-  .btn .spin { display: none; animation: spin .8s linear infinite; }
-  .btn.loading .spin { display: inline; }
-  .btn.loading .label { display: none; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* ── SOURCE PICKER ── */
+  .source-row {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .source-btn {
+    flex: 1; padding: 10px 6px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg-elevated);
+    color: var(--text-2); font-size: 11px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all .15s;
+    font-family: var(--font-ui);
+  }
+  .source-btn.active {
+    border-color: var(--gold); background: var(--gold-dim); color: var(--gold);
+  }
 
   /* ── ADVANTAGE CARD ── */
   .advantage-card {
-    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
     border: 1px solid var(--border);
     border-radius: 16px; padding: 18px;
     position: relative; overflow: hidden;
@@ -276,39 +185,39 @@
   }
 
   .adv-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
-  .adv-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
-  .adv-month { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--teal); margin-top:2px; }
+  .adv-title { font-size: 11px; font-weight: 700; color: var(--text-2); letter-spacing: .1em; text-transform: uppercase; }
+  .adv-month { font-family: var(--font-mono); font-size:10px; color:var(--teal); margin-top:2px; }
 
   .adv-main {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 40px; font-weight: 700;
     color: var(--teal); line-height: 1; margin-bottom: 4px;
   }
-  .adv-main span { font-size: 18px; color: var(--muted); }
+  .adv-main span { font-size: 18px; color: var(--text-2); }
 
-  .adv-sub { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-bottom: 16px; }
+  .adv-sub { font-family: var(--font-mono); font-size:11px; color:var(--text-2); margin-bottom: 16px; }
 
   .adv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .adv-cell {
-    background: var(--bg);
+    background: var(--bg-void);
     border: 1px solid var(--border);
     border-radius: 10px; padding: 10px 8px;
     text-align: center;
   }
   .adv-cell-val {
-    font-family:'JetBrains Mono',monospace;
-    font-size: 14px; font-weight: 700; color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px; font-weight: 700; color: var(--text-1);
     margin-bottom: 3px;
   }
-  .adv-cell-label { font-size: 9px; color: var(--muted); letter-spacing: .04em; }
+  .adv-cell-label { font-size: 9px; color: var(--text-2); letter-spacing: .04em; }
 
   /* ── CHART CARD ── */
-  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+  .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
 
   .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .chart-title { font-size: 13px; font-weight: 700; }
   .chart-legend { display: flex; gap: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-2); }
   .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
 
   .chart-container { position: relative; height: 180px; }
@@ -318,15 +227,15 @@
   .chart-tab {
     flex: 1;
     padding: 7px;
-    background: var(--bg3); border: 1px solid var(--border);
+    background: var(--bg-elevated); border: 1px solid var(--border);
     border-radius: 8px; font-size: 11px; font-weight: 600;
-    color: var(--muted); cursor: pointer; text-align: center;
+    color: var(--text-2); cursor: pointer; text-align: center;
     transition: all .15s;
   }
-  .chart-tab.active { background: rgba(240,180,41,.15); border-color: var(--gold); color: var(--gold); }
+  .chart-tab.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
 
   /* ── HISTORY TABLE ── */
-  .history-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .history-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
 
   .history-header {
     padding: 16px 18px 12px;
@@ -334,31 +243,31 @@
     border-bottom: 1px solid var(--border);
   }
   .history-title { font-size: 13px; font-weight: 700; }
-  .history-count { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+  .history-count { font-family: var(--font-mono); font-size:10px; color:var(--text-2); }
 
   .history-table { width: 100%; border-collapse: collapse; }
   .history-table thead th {
     padding: 8px 14px;
-    font-family:'JetBrains Mono',monospace;
-    font-size: 9px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-2);
     text-align: right; border-bottom: 1px solid var(--border);
-    background: var(--bg3);
+    background: var(--bg-elevated);
   }
   .history-table thead th:first-child { text-align: left; }
 
   .history-table tbody tr {
-    border-bottom: 1px solid rgba(42,42,56,.5);
+    border-bottom: 1px solid rgba(255,255,255,.03);
     transition: background .15s;
   }
   .history-table tbody tr:last-child { border-bottom: none; }
-  .history-table tbody tr:active { background: rgba(240,180,41,.04); }
+  .history-table tbody tr:active { background: rgba(212,168,67,.04); }
 
   .history-table td {
     padding: 10px 14px;
-    font-family:'JetBrains Mono',monospace;
-    font-size: 12px; text-align: right; color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px; text-align: right; color: var(--text-1);
   }
-  .history-table td:first-child { text-align: left; color: var(--muted); font-size: 11px; }
+  .history-table td:first-child { text-align: left; color: var(--text-2); font-size: 11px; }
 
   .td-bcv   { color: #3b9eff !important; }
   .td-para  { color: #b084ff !important; }
@@ -371,65 +280,6 @@
     background: rgba(59,158,255,.12); color: #3b9eff; letter-spacing:.06em;
   }
 
-  /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: calc(90px + var(--safe-bot)); left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 20px;
-    font-size: 13px; font-weight: 600;
-    white-space: nowrap; z-index: 200;
-    opacity: 0; transition: opacity .25s, transform .25s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: rgba(0,212,170,.4); color: var(--teal); }
-  .toast.error   { border-color: rgba(255,77,109,.4); color: var(--red); }
-
-  /* ── BOTTOM NAV ── */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(10,10,15,.92);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    padding: 10px 0 calc(10px + var(--safe-bot));
-    display: flex; z-index: 90;
-  }
-  .nav-item {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; gap: 3px;
-    font-size: 9px; font-weight: 600; letter-spacing:.06em;
-    color: var(--muted); cursor: pointer; transition: color .15s;
-    text-transform: uppercase;
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .nav-item.active { color: var(--gold); }
-  .nav-icon { font-size: 20px; }
-
-  /* ── SOURCE PICKER ── */
-  .source-row {
-    display: flex; gap: 8px; margin-top: 4px;
-  }
-  .source-btn {
-    flex: 1; padding: 10px 6px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--bg3);
-    color: var(--muted); font-size: 11px; font-weight: 600;
-    cursor: pointer; text-align: center; transition: all .15s;
-    font-family: 'Syne', sans-serif;
-  }
-  .source-btn.active {
-    border-color: var(--gold); background: rgba(240,180,41,.1); color: var(--gold);
-  }
-
-  /* ── FADE IN ── */
-  .fade-in { animation: fadeUp .4s ease both; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
-  .fade-in:nth-child(2){animation-delay:.05s}
-  .fade-in:nth-child(3){animation-delay:.1s}
-  .fade-in:nth-child(4){animation-delay:.15s}
-  .fade-in:nth-child(5){animation-delay:.2s}
-  .fade-in:nth-child(6){animation-delay:.25s}
-
   /* ── TICKER ── */
   .ticker-bar {
     display: flex; gap: 24px; overflow: hidden;
@@ -438,24 +288,73 @@
     position: relative;
   }
   .ticker-inner { display: flex; gap: 32px; animation: ticker 18s linear infinite; white-space: nowrap; }
-  .ticker-item { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+  .ticker-item { font-family: var(--font-mono); font-size:10px; color:var(--text-2); }
   .ticker-item strong { color: var(--gold); }
   .ticker-item.up { color: var(--teal); }
   .ticker-item.down { color: var(--red); }
-  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE — Rates page
+  ═══════════════════════════════════════ */
+  @media (min-width: 640px) {
+    .rates-grid {
+      gap: 14px;
+    }
+    .rate-cell-value {
+      font-size: 26px;
+    }
+    .rate-mine-value {
+      font-size: 32px;
+    }
+    .chart-container {
+      height: 220px;
+    }
+    .adv-main {
+      font-size: 48px;
+    }
+    .history-table td {
+      font-size: 13px;
+      padding: 12px 16px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .rates-grid {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .rates-grid .rate-mine-wrap {
+      grid-column: span 1;
+    }
+    .chart-container {
+      height: 260px;
+    }
+    .adv-grid {
+      gap: 12px;
+    }
+    .adv-cell {
+      padding: 14px 10px;
+    }
+    .input-row-inline {
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+  }
 </style>
 </head>
 
 <body>
 
 <!-- HEADER -->
-<div class="header">
-  <div class="header-left">
-    <span class="app-eyebrow">VenFinance · v1.0</span>
-    <h1>Tasas</h1>
+<header class="app-header">
+  <div class="app-header-inner">
+    <div>
+      <span class="app-eyebrow">VenFinance · v1.0</span>
+      <h1 style="font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1;background:linear-gradient(90deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Tasas</h1>
+    </div>
+    <div class="header-date" id="headerDate">--</div>
   </div>
-  <div class="header-date" id="headerDate">--</div>
-</div>
+</header>
 
 <!-- TICKER -->
 <div class="ticker-bar">
@@ -478,10 +377,10 @@
 </div>
 
 <!-- MAIN CONTENT -->
-<div class="content">
+<div class="content app-container">
 
   <!-- CURRENT RATES DISPLAY -->
-  <div class="card fade-in">
+  <div class="card fade-in" style="padding:18px;">
     <div class="card-label">Tasas Vigentes</div>
     <div class="rates-grid">
       <div class="rate-cell bcv" id="cellBCV">
@@ -499,12 +398,12 @@
           <div class="rate-mine-icon">💎</div>
           <div class="rate-mine-info">
             <div class="rate-mine-label">Mi Tasa de Compra</div>
-            <div class="rate-mine-value" id="dispMine">--<span style="font-size:14px;color:var(--gold-dim)"> Bs/$</span></div>
+            <div class="rate-mine-value" id="dispMine">--<span style="font-size:14px;color:var(--gold);opacity:.5"> Bs/$</span></div>
             <div class="rate-mine-sub" id="dispMineDate">sin datos</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace">SPREAD</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--teal)" id="dispSpread">--%</div>
+            <div style="font-size:9px;color:var(--text-2);font-family:var(--font-mono)">SPREAD</div>
+            <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--teal)" id="dispSpread">--%</div>
           </div>
         </div>
       </div>
@@ -512,12 +411,12 @@
   </div>
 
   <!-- INGRESO DE TASAS -->
-  <div class="card fade-in">
+  <div class="card fade-in" style="padding:18px;">
     <div class="card-label">Actualizar Tasas</div>
 
     <!-- Source selector -->
     <div style="margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Fuente BCV</div>
+      <div style="font-size:10px;font-weight:600;color:var(--text-2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Fuente BCV</div>
       <div class="source-row">
         <button class="source-btn active" id="srcManual" onclick="setSource('manual')">✏️ Manual</button>
         <button class="source-btn" id="srcAuto" onclick="setSource('auto')">🌐 Auto BCV</button>
@@ -628,7 +527,7 @@
         </tr>
       </thead>
       <tbody id="historyBody">
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">Sin registros</td></tr>
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;">Sin registros</td></tr>
       </tbody>
     </table>
   </div>
@@ -637,15 +536,20 @@
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <a href="index.html" class="nav-item">
-    <span class="nav-icon">💸</span>Gastos
-  </a>
-  <a href="dashboard.html" class="nav-item">
-    <span class="nav-icon">📊</span>Dashboard
-  </a>
-  <a href="rates.html" class="nav-item active">
-    <span class="nav-icon">💱</span>Tasas
-  </a>
+  <div class="bottom-nav-inner">
+    <a href="index.html">
+      <span class="nav-icon">💸</span>
+      <span class="nav-label">Gastos</span>
+    </a>
+    <a href="dashboard.html">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="rates.html" class="active">
+      <span class="nav-icon">💱</span>
+      <span class="nav-label">Tasas</span>
+    </a>
+  </div>
 </nav>
 
 <!-- TOAST -->
@@ -927,7 +831,7 @@ function renderCurrentRates() {
 
   document.getElementById('dispBCV').innerHTML  = `${fmt(last.tasa_bcv)}<span> Bs/$</span>`;
   document.getElementById('dispPara').innerHTML = `${fmt(last.tasa_paralelo)}<span> Bs/$</span>`;
-  document.getElementById('dispMine').innerHTML = `${fmt(last.tasa_mi_compra)}<span style="font-size:14px;color:var(--gold-dim)"> Bs/$</span>`;
+  document.getElementById('dispMine').innerHTML = `${fmt(last.tasa_mi_compra)}<span style="font-size:14px;color:var(--gold);opacity:.5"> Bs/$</span>`;
   document.getElementById('dispBCVDate').textContent  = formatDate(last.fecha);
   document.getElementById('dispParaDate').textContent = formatDate(last.fecha);
   document.getElementById('dispMineDate').textContent = formatDate(last.fecha);
@@ -1008,11 +912,11 @@ function renderChart() {
         {
           label: 'Mi Tasa',
           data: mineData,
-          borderColor: '#f0b429',
-          backgroundColor: 'rgba(240,180,41,.07)',
+          borderColor: '#D4A843',
+          backgroundColor: 'rgba(212,168,67,.07)',
           borderWidth: 2,
           pointRadius: filtered.length > 20 ? 0 : 3,
-          pointBackgroundColor: '#f0b429',
+          pointBackgroundColor: '#D4A843',
           tension: 0.3,
           fill: false,
         },
@@ -1025,11 +929,11 @@ function renderChart() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#18181f',
-          borderColor: '#2a2a38',
+          backgroundColor: '#13131F',
+          borderColor: 'rgba(255,255,255,0.07)',
           borderWidth: 1,
-          titleColor: '#6b6b80',
-          bodyColor: '#e8e8f0',
+          titleColor: '#9B98A8',
+          bodyColor: '#F0EDE8',
           titleFont: { family: 'JetBrains Mono', size: 10 },
           bodyFont:  { family: 'JetBrains Mono', size: 12, weight: '700' },
           padding: 10,
@@ -1040,15 +944,15 @@ function renderChart() {
       },
       scales: {
         x: {
-          grid: { color: 'rgba(42,42,56,.5)', drawTicks: false },
+          grid: { color: 'rgba(255,255,255,.04)', drawTicks: false },
           border: { display: false },
-          ticks: { color: '#6b6b80', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0 },
+          ticks: { color: '#5C596A', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0 },
         },
         y: {
-          grid: { color: 'rgba(42,42,56,.5)', drawTicks: false },
+          grid: { color: 'rgba(255,255,255,.04)', drawTicks: false },
           border: { display: false },
           ticks: {
-            color: '#6b6b80',
+            color: '#5C596A',
             font: { family: 'JetBrains Mono', size: 9 },
             callback: v => v.toFixed(0),
           },
@@ -1065,7 +969,7 @@ function renderHistory() {
   document.getElementById('histCount').textContent = `${sorted.length} registros`;
 
   if (!sorted.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">Sin registros</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;">Sin registros</td></tr>`;
     return;
   }
 
