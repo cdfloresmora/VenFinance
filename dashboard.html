@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VenFinance">
+<meta name="theme-color" content="#080D1A">
+<title>VenFinance — Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+  :root {
+    --bg: #080D1A;
+    --surface: #0F1729;
+    --surface2: #162035;
+    --border: rgba(255,255,255,0.07);
+    --teal: #00D4AA;
+    --teal-dim: rgba(0,212,170,0.12);
+    --gold: #F4C142;
+    --gold-dim: rgba(244,193,66,0.12);
+    --coral: #FF6B6B;
+    --coral-dim: rgba(255,107,107,0.12);
+    --blue: #4F8EF7;
+    --text: #EEF2FF;
+    --muted: #8892A4;
+    --muted2: #4A5568;
+    --safe: #1a3a2e;
+    --safe-border: rgba(0,212,170,0.25);
+
+    --cat-comida: #EF4444;
+    --cat-transporte: #F59E0B;
+    --cat-hogar: #3B82F6;
+    --cat-salud: #10B981;
+    --cat-ocio: #8B5CF6;
+    --cat-ropa: #EC4899;
+    --cat-servicios: #06B6D4;
+    --cat-educacion: #6366F1;
+    --cat-mascotas: #84CC16;
+    --cat-otros: #6B7280;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    background: var(--bg);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    padding: env(safe-area-inset-top, 0) 20px 0;
+    background: rgba(8,13,26,0.82);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
+  }
+
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+
+  .logo span { color: var(--teal); }
+
+  .header-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .month-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .avatar {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, var(--gold), var(--coral));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--bg);
+  }
+
+  /* ── SCROLL CONTAINER ── */
+  main {
+    position: relative; z-index: 1;
+    padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 16px;
+    max-width: 480px; margin: 0 auto;
+  }
+
+  /* ── GREETING ── */
+  .greeting {
+    padding: 4px 0 8px;
+  }
+
+  .greeting-sub {
+    font-size: 12px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .greeting-main {
+    font-size: 22px; font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .greeting-main .highlight {
+    background: linear-gradient(90deg, var(--teal), var(--blue));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card-glow-teal::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(0,212,170,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-glow-gold::before {
+    content: '';
+    position: absolute; top: -40px; left: -40px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(244,193,66,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 0;
+  }
+
+  .card-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .card-badge {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-weight: 500;
+  }
+
+  .badge-teal { background: var(--teal-dim); color: var(--teal); }
+  .badge-gold { background: var(--gold-dim); color: var(--gold); }
+  .badge-coral { background: var(--coral-dim); color: var(--coral); }
+
+  /* ── BIG SPENDABLE CARD ── */
+  .spendable-card {
+    background: linear-gradient(145deg, #0F1D35 0%, #0A1525 100%);
+    border: 1px solid rgba(79,142,247,0.2);
+  }
+
+  .spendable-card::after {
+    content: '';
+    position: absolute; bottom: -20px; right: -20px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .spendable-inner {
+    padding: 20px;
+    position: relative; z-index: 1;
+  }
+
+  .spendable-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 52px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin: 12px 0 6px;
+    background: linear-gradient(135deg, #fff 0%, var(--teal) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .spendable-amount .dollar { font-size: 28px; opacity: 0.7; vertical-align: super; }
+
+  .spendable-desc {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .spendable-meta {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .meta-item {
+    background: rgba(255,255,255,0.03);
+    padding: 12px 10px;
+    text-align: center;
+  }
+
+  .meta-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; font-weight: 500;
+    color: var(--text);
+    display: block; margin-bottom: 3px;
+  }
+
+  .meta-key {
+    font-size: 9px; color: var(--muted2);
+    letter-spacing: 0.8px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    padding: 0 20px 18px;
+  }
+
+  .progress-header {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute; right: -1px; top: 50%;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: inherit;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .fill-safe { background: linear-gradient(90deg, var(--teal), #00B8E6); }
+  .fill-warn { background: linear-gradient(90deg, var(--gold), var(--coral)); }
+  .fill-danger { background: linear-gradient(90deg, var(--coral), #FF2E2E); }
+
+  /* ── RATE CARD ── */
+  .rate-card {
+    padding: 20px;
+  }
+
+  .rate-grid {
+    display: grid; grid-template-columns: 1fr 1px 1fr;
+    gap: 0; margin-top: 16px;
+  }
+
+  .rate-divider {
+    background: var(--border);
+    align-self: stretch; margin: 8px 0;
+  }
+
+  .rate-block {
+    padding: 0 16px;
+    text-align: center;
+  }
+
+  .rate-block:first-child { padding-left: 0; }
+  .rate-block:last-child { padding-right: 0; }
+
+  .rate-label {
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 1px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .rate-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px; font-weight: 500;
+    line-height: 1;
+    display: block;
+  }
+
+  .rate-unit {
+    font-size: 11px; color: var(--muted);
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .ventaja-banner {
+    margin-top: 16px;
+    background: linear-gradient(135deg, var(--teal-dim), rgba(79,142,247,0.08));
+    border: 1px solid var(--safe-border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .ventaja-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px; font-weight: 500;
+    color: var(--teal);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .ventaja-info {
+    flex: 1;
+  }
+
+  .ventaja-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text); margin-bottom: 2px;
+  }
+
+  .ventaja-sub {
+    font-size: 11px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    line-height: 1.4;
+  }
+
+  /* ── MONTHLY SUMMARY ── */
+  .summary-grid {
+    display: grid; grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 16px 20px 20px;
+  }
+
+  .summary-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.02);
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .summary-row:hover { background: rgba(255,255,255,0.04); }
+
+  .summary-left {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1;
+  }
+
+  .summary-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+
+  .summary-name {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    display: block; margin-bottom: 1px;
+  }
+
+  .summary-sub {
+    font-size: 11px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .summary-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px; font-weight: 500;
+    color: var(--text);
+    text-align: right;
+  }
+
+  .summary-val small {
+    display: block;
+    font-size: 10px; color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* ── CHARTS ── */
+  .chart-wrap {
+    padding: 16px 20px 20px;
+  }
+
+  .chart-title {
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 16px; color: var(--text);
+  }
+
+  .donut-layout {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .donut-canvas-wrap {
+    width: 150px; height: 150px; flex-shrink: 0;
+    position: relative;
+  }
+
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+
+  .donut-center-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px; font-weight: 500;
+    color: var(--text); line-height: 1;
+  }
+
+  .donut-center-label {
+    font-size: 9px; color: var(--muted);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .legend-list {
+    flex: 1; display: flex; flex-direction: column; gap: 7px;
+  }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0;
+  }
+
+  .legend-name {
+    font-size: 12px; color: var(--muted);
+    flex: 1; font-weight: 500;
+  }
+
+  .legend-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--text);
+  }
+
+  /* ── BAR CHART ── */
+  .bar-canvas-wrap { width: 100%; height: 180px; }
+
+  /* ── BOTTOM NAV ── */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(8,13,26,0.9);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+    z-index: 100;
+  }
+
+  .nav-inner {
+    display: flex;
+    max-width: 480px; margin: 0 auto;
+  }
+
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 8px;
+    gap: 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+  }
+
+  .nav-item:active { opacity: 0.6; }
+
+  .nav-icon {
+    font-size: 20px;
+    filter: grayscale(1) opacity(0.45);
+    transition: filter 0.2s, transform 0.2s;
+  }
+
+  .nav-label {
+    font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--muted2); font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    transition: color 0.2s;
+  }
+
+  .nav-item.active .nav-icon { filter: none; transform: scale(1.15); }
+  .nav-item.active .nav-label { color: var(--teal); }
+
+  /* bottom nav padding */
+  main { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0,212,170,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); }
+  }
+
+  .animate-in {
+    animation: fadeUp 0.5s cubic-bezier(.4,0,.2,1) both;
+  }
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.10s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.20s; }
+  .delay-5 { animation-delay: 0.25s; }
+
+  /* loading state */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.05) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 4px 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: var(--border);
+  }
+
+  /* status dot */
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: pulse-ring 2s infinite;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">₿</div>
+      Ven<span>Finance</span>
+    </div>
+    <div class="header-right">
+      <div class="month-badge" id="monthBadge">MAR 2025</div>
+      <div class="avatar" id="userAvatar">C</div>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- Greeting -->
+  <div class="greeting animate-in">
+    <div class="greeting-sub">Bienvenido de vuelta</div>
+    <div class="greeting-main">Hola, <span class="highlight" id="userName">Carlos</span> 👋</div>
+  </div>
+
+  <!-- ① BIG SPENDABLE CARD -->
+  <div class="card spendable-card animate-in delay-1">
+    <div class="card-header">
+      <span class="card-label">Puedes gastar hoy</span>
+      <span class="card-badge badge-teal" id="daysLeftBadge">12 días restantes</span>
+    </div>
+    <div class="spendable-inner">
+      <div class="spendable-amount">
+        <span class="dollar">$</span><span id="spendableAmount">26.45</span>
+      </div>
+      <div class="spendable-desc">Presupuesto diario disponible (tasa BCV)</div>
+
+      <div class="spendable-meta">
+        <div class="meta-item">
+          <span class="meta-val" id="metaBudget">$800</span>
+          <span class="meta-key">Presupuesto</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-val" id="metaSpent">$482</span>
+          <span class="meta-key">Gastado</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-val" id="metaLeft">$318</span>
+          <span class="meta-key">Disponible</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Presupuesto del mes</span>
+        <span id="progressPct">60.3%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill fill-safe" id="budgetBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ TASA DEL DÍA -->
+  <div class="section-label animate-in delay-2">
+    <div class="live-dot"></div>
+    Tasa del día
+  </div>
+
+  <div class="card card-glow-gold animate-in delay-2">
+    <div class="rate-card">
+      <div class="card-header" style="padding:0 0 0 0;">
+        <span class="card-label">Tasas de cambio</span>
+        <span class="card-badge badge-gold" id="rateDate">02 mar 2025</span>
+      </div>
+
+      <div class="rate-grid">
+        <div class="rate-block" style="text-align:center;">
+          <div class="rate-label">Tasa BCV</div>
+          <span class="rate-value" id="rateBcv" style="color: var(--text);">411.00</span>
+          <div class="rate-unit">Bs / $</div>
+        </div>
+        <div class="rate-divider"></div>
+        <div class="rate-block" style="text-align:center;">
+          <div class="rate-label">Mi tasa real</div>
+          <span class="rate-value" id="rateMine" style="color: var(--gold);">605.00</span>
+          <div class="rate-unit">Bs / $</div>
+        </div>
+      </div>
+
+      <div class="ventaja-banner">
+        <div class="ventaja-pct" id="ventajaPct">+47.2%</div>
+        <div class="ventaja-info">
+          <div class="ventaja-title">Ventaja cambiaria</div>
+          <div class="ventaja-sub" id="ventajaDesc">Tu $1 equivale a $1.47 a tasa BCV<br>Diferencia: 194 Bs por dólar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ RESUMEN MENSUAL -->
+  <div class="section-label animate-in delay-3">Resumen mensual</div>
+
+  <div class="card animate-in delay-3">
+    <div class="card-header">
+      <span class="card-label">Total gastado</span>
+      <span class="card-badge badge-coral" id="txCount">3 transacciones</span>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-row">
+        <div class="summary-left">
+          <div class="summary-icon" style="background:rgba(244,193,66,0.1);">🇻🇪</div>
+          <div>
+            <span class="summary-name">Total en Bolívares</span>
+            <span class="summary-sub">Monto real pagado</span>
+          </div>
+        </div>
+        <div class="summary-val" id="totalBs">
+          Bs 18,450
+          <small>moneda local</small>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-left">
+          <div class="summary-icon" style="background:rgba(79,142,247,0.1);">🏛️</div>
+          <div>
+            <span class="summary-name">Equiv. $ (tasa BCV)</span>
+            <span class="summary-sub">A tasa oficial del comercio</span>
+          </div>
+        </div>
+        <div class="summary-val" id="totalUsdOficial">
+          $45.00
+          <small>tasa BCV ~411</small>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-left">
+          <div class="summary-icon" style="background:rgba(0,212,170,0.1);">💡</div>
+          <div>
+            <span class="summary-name">Equiv. $ (mi tasa real)</span>
+            <span class="summary-sub">Lo que realmente costó</span>
+          </div>
+        </div>
+        <div class="summary-val" id="totalUsdReal" style="color:var(--teal)">
+          $30.50
+          <small>tasa real ~605</small>
+        </div>
+      </div>
+
+      <div class="summary-row" style="background:rgba(0,212,170,0.04); border-top: 1px solid var(--safe-border);">
+        <div class="summary-left">
+          <div class="summary-icon" style="background:rgba(0,212,170,0.15);">⚡</div>
+          <div>
+            <span class="summary-name" style="color:var(--teal)">Ventaja acumulada</span>
+            <span class="summary-sub">Poder adquisitivo extra</span>
+          </div>
+        </div>
+        <div class="summary-val" id="ventajaTotal" style="color:var(--teal)">
+          +$14.50
+          <small>este mes</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ① DONUT: GASTOS POR CATEGORÍA -->
+  <div class="section-label animate-in delay-4">Gastos por categoría</div>
+
+  <div class="card animate-in delay-4">
+    <div class="chart-wrap">
+      <div class="donut-layout">
+        <div class="donut-canvas-wrap">
+          <canvas id="donutChart"></canvas>
+          <div class="donut-center">
+            <span class="donut-center-val" id="donutTotal">$45</span>
+            <span class="donut-center-label">este mes</span>
+          </div>
+        </div>
+        <ul class="legend-list" id="donutLegend"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② BAR CHART: GASTO DIARIO -->
+  <div class="section-label animate-in delay-5">Gasto diario vs presupuesto</div>
+
+  <div class="card animate-in delay-5">
+    <div class="chart-wrap">
+      <div class="bar-canvas-wrap">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── BOTTOM NAV ── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-item active">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">💸</span>
+      <span class="nav-label">Gastos</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">➕</span>
+      <span class="nav-icon" style="font-size:28px;filter:none;background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:-4px 0">⊕</span>
+      <span class="nav-label">Nuevo</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Análisis</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Ajustes</span>
+    </div>
+  </div>
+</nav>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   VenFinance Dashboard — Data Layer + Charts
+   Replace loadFromSheets() with real Google Sheets API call
+   ════════════════════════════════════════════════════════════════ */
+
+// ─── MOCK DATA (mirrors Google Sheets schema) ──────────────────
+const MOCK_DATA = {
+  config: {
+    presupuesto_mensual_usd: 800,
+    nombre_usuario: "Carlos",
+    dia_corte_mes: 1,
+    alerta_presupuesto_pct: 80
+  },
+  tasas: [
+    { fecha: "2025-02-28", tasa_bcv: 408.25, tasa_paralelo: 420.0, tasa_mi_compra: 590, spread_bcv: 181.75, spread_pct: 0.445 },
+    { fecha: "2025-03-01", tasa_bcv: 410.50, tasa_paralelo: 425.0, tasa_mi_compra: 600, spread_bcv: 189.50, spread_pct: 0.462 },
+    { fecha: "2025-03-02", tasa_bcv: 411.00, tasa_paralelo: 426.5, tasa_mi_compra: 605, spread_bcv: 194.00, spread_pct: 0.472 }
+  ],
+  gastos: [
+    { id:"g1", fecha:"2025-03-01", descripcion:"Almuerzo restaurante", categoria:"Comida",     moneda_pago:"Bs",  monto_original:4100,  tasa_comercio:410, tasa_mi_compra:600, monto_bs:4100,  monto_usd_oficial:10,   monto_usd_real:6.83,  ventaja_usd:3.17 },
+    { id:"g2", fecha:"2025-03-01", descripcion:"Uber a la oficina",   categoria:"Transporte", moneda_pago:"USD", monto_original:5,     tasa_comercio:410, tasa_mi_compra:600, monto_bs:2050,  monto_usd_oficial:5,    monto_usd_real:3.42,  ventaja_usd:1.58 },
+    { id:"g3", fecha:"2025-03-02", descripcion:"Supermercado",        categoria:"Comida",     moneda_pago:"Bs",  monto_original:12300, tasa_comercio:410, tasa_mi_compra:600, monto_bs:12300, monto_usd_oficial:30,   monto_usd_real:20.50, ventaja_usd:9.50 },
+    { id:"g4", fecha:"2025-03-03", descripcion:"Netflix + Spotify",   categoria:"Servicios",  moneda_pago:"USD", monto_original:18,    tasa_comercio:410, tasa_mi_compra:605, monto_bs:7380,  monto_usd_oficial:18,   monto_usd_real:12.20, ventaja_usd:5.80 },
+    { id:"g5", fecha:"2025-03-04", descripcion:"Farmacia",            categoria:"Salud",      moneda_pago:"Bs",  monto_original:3280,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:3280,  monto_usd_oficial:7.98, monto_usd_real:5.42,  ventaja_usd:2.56 },
+    { id:"g6", fecha:"2025-03-05", descripcion:"Clase de inglés",     categoria:"Educación",  moneda_pago:"USD", monto_original:12,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:4932,  monto_usd_oficial:12,   monto_usd_real:8.15,  ventaja_usd:3.85 },
+    { id:"g7", fecha:"2025-03-06", descripcion:"Gasolina + peaje",    categoria:"Transporte", moneda_pago:"Bs",  monto_original:1640,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:1640,  monto_usd_oficial:3.99, monto_usd_real:2.71,  ventaja_usd:1.28 },
+    { id:"g8", fecha:"2025-03-07", descripcion:"Cine (2 entradas)",   categoria:"Ocio",       moneda_pago:"USD", monto_original:14,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:5754,  monto_usd_oficial:14,   monto_usd_real:9.51,  ventaja_usd:4.49 },
+    { id:"g9", fecha:"2025-03-08", descripcion:"Ropa — C.C. Sambil",  categoria:"Ropa",       moneda_pago:"USD", monto_original:35,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:14385, monto_usd_oficial:35,   monto_usd_real:23.77, ventaja_usd:11.23 },
+    { id:"g10",fecha:"2025-03-09", descripcion:"Almuerzo diario",     categoria:"Comida",     moneda_pago:"Bs",  monto_original:5740,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:5740,  monto_usd_oficial:13.97,monto_usd_real:9.49,  ventaja_usd:4.48 }
+  ],
+  categorias: [
+    { id:"cat_01", nombre:"Comida",     icono:"🍔", color:"#EF4444", presupuesto_usd:150 },
+    { id:"cat_02", nombre:"Transporte", icono:"🚗", color:"#F59E0B", presupuesto_usd:80  },
+    { id:"cat_03", nombre:"Hogar",      icono:"🏠", color:"#3B82F6", presupuesto_usd:200 },
+    { id:"cat_04", nombre:"Salud",      icono:"💊", color:"#10B981", presupuesto_usd:50  },
+    { id:"cat_05", nombre:"Ocio",       icono:"🎮", color:"#8B5CF6", presupuesto_usd:60  },
+    { id:"cat_06", nombre:"Ropa",       icono:"👕", color:"#EC4899", presupuesto_usd:40  },
+    { id:"cat_07", nombre:"Servicios",  icono:"📱", color:"#06B6D4", presupuesto_usd:100 },
+    { id:"cat_08", nombre:"Educación",  icono:"🎓", color:"#6366F1", presupuesto_usd:30  },
+    { id:"cat_09", nombre:"Mascotas",   icono:"🐕", color:"#84CC16", presupuesto_usd:25  },
+    { id:"cat_10", nombre:"Otros",      icono:"❓", color:"#6B7280", presupuesto_usd:50  }
+  ]
+};
+
+// ─── GOOGLE SHEETS LOADER (stub — replace with real API) ──────
+async function loadFromSheets(spreadsheetId) {
+  // TODO: replace with fetch to Google Sheets API v4
+  // const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${API_KEY}`;
+  console.log("📡 Using mock data (connect Google Sheets to go live)");
+  return MOCK_DATA;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+const fmt = (n, d=2) => n.toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtBs = n => 'Bs ' + n.toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtUsd = (n, prefix='$') => prefix + fmt(n);
+const today = () => new Date().toISOString().split('T')[0];
+const daysInMonth = (y,m) => new Date(y,m,0).getDate();
+const getMonth = () => { const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()+1}; };
+
+// ─── CHART.JS GLOBAL DEFAULTS ────────────────────────────────
+Chart.defaults.color = '#8892A4';
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 10;
+
+// ─── MAIN RENDER FUNCTION ────────────────────────────────────
+async function renderDashboard() {
+  const data = await loadFromSheets(null);
+  const { config, tasas, gastos, categorias } = data;
+
+  // Current rates
+  const latestRate = tasas[tasas.length - 1];
+  const { tasa_bcv, tasa_mi_compra, spread_bcv } = latestRate;
+  const ventajaPct = ((tasa_mi_compra - tasa_bcv) / tasa_bcv * 100).toFixed(1);
+
+  // Greeting
+  document.getElementById('userName').textContent = config.nombre_usuario;
+  document.getElementById('userAvatar').textContent = config.nombre_usuario[0];
+
+  // Month badge
+  const now = new Date();
+  document.getElementById('monthBadge').textContent =
+    now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + now.getFullYear();
+
+  // ── ④ TASA DEL DÍA ──────────────────────────────────────────
+  document.getElementById('rateBcv').textContent = fmt(tasa_bcv);
+  document.getElementById('rateMine').textContent = fmt(tasa_mi_compra);
+  document.getElementById('ventajaPct').textContent = '+' + ventajaPct + '%';
+  document.getElementById('ventajaDesc').innerHTML =
+    `Tu $1 vale <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> a tasa BCV<br>` +
+    `Diferencia: <strong>${fmt(spread_bcv,0)} Bs</strong> por dólar`;
+
+  const rateD = new Date(latestRate.fecha + 'T12:00:00');
+  document.getElementById('rateDate').textContent =
+    rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
+
+  // ── ⑤ RESUMEN MENSUAL ───────────────────────────────────────
+  const {y, m} = getMonth();
+  const monthStr = `${y}-${String(m).padStart(2,'0')}`;
+  const monthGastos = gastos.filter(g => g.fecha.startsWith(monthStr));
+
+  const totalBs     = monthGastos.reduce((s,g) => s + g.monto_bs, 0);
+  const totalOficial= monthGastos.reduce((s,g) => s + g.monto_usd_oficial, 0);
+  const totalReal   = monthGastos.reduce((s,g) => s + g.monto_usd_real, 0);
+  const totalVent   = monthGastos.reduce((s,g) => s + g.ventaja_usd, 0);
+
+  document.getElementById('totalBs').innerHTML =
+    fmtBs(totalBs) + `<small>moneda local</small>`;
+  document.getElementById('totalUsdOficial').innerHTML =
+    fmtUsd(totalOficial) + `<small>tasa BCV ~${fmt(tasa_bcv,0)}</small>`;
+  document.getElementById('totalUsdReal').innerHTML =
+    fmtUsd(totalReal) + `<small>tasa real ~${fmt(tasa_mi_compra,0)}</small>`;
+  document.getElementById('ventajaTotal').innerHTML =
+    `+${fmtUsd(totalVent)}<small>este mes</small>`;
+  document.getElementById('txCount').textContent = `${monthGastos.length} transacciones`;
+
+  // ── ① SPENDABLE TODAY ───────────────────────────────────────
+  const budget = config.presupuesto_mensual_usd;
+  const dTotal = daysInMonth(y, m);
+  const dToday = now.getDate();
+  const dLeft  = dTotal - dToday + 1;
+  const spentUsd = totalOficial;
+  const leftUsd  = Math.max(0, budget - spentUsd);
+  const spendableToday = leftUsd / dLeft;
+  const pct = Math.min(100, (spentUsd / budget * 100));
+
+  document.getElementById('spendableAmount').textContent = fmt(spendableToday);
+  document.getElementById('daysLeftBadge').textContent = `${dLeft} días restantes`;
+  document.getElementById('metaBudget').textContent = fmtUsd(budget, '$');
+  document.getElementById('metaSpent').textContent = fmtUsd(spentUsd, '$');
+  document.getElementById('metaLeft').textContent = fmtUsd(leftUsd, '$');
+  document.getElementById('progressPct').textContent = pct.toFixed(1) + '%';
+
+  const bar = document.getElementById('budgetBar');
+  const fillClass = pct < config.alerta_presupuesto_pct ? 'fill-safe'
+    : pct < 95 ? 'fill-warn' : 'fill-danger';
+  bar.className = `progress-fill ${fillClass}`;
+  setTimeout(() => bar.style.width = pct + '%', 200);
+
+  // ── ① DONUT: GASTOS POR CATEGORÍA ──────────────────────────
+  const catMap = {};
+  categorias.forEach(c => catMap[c.nombre] = { ...c, total: 0 });
+  monthGastos.forEach(g => {
+    if (catMap[g.categoria]) catMap[g.categoria].total += g.monto_usd_oficial;
+  });
+
+  const activeCats = Object.values(catMap).filter(c => c.total > 0);
+  activeCats.sort((a,b) => b.total - a.total);
+
+  document.getElementById('donutTotal').textContent = fmtUsd(totalOficial, '$');
+
+  const donutCtx = document.getElementById('donutChart').getContext('2d');
+  new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: activeCats.map(c => c.nombre),
+      datasets: [{
+        data: activeCats.map(c => c.total),
+        backgroundColor: activeCats.map(c => c.color),
+        borderColor: '#0F1729',
+        borderWidth: 3,
+        hoverBorderWidth: 3,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#162035',
+        titleColor: '#EEF2FF',
+        bodyColor: '#8892A4',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 12,
+        callbacks: {
+          label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalOficial*100).toFixed(1)}%)`
+        }
+      }},
+      animation: { animateRotate: true, duration: 900 }
+    }
+  });
+
+  // Donut legend
+  const legend = document.getElementById('donutLegend');
+  legend.innerHTML = activeCats.map(c => `
+    <li class="legend-item">
+      <span class="legend-dot" style="background:${c.color}"></span>
+      <span class="legend-name">${c.icono} ${c.nombre}</span>
+      <span class="legend-amount">$${fmt(c.total)}</span>
+    </li>
+  `).join('');
+
+  // ── ② BAR CHART: GASTO DIARIO vs IDEAL ──────────────────────
+  const dailyIdeal = budget / dTotal;
+  const dailyTotals = {};
+  monthGastos.forEach(g => {
+    const day = parseInt(g.fecha.split('-')[2]);
+    dailyTotals[day] = (dailyTotals[day] || 0) + g.monto_usd_oficial;
+  });
+
+  const days = Array.from({length: dToday}, (_,i) => i+1);
+  const actualData = days.map(d => dailyTotals[d] || 0);
+  const idealData  = days.map(() => dailyIdeal);
+
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: days.map(d => d + '/' + m),
+      datasets: [
+        {
+          label: 'Gastado',
+          data: actualData,
+          backgroundColor: actualData.map(v =>
+            v <= dailyIdeal ? 'rgba(0,212,170,0.75)' :
+            v <= dailyIdeal * 1.3 ? 'rgba(244,193,66,0.75)' : 'rgba(255,107,107,0.75)'
+          ),
+          borderColor: actualData.map(v =>
+            v <= dailyIdeal ? 'rgba(0,212,170,1)' :
+            v <= dailyIdeal * 1.3 ? 'rgba(244,193,66,1)' : 'rgba(255,107,107,1)'
+          ),
+          borderWidth: 1,
+          borderRadius: 6,
+          borderSkipped: false,
+        },
+        {
+          label: 'Ideal',
+          data: idealData,
+          type: 'line',
+          borderColor: 'rgba(79,142,247,0.6)',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0,
+          fill: false,
+          order: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#162035',
+          titleColor: '#EEF2FF',
+          bodyColor: '#8892A4',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 12,
+          callbacks: {
+            title: items => `Día ${items[0].label}`,
+            label: ctx => ctx.dataset.label === 'Gastado'
+              ? ` Gastado: $${fmt(ctx.parsed.y)}`
+              : ` Ideal: $${fmt(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+          border: { display: false },
+          ticks: { maxRotation: 0, color: '#4A5568', font: { size: 9 },
+            maxTicksLimit: 10 }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+          border: { display: false },
+          ticks: { color: '#4A5568', font: { size: 9 },
+            callback: v => '$' + v.toFixed(0) }
+        }
+      }
+    }
+  });
+}
+
+// ─── NAV INTERACTION ─────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach((item, idx) => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+// ─── BOOT ────────────────────────────────────────────────────
+renderDashboard();
+</script>
+</body>
+</html>

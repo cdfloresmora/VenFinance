@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VenFinance">
+<meta name="theme-color" content="#0a0a0f">
+<title>VenFinance — Tasas</title>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:        #0a0a0f;
+    --bg2:       #111118;
+    --bg3:       #18181f;
+    --border:    #2a2a38;
+    --gold:      #f0b429;
+    --gold-dim:  #a07818;
+    --teal:      #00d4aa;
+    --red:       #ff4d6d;
+    --text:      #e8e8f0;
+    --muted:     #6b6b80;
+    --card-glow: rgba(240,180,41,0.08);
+    --safe-top:  env(safe-area-inset-top, 0px);
+    --safe-bot:  env(safe-area-inset-bottom, 0px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { background: var(--bg); }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    padding-bottom: calc(80px + var(--safe-bot));
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.4;
+  }
+
+  /* ── TOP SCANLINE ── */
+  body::after {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: scanPulse 3s ease-in-out infinite;
+    z-index: 100;
+  }
+  @keyframes scanPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    padding: calc(var(--safe-top) + 14px) 20px 14px;
+    background: linear-gradient(180deg, var(--bg) 70%, transparent);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+
+  .app-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: .18em;
+    color: var(--gold); text-transform: uppercase; opacity: .7;
+  }
+
+  .header h1 {
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -.02em; line-height: 1;
+    background: linear-gradient(90deg, var(--gold), #ffd700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .header-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted); text-align: right; line-height: 1.5;
+  }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    margin: 0 16px 16px;
+    padding: 10px 14px;
+    background: rgba(255,77,109,.1);
+    border: 1px solid rgba(255,77,109,.3);
+    border-radius: 10px;
+    display: flex; align-items: center; gap: 10px;
+    animation: alertPulse 2s ease-in-out infinite;
+  }
+  .alert-banner.hidden { display: none; }
+  @keyframes alertPulse { 0%,100%{border-color:rgba(255,77,109,.3)} 50%{border-color:rgba(255,77,109,.7)} }
+
+  .alert-icon { font-size: 18px; }
+  .alert-text { font-size: 12px; font-weight: 600; color: var(--red); line-height: 1.4; }
+
+  /* ── MAIN CONTENT ── */
+  .content { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 16px;
+    background: var(--card-glow);
+    opacity: 0; transition: opacity .3s;
+  }
+  .card:focus-within::before { opacity: 1; }
+
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: .2em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── RATE DISPLAY ── */
+  .rates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+  .rate-cell {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .rate-cell.active {
+    border-color: var(--gold);
+    background: rgba(240,180,41,.06);
+  }
+
+  .rate-cell-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .06em;
+    color: var(--muted); margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rate-cell-label .dot { width:6px;height:6px;border-radius:50%;background:var(--muted); }
+  .rate-cell.bcv .dot  { background: #3b9eff; }
+  .rate-cell.para .dot { background: #b084ff; }
+  .rate-cell.mine .dot { background: var(--gold); }
+
+  .rate-cell-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 700; line-height: 1;
+    color: var(--text);
+  }
+  .rate-cell-value span { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+
+  .rate-cell-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--muted); margin-top: 4px;
+  }
+
+  /* Span full width for "mine" */
+  .rates-grid .rate-mine-wrap { grid-column: span 2; }
+
+  .rate-mine-card {
+    background: linear-gradient(135deg, rgba(240,180,41,.12), rgba(240,180,41,.04));
+    border: 1px solid rgba(240,180,41,.35);
+    border-radius: 12px; padding: 12px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .rate-mine-icon { font-size: 28px; }
+  .rate-mine-info { flex: 1; }
+  .rate-mine-label { font-size: 10px; font-weight: 600; color: var(--gold-dim); letter-spacing: .06em; }
+  .rate-mine-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px; font-weight: 700; color: var(--gold); line-height: 1;
+  }
+  .rate-mine-sub { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); margin-top:3px; }
+
+  /* ── INPUT SECTION ── */
+  .input-row { display: flex; flex-direction: column; gap: 10px; }
+
+  .input-group {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .input-group label {
+    font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+  }
+  .input-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  input[type="number"], input[type="date"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 500;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus, input[type="date"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(240,180,41,.15);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 10px; margin-top: 4px; }
+
+  .btn {
+    flex: 1;
+    padding: 13px 10px;
+    border-radius: 12px; border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-primary {
+    background: var(--gold); color: #0a0a0f;
+  }
+  .btn-primary:active { background: #d49d20; transform: scale(.97); }
+
+  .btn-secondary {
+    background: var(--bg3); color: var(--text); border: 1px solid var(--border);
+  }
+  .btn-secondary:active { background: var(--border); transform: scale(.97); }
+
+  .btn-fetch {
+    background: linear-gradient(135deg, #0e2a40, #0a1f30);
+    color: #3b9eff; border: 1px solid rgba(59,158,255,.3);
+  }
+  .btn-fetch:active { transform: scale(.97); }
+
+  .btn .spin { display: none; animation: spin .8s linear infinite; }
+  .btn.loading .spin { display: inline; }
+  .btn.loading .label { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ADVANTAGE CARD ── */
+  .advantage-card {
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px;
+    position: relative; overflow: hidden;
+  }
+  .advantage-card::after {
+    content: '';
+    position: absolute; right: -20px; top: -20px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(0,212,170,.12), transparent 70%);
+    border-radius: 50%;
+  }
+
+  .adv-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .adv-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+  .adv-month { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--teal); margin-top:2px; }
+
+  .adv-main {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 40px; font-weight: 700;
+    color: var(--teal); line-height: 1; margin-bottom: 4px;
+  }
+  .adv-main span { font-size: 18px; color: var(--muted); }
+
+  .adv-sub { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-bottom: 16px; }
+
+  .adv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .adv-cell {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 8px;
+    text-align: center;
+  }
+  .adv-cell-val {
+    font-family:'JetBrains Mono',monospace;
+    font-size: 14px; font-weight: 700; color: var(--text);
+    margin-bottom: 3px;
+  }
+  .adv-cell-label { font-size: 9px; color: var(--muted); letter-spacing: .04em; }
+
+  /* ── CHART CARD ── */
+  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chart-title { font-size: 13px; font-weight: 700; }
+  .chart-legend { display: flex; gap: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  .chart-container { position: relative; height: 180px; }
+
+  /* ── TABS ── */
+  .chart-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+  .chart-tab {
+    flex: 1;
+    padding: 7px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 11px; font-weight: 600;
+    color: var(--muted); cursor: pointer; text-align: center;
+    transition: all .15s;
+  }
+  .chart-tab.active { background: rgba(240,180,41,.15); border-color: var(--gold); color: var(--gold); }
+
+  /* ── HISTORY TABLE ── */
+  .history-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+  .history-header {
+    padding: 16px 18px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-title { font-size: 13px; font-weight: 700; }
+  .history-count { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+
+  .history-table { width: 100%; border-collapse: collapse; }
+  .history-table thead th {
+    padding: 8px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size: 9px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+    text-align: right; border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .history-table thead th:first-child { text-align: left; }
+
+  .history-table tbody tr {
+    border-bottom: 1px solid rgba(42,42,56,.5);
+    transition: background .15s;
+  }
+  .history-table tbody tr:last-child { border-bottom: none; }
+  .history-table tbody tr:active { background: rgba(240,180,41,.04); }
+
+  .history-table td {
+    padding: 10px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size: 12px; text-align: right; color: var(--text);
+  }
+  .history-table td:first-child { text-align: left; color: var(--muted); font-size: 11px; }
+
+  .td-bcv   { color: #3b9eff !important; }
+  .td-para  { color: #b084ff !important; }
+  .td-mine  { color: var(--gold) !important; }
+  .td-spread { color: var(--teal) !important; }
+
+  .fuente-badge {
+    display: inline-block;
+    font-size: 8px; padding: 2px 6px; border-radius: 4px;
+    background: rgba(59,158,255,.12); color: #3b9eff; letter-spacing:.06em;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: calc(90px + var(--safe-bot)); left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 20px;
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; z-index: 200;
+    opacity: 0; transition: opacity .25s, transform .25s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(0,212,170,.4); color: var(--teal); }
+  .toast.error   { border-color: rgba(255,77,109,.4); color: var(--red); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 calc(10px + var(--safe-bot));
+    display: flex; z-index: 90;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    font-size: 9px; font-weight: 600; letter-spacing:.06em;
+    color: var(--muted); cursor: pointer; transition: color .15s;
+    text-transform: uppercase;
+  }
+  .nav-item.active { color: var(--gold); }
+  .nav-icon { font-size: 20px; }
+
+  /* ── SOURCE PICKER ── */
+  .source-row {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .source-btn {
+    flex: 1; padding: 10px 6px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--muted); font-size: 11px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all .15s;
+    font-family: 'Syne', sans-serif;
+  }
+  .source-btn.active {
+    border-color: var(--gold); background: rgba(240,180,41,.1); color: var(--gold);
+  }
+
+  /* ── FADE IN ── */
+  .fade-in { animation: fadeUp .4s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .fade-in:nth-child(2){animation-delay:.05s}
+  .fade-in:nth-child(3){animation-delay:.1s}
+  .fade-in:nth-child(4){animation-delay:.15s}
+  .fade-in:nth-child(5){animation-delay:.2s}
+  .fade-in:nth-child(6){animation-delay:.25s}
+
+  /* ── TICKER ── */
+  .ticker-bar {
+    display: flex; gap: 24px; overflow: hidden;
+    padding: 8px 16px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .ticker-inner { display: flex; gap: 32px; animation: ticker 18s linear infinite; white-space: nowrap; }
+  .ticker-item { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+  .ticker-item strong { color: var(--gold); }
+  .ticker-item.up { color: var(--teal); }
+  .ticker-item.down { color: var(--red); }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <span class="app-eyebrow">VenFinance · v1.0</span>
+    <h1>Tasas</h1>
+  </div>
+  <div class="header-date" id="headerDate">--</div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="tickerInner">
+    <span class="ticker-item">BCV <strong id="tk-bcv">--</strong> Bs/$</span>
+    <span class="ticker-item up">Mi Tasa <strong id="tk-mine">--</strong> Bs/$</span>
+    <span class="ticker-item">Spread <strong id="tk-spread">--</strong>%</span>
+    <span class="ticker-item up">Ventaja mes <strong id="tk-adv">--</strong> $</span>
+    <span class="ticker-item">BCV <strong id="tk-bcv2">--</strong> Bs/$</span>
+    <span class="ticker-item up">Mi Tasa <strong id="tk-mine2">--</strong> Bs/$</span>
+    <span class="ticker-item">Spread <strong id="tk-spread2">--</strong>%</span>
+    <span class="ticker-item up">Ventaja mes <strong id="tk-adv2">--</strong> $</span>
+  </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner hidden" id="alertBanner">
+  <span class="alert-icon">⚠️</span>
+  <div class="alert-text">Las tasas de hoy no han sido actualizadas. Ingresa los valores actuales.</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- CURRENT RATES DISPLAY -->
+  <div class="card fade-in">
+    <div class="card-label">Tasas Vigentes</div>
+    <div class="rates-grid">
+      <div class="rate-cell bcv" id="cellBCV">
+        <div class="rate-cell-label"><span class="dot"></span>BCV Oficial</div>
+        <div class="rate-cell-value" id="dispBCV">--<span>Bs/$</span></div>
+        <div class="rate-cell-sub" id="dispBCVDate">sin datos</div>
+      </div>
+      <div class="rate-cell para" id="cellPara">
+        <div class="rate-cell-label"><span class="dot"></span>Paralelo</div>
+        <div class="rate-cell-value" id="dispPara">--<span>Bs/$</span></div>
+        <div class="rate-cell-sub" id="dispParaDate">sin datos</div>
+      </div>
+      <div class="rate-mine-wrap">
+        <div class="rate-mine-card">
+          <div class="rate-mine-icon">💎</div>
+          <div class="rate-mine-info">
+            <div class="rate-mine-label">Mi Tasa de Compra</div>
+            <div class="rate-mine-value" id="dispMine">--<span style="font-size:14px;color:var(--gold-dim)"> Bs/$</span></div>
+            <div class="rate-mine-sub" id="dispMineDate">sin datos</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace">SPREAD</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--teal)" id="dispSpread">--%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INGRESO DE TASAS -->
+  <div class="card fade-in">
+    <div class="card-label">Actualizar Tasas</div>
+
+    <!-- Source selector -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Fuente BCV</div>
+      <div class="source-row">
+        <button class="source-btn active" id="srcManual" onclick="setSource('manual')">✏️ Manual</button>
+        <button class="source-btn" id="srcAuto" onclick="setSource('auto')">🌐 Auto BCV</button>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-row-inline">
+        <div class="input-group">
+          <label>Fecha</label>
+          <input type="date" id="inFecha">
+        </div>
+        <div class="input-group">
+          <label>Tasa BCV (Bs/$)</label>
+          <input type="number" id="inBCV" placeholder="410.50" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="input-row-inline">
+        <div class="input-group">
+          <label>Paralelo (Bs/$)</label>
+          <input type="number" id="inPara" placeholder="600.00" step="0.01" min="0">
+        </div>
+        <div class="input-group">
+          <label>Mi Tasa Compra</label>
+          <input type="number" id="inMine" placeholder="600.00" step="0.01" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-fetch row -->
+    <div id="autoFetchRow" style="display:none;margin-top:10px;">
+      <button class="btn btn-fetch" id="btnFetch" onclick="fetchBCVRate()">
+        <span class="label">🌐 Obtener Tasa BCV Automáticamente</span>
+        <span class="spin">⟳</span>
+      </button>
+    </div>
+
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-secondary" onclick="clearForm()">Limpiar</button>
+      <button class="btn btn-primary" onclick="saveRate()">
+        <span class="label">Guardar Tasa</span>
+        <span class="spin">⟳</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- VENTAJA MENSUAL -->
+  <div class="advantage-card fade-in" id="advCard">
+    <div class="adv-header">
+      <div>
+        <div class="adv-title">Ventaja Acumulada</div>
+        <div class="adv-month" id="advMonth">-- 2025</div>
+      </div>
+      <div style="font-size:28px;">💰</div>
+    </div>
+    <div class="adv-main" id="advMain"><span>$</span>0.00</div>
+    <div class="adv-sub" id="advSub">extra generados comprando a tu tasa</div>
+    <div class="adv-grid">
+      <div class="adv-cell">
+        <div class="adv-cell-val" id="advBs">0</div>
+        <div class="adv-cell-label">Bs ventaja</div>
+      </div>
+      <div class="adv-cell">
+        <div class="adv-cell-val" id="advTxCount">0</div>
+        <div class="adv-cell-label">Transacciones</div>
+      </div>
+      <div class="adv-cell">
+        <div class="adv-cell-val" id="advSpreadAvg">0%</div>
+        <div class="adv-cell-label">Spread prom.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-card fade-in">
+    <div class="chart-header">
+      <div class="chart-title">Evolución de Tasas</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#3b9eff"></div>BCV</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b084ff"></div>Paralelo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Mi Tasa</div>
+      </div>
+    </div>
+    <div class="chart-tabs">
+      <div class="chart-tab active" onclick="setChartRange('7d',this)">7D</div>
+      <div class="chart-tab" onclick="setChartRange('30d',this)">30D</div>
+      <div class="chart-tab" onclick="setChartRange('all',this)">Todo</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="rateChart"></canvas>
+    </div>
+  </div>
+
+  <!-- HISTORY TABLE -->
+  <div class="history-card fade-in">
+    <div class="history-header">
+      <div class="history-title">Historial</div>
+      <div class="history-count" id="histCount">0 registros</div>
+    </div>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>BCV</th>
+          <th>Paralelo</th>
+          <th>Mi Tasa</th>
+          <th>Spread</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">Sin registros</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /content -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item" onclick="navTo('dashboard')">
+    <span class="nav-icon">📊</span>Dashboard
+  </div>
+  <div class="nav-item" onclick="navTo('gastos')">
+    <span class="nav-icon">💸</span>Gastos
+  </div>
+  <div class="nav-item active">
+    <span class="nav-icon">💱</span>Tasas
+  </div>
+  <div class="nav-item" onclick="navTo('ingresos')">
+    <span class="nav-icon">💰</span>Ingresos
+  </div>
+  <div class="nav-item" onclick="navTo('config')">
+    <span class="nav-icon">⚙️</span>Config
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+/* ================================================================
+   VENFINANCE — MÓDULO DE TASAS
+   Arquitectura: PWA + Google Sheets API como backend
+   ================================================================ */
+
+// ── CONFIG ──────────────────────────────────────────────────────
+const CONFIG = {
+  // Reemplazar con el ID real del Google Sheet
+  SPREADSHEET_ID: localStorage.getItem('vf_spreadsheet_id') || '',
+  // La API Key de Google (solo lectura, pública). Para escritura usar OAuth.
+  API_KEY: localStorage.getItem('vf_api_key') || '',
+  SHEET_TASAS: 'Tasas',
+  SHEET_GASTOS: 'Gastos',
+  // Rango de la hoja Tasas: columnas fecha,tasa_bcv,tasa_paralelo,tasa_mi_compra,spread_bcv,spread_pct,fuente
+  RANGE_TASAS: 'Tasas!A:G',
+  RANGE_GASTOS: 'Gastos!A:O',
+};
+
+// ── STATE ────────────────────────────────────────────────────────
+let state = {
+  tasas: [],         // Array de { fecha, tasa_bcv, tasa_paralelo, tasa_mi_compra, spread_bcv, spread_pct, fuente }
+  gastos: [],
+  source: 'manual',  // 'manual' | 'auto'
+  chartRange: '7d',
+  chart: null,
+};
+
+// ── DEMO DATA (se reemplaza con datos reales de Sheets) ──────────
+const DEMO_TASAS = [
+  { fecha:'2025-02-28', tasa_bcv:408.25, tasa_paralelo:591.00, tasa_mi_compra:600, spread_bcv:191.75, spread_pct:44.52, fuente:'BCV + Monitor Dólar' },
+  { fecha:'2025-03-01', tasa_bcv:410.50, tasa_paralelo:597.00, tasa_mi_compra:600, spread_bcv:189.50, spread_pct:46.16, fuente:'BCV + Monitor Dólar' },
+  { fecha:'2025-03-02', tasa_bcv:411.00, tasa_paralelo:600.00, tasa_mi_compra:600, spread_bcv:189.00, spread_pct:47.20, fuente:'BCV + Monitor Dólar' },
+];
+
+const DEMO_GASTOS = [
+  { fecha:'2025-03-01', ventaja_usd: 22.14, ventaja_bs: 9100 },
+  { fecha:'2025-03-01', ventaja_usd: 5.31,  ventaja_bs: 2180 },
+  { fecha:'2025-03-02', ventaja_usd: 31.58, ventaja_bs: 12950 },
+];
+
+
+// ── GOOGLE SHEETS API ────────────────────────────────────────────
+const SheetsAPI = {
+  baseURL: 'https://sheets.googleapis.com/v4/spreadsheets',
+
+  async read(range) {
+    if (!CONFIG.SPREADSHEET_ID || !CONFIG.API_KEY) return null;
+    const url = `${this.baseURL}/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Sheets API error: ${res.status}`);
+    const data = await res.json();
+    return data.values || [];
+  },
+
+  // Requiere OAuth token para escritura
+  async append(range, values, oauthToken) {
+    if (!CONFIG.SPREADSHEET_ID) return null;
+    const url = `${this.baseURL}/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${oauthToken}`,
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ values }),
+    });
+    if (!res.ok) throw new Error(`Sheets append error: ${res.status}`);
+    return await res.json();
+  },
+
+  /** Parsea las filas crudas de la hoja Tasas en objetos tipados */
+  parseTasas(rows) {
+    if (!rows || rows.length < 2) return [];
+    const [_header, ...data] = rows;
+    return data.map(r => ({
+      fecha:          r[0] || '',
+      tasa_bcv:       parseFloat(r[1]) || 0,
+      tasa_paralelo:  parseFloat(r[2]) || 0,
+      tasa_mi_compra: parseFloat(r[3]) || 0,
+      spread_bcv:     parseFloat(r[4]) || 0,
+      spread_pct:     parseFloat(r[5]) || 0,
+      fuente:         r[6] || '',
+    })).filter(r => r.fecha);
+  },
+
+  /** Parsea la hoja Gastos para calcular ventajas */
+  parseGastos(rows) {
+    if (!rows || rows.length < 2) return [];
+    const [header, ...data] = rows;
+    const idx = (name) => header.indexOf(name);
+    return data.map(r => ({
+      fecha:       r[idx('fecha')] || r[1] || '',
+      ventaja_usd: parseFloat(r[idx('ventaja_usd')] || r[12]) || 0,
+      ventaja_bs:  parseFloat(r[idx('ventaja_bs')]  || r[11]) || 0,
+    })).filter(r => r.fecha);
+  },
+};
+
+
+// ── CARGAR DATOS ─────────────────────────────────────────────────
+async function loadData() {
+  try {
+    // Intentar cargar desde Google Sheets
+    if (CONFIG.SPREADSHEET_ID && CONFIG.API_KEY) {
+      const [tasasRows, gastosRows] = await Promise.all([
+        SheetsAPI.read(CONFIG.RANGE_TASAS),
+        SheetsAPI.read(CONFIG.RANGE_GASTOS),
+      ]);
+      state.tasas  = SheetsAPI.parseTasas(tasasRows);
+      state.gastos = SheetsAPI.parseGastos(gastosRows);
+      showToast('Datos sincronizados con Google Sheets', 'success');
+    } else {
+      // Usar demo data + datos locales
+      const local = JSON.parse(localStorage.getItem('vf_tasas') || '[]');
+      state.tasas  = local.length ? local : DEMO_TASAS;
+      state.gastos = DEMO_GASTOS;
+    }
+  } catch (e) {
+    console.warn('Sheets API no disponible, usando datos locales:', e.message);
+    const local = JSON.parse(localStorage.getItem('vf_tasas') || '[]');
+    state.tasas  = local.length ? local : DEMO_TASAS;
+    state.gastos = DEMO_GASTOS;
+  }
+  renderAll();
+}
+
+
+// ── AUTO-FETCH TASA BCV ──────────────────────────────────────────
+async function fetchBCVRate() {
+  const btn = document.getElementById('btnFetch');
+  btn.classList.add('loading');
+
+  try {
+    // Fuente 1: ve.dolarapi.com (API venezolana gratuita)
+    let bcv = null, paralelo = null;
+
+    try {
+      const res1 = await fetch('https://ve.dolarapi.com/v1/dolares', {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res1.ok) {
+        const data = await res1.json();
+        // Buscar tasa oficial (BCV) y paralelo
+        const oficial  = data.find(d => d.fuente === 'oficial' || d.nombre?.toLowerCase().includes('oficial'));
+        const par      = data.find(d => d.fuente === 'paralelo' || d.nombre?.toLowerCase().includes('paralelo'));
+        if (oficial) bcv = oficial.promedio || oficial.venta;
+        if (par)     paralelo = par.promedio || par.venta;
+      }
+    } catch (_) {}
+
+    // Fuente 2: monitordolarvenezuela (CORS proxy)
+    if (!bcv) {
+      try {
+        const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+          signal: AbortSignal.timeout(5000)
+        });
+        // ExchangeRate-API no tiene VES actualizado, solo como fallback
+        if (res2.ok) {
+          const data2 = await res2.json();
+          if (data2.rates?.VES) bcv = data2.rates.VES;
+        }
+      } catch (_) {}
+    }
+
+    if (bcv) {
+      document.getElementById('inBCV').value = bcv.toFixed(2);
+      if (paralelo) document.getElementById('inPara').value = paralelo.toFixed(2);
+      showToast(`✅ BCV: ${bcv.toFixed(2)} Bs/$`, 'success');
+    } else {
+      showToast('⚠️ No se pudo obtener la tasa automáticamente', 'error');
+    }
+  } catch (e) {
+    showToast('❌ Error de conexión', 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+
+// ── GUARDAR TASA ─────────────────────────────────────────────────
+async function saveRate() {
+  const fecha = document.getElementById('inFecha').value;
+  const bcv   = parseFloat(document.getElementById('inBCV').value);
+  const para  = parseFloat(document.getElementById('inPara').value);
+  const mine  = parseFloat(document.getElementById('inMine').value);
+
+  if (!fecha || !bcv || !mine) {
+    showToast('⚠️ Completa fecha, BCV y Tu Tasa', 'error');
+    return;
+  }
+
+  const spreadBs  = mine - bcv;
+  const spreadPct = (spreadBs / bcv) * 100;
+
+  const nuevaTasa = {
+    fecha,
+    tasa_bcv:       Math.round(bcv * 100) / 100,
+    tasa_paralelo:  para || mine,
+    tasa_mi_compra: Math.round(mine * 100) / 100,
+    spread_bcv:     Math.round(spreadBs * 100) / 100,
+    spread_pct:     Math.round(spreadPct * 10000) / 10000,
+    fuente:         state.source === 'auto' ? 'Auto BCV + Manual' : 'Manual',
+  };
+
+  // Remover si ya existe para esa fecha y agregar la nueva
+  state.tasas = state.tasas.filter(t => t.fecha !== fecha);
+  state.tasas.push(nuevaTasa);
+  state.tasas.sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  // Persistir localmente
+  localStorage.setItem('vf_tasas', JSON.stringify(state.tasas));
+
+  // Intentar guardar en Google Sheets si está configurado
+  const oauthToken = localStorage.getItem('vf_oauth_token');
+  if (CONFIG.SPREADSHEET_ID && oauthToken) {
+    try {
+      await SheetsAPI.append(CONFIG.RANGE_TASAS, [[
+        nuevaTasa.fecha, nuevaTasa.tasa_bcv, nuevaTasa.tasa_paralelo,
+        nuevaTasa.tasa_mi_compra, nuevaTasa.spread_bcv, nuevaTasa.spread_pct, nuevaTasa.fuente
+      ]], oauthToken);
+      showToast('✅ Guardado en Google Sheets', 'success');
+    } catch (e) {
+      showToast('💾 Guardado localmente (Sheets no disponible)', 'success');
+    }
+  } else {
+    showToast('💾 Tasa guardada localmente', 'success');
+  }
+
+  clearForm();
+  renderAll();
+}
+
+
+// ── RENDER PRINCIPAL ─────────────────────────────────────────────
+function renderAll() {
+  renderCurrentRates();
+  renderAdvantage();
+  renderChart();
+  renderHistory();
+  renderTicker();
+  checkTodayAlert();
+}
+
+function renderCurrentRates() {
+  if (!state.tasas.length) return;
+  const last = state.tasas[state.tasas.length - 1];
+
+  document.getElementById('dispBCV').innerHTML  = `${fmt(last.tasa_bcv)}<span> Bs/$</span>`;
+  document.getElementById('dispPara').innerHTML = `${fmt(last.tasa_paralelo)}<span> Bs/$</span>`;
+  document.getElementById('dispMine').innerHTML = `${fmt(last.tasa_mi_compra)}<span style="font-size:14px;color:var(--gold-dim)"> Bs/$</span>`;
+  document.getElementById('dispBCVDate').textContent  = formatDate(last.fecha);
+  document.getElementById('dispParaDate').textContent = formatDate(last.fecha);
+  document.getElementById('dispMineDate').textContent = formatDate(last.fecha);
+  document.getElementById('dispSpread').textContent   = `+${last.spread_pct.toFixed(1)}%`;
+}
+
+function renderAdvantage() {
+  const now = new Date();
+  const mesActual = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  // Ventaja calculada desde gastos del mes
+  const gastosDelMes = state.gastos.filter(g => g.fecha && g.fecha.startsWith(mesActual));
+  const totalAdvUSD = gastosDelMes.reduce((s, g) => s + (g.ventaja_usd || 0), 0);
+  const totalAdvBs  = gastosDelMes.reduce((s, g) => s + (g.ventaja_bs  || 0), 0);
+
+  // Spread promedio de tasas del mes
+  const tasasDelMes  = state.tasas.filter(t => t.fecha && t.fecha.startsWith(mesActual));
+  const avgSpread = tasasDelMes.length
+    ? tasasDelMes.reduce((s,t) => s + t.spread_pct, 0) / tasasDelMes.length
+    : 0;
+
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('advMonth').textContent = `${meses[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('advMain').innerHTML = `<span>$</span>${totalAdvUSD.toFixed(2)}`;
+  document.getElementById('advSub').textContent  = `extra generados comprando a tu tasa vs. tasa BCV`;
+  document.getElementById('advBs').textContent   = fmtBs(totalAdvBs);
+  document.getElementById('advTxCount').textContent = gastosDelMes.length;
+  document.getElementById('advSpreadAvg').textContent = `${avgSpread.toFixed(1)}%`;
+
+  // Ticker update
+  document.getElementById('tk-adv').textContent  = totalAdvUSD.toFixed(0);
+  document.getElementById('tk-adv2').textContent = totalAdvUSD.toFixed(0);
+}
+
+function renderChart() {
+  const filtered = getFilteredTasas();
+  if (!filtered.length) return;
+
+  const labels = filtered.map(t => {
+    const d = new Date(t.fecha + 'T00:00:00');
+    return `${d.getDate()}/${d.getMonth()+1}`;
+  });
+  const bcvData   = filtered.map(t => t.tasa_bcv);
+  const paraData  = filtered.map(t => t.tasa_paralelo);
+  const mineData  = filtered.map(t => t.tasa_mi_compra);
+
+  const ctx = document.getElementById('rateChart').getContext('2d');
+
+  if (state.chart) state.chart.destroy();
+
+  state.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'BCV',
+          data: bcvData,
+          borderColor: '#3b9eff',
+          backgroundColor: 'rgba(59,158,255,.07)',
+          borderWidth: 2,
+          pointRadius: filtered.length > 20 ? 0 : 3,
+          pointBackgroundColor: '#3b9eff',
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: 'Paralelo',
+          data: paraData,
+          borderColor: '#b084ff',
+          backgroundColor: 'rgba(176,132,255,.07)',
+          borderWidth: 2,
+          pointRadius: filtered.length > 20 ? 0 : 3,
+          pointBackgroundColor: '#b084ff',
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: 'Mi Tasa',
+          data: mineData,
+          borderColor: '#f0b429',
+          backgroundColor: 'rgba(240,180,41,.07)',
+          borderWidth: 2,
+          pointRadius: filtered.length > 20 ? 0 : 3,
+          pointBackgroundColor: '#f0b429',
+          tension: 0.3,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#18181f',
+          borderColor: '#2a2a38',
+          borderWidth: 1,
+          titleColor: '#6b6b80',
+          bodyColor: '#e8e8f0',
+          titleFont: { family: 'JetBrains Mono', size: 10 },
+          bodyFont:  { family: 'JetBrains Mono', size: 12, weight: '700' },
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} Bs/$`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(42,42,56,.5)', drawTicks: false },
+          border: { display: false },
+          ticks: { color: '#6b6b80', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0 },
+        },
+        y: {
+          grid: { color: 'rgba(42,42,56,.5)', drawTicks: false },
+          border: { display: false },
+          ticks: {
+            color: '#6b6b80',
+            font: { family: 'JetBrains Mono', size: 9 },
+            callback: v => v.toFixed(0),
+          },
+          position: 'right',
+        },
+      },
+    },
+  });
+}
+
+function renderHistory() {
+  const sorted = [...state.tasas].reverse();
+  const tbody  = document.getElementById('historyBody');
+  document.getElementById('histCount').textContent = `${sorted.length} registros`;
+
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">Sin registros</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(t => `
+    <tr>
+      <td>
+        ${formatDate(t.fecha)}<br>
+        <span class="fuente-badge">${t.fuente || 'manual'}</span>
+      </td>
+      <td class="td-bcv">${fmt(t.tasa_bcv)}</td>
+      <td class="td-para">${fmt(t.tasa_paralelo)}</td>
+      <td class="td-mine">${fmt(t.tasa_mi_compra)}</td>
+      <td class="td-spread">+${t.spread_pct.toFixed(1)}%</td>
+    </tr>
+  `).join('');
+}
+
+function renderTicker() {
+  if (!state.tasas.length) return;
+  const last = state.tasas[state.tasas.length - 1];
+  ['tk-bcv','tk-bcv2'].forEach(id => document.getElementById(id).textContent = fmt(last.tasa_bcv));
+  ['tk-mine','tk-mine2'].forEach(id => document.getElementById(id).textContent = fmt(last.tasa_mi_compra));
+  ['tk-spread','tk-spread2'].forEach(id => document.getElementById(id).textContent = `+${last.spread_pct.toFixed(1)}%`);
+}
+
+function checkTodayAlert() {
+  const today = getTodayStr();
+  const hasTodayRate = state.tasas.some(t => t.fecha === today);
+  document.getElementById('alertBanner').classList.toggle('hidden', hasTodayRate);
+}
+
+
+// ── UI HELPERS ───────────────────────────────────────────────────
+function setSource(src) {
+  state.source = src;
+  document.getElementById('srcManual').classList.toggle('active', src === 'manual');
+  document.getElementById('srcAuto').classList.toggle('active', src === 'auto');
+  document.getElementById('autoFetchRow').style.display = src === 'auto' ? 'block' : 'none';
+  if (src === 'auto') fetchBCVRate();
+}
+
+function setChartRange(range, el) {
+  state.chartRange = range;
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderChart();
+}
+
+function getFilteredTasas() {
+  const all = [...state.tasas];
+  if (state.chartRange === '7d')  return all.slice(-7);
+  if (state.chartRange === '30d') return all.slice(-30);
+  return all;
+}
+
+function clearForm() {
+  document.getElementById('inBCV').value  = '';
+  document.getElementById('inPara').value = '';
+  document.getElementById('inMine').value = '';
+}
+
+function navTo(page) {
+  // Integración con el router principal de la PWA
+  // Por ahora navegación simple
+  showToast(`Navegando a ${page}…`, 'success');
+}
+
+
+// ── TOAST ────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+
+// ── UTILS ────────────────────────────────────────────────────────
+function fmt(n)    { return n ? n.toLocaleString('es-VE', { minimumFractionDigits:2, maximumFractionDigits:2 }) : '--'; }
+function fmtBs(n)  { return n ? n.toLocaleString('es-VE', { minimumFractionDigits:0, maximumFractionDigits:0 }) : '0'; }
+
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(str) {
+  if (!str) return '--';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('es-VE', { day:'numeric', month:'short', year:'2-digit' });
+}
+
+
+// ── INIT ─────────────────────────────────────────────────────────
+(function init() {
+  // Fecha de hoy en los inputs
+  document.getElementById('inFecha').value = getTodayStr();
+
+  // Header date
+  document.getElementById('headerDate').innerHTML =
+    new Date().toLocaleDateString('es-VE', { weekday:'short', day:'numeric', month:'short' }).toUpperCase() +
+    `<br><span style="font-size:9px;color:var(--gold)">` +
+    new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' }) + `</span>`;
+
+  // Cargar datos
+  loadData();
+})();
+</script>
+
+</body>
+</html>
