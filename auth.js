@@ -1,4 +1,4 @@
-// auth.js — OAuth 2.0 + PKCE para SPA/PWA sin backend
+// auth.js — OAuth 2.0 + PKCE + Local Auth + Session Management
 // Uses Proof Key for Code Exchange (RFC 7636) — no client_secret required.
 window.VF = window.VF || {};
 VF.Auth = (() => {
@@ -8,15 +8,18 @@ VF.Auth = (() => {
   // This must match the URI registered in Google Cloud Console.
   const REDIRECT_URI = (() => {
     const { origin, pathname } = window.location;
+    // Redirect to login.html after Google OAuth
     const dir = pathname.endsWith('/')
       ? pathname
       : pathname.slice(0, pathname.lastIndexOf('/') + 1);
-    return origin + dir;
+    return origin + dir + 'login.html';
   })();
 
   const SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
     'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
   ].join(' ');
 
   // ── PKCE helpers ─────────────────────────────────────────────
@@ -73,7 +76,7 @@ VF.Auth = (() => {
     if (error) {
       console.error('OAuth error:', error, params.get('error_description'));
       // Clean the URL so we don't loop on reload
-      window.history.replaceState({}, '', REDIRECT_URI);
+      window.history.replaceState({}, '', window.location.pathname);
       return false;
     }
 
@@ -82,7 +85,7 @@ VF.Auth = (() => {
     const verifier = sessionStorage.getItem('pkce_verifier');
     if (!verifier) {
       // Session expired between redirect and return — start over
-      window.history.replaceState({}, '', REDIRECT_URI);
+      window.history.replaceState({}, '', window.location.pathname);
       throw new Error('PKCE verifier missing. The session may have expired. Please try logging in again.');
     }
 
@@ -102,7 +105,7 @@ VF.Auth = (() => {
 
     if (!resp.ok || tokens.error) {
       sessionStorage.removeItem('pkce_verifier');
-      window.history.replaceState({}, '', REDIRECT_URI);
+      window.history.replaceState({}, '', window.location.pathname);
       throw new Error(`Token exchange failed: ${tokens.error_description || tokens.error || resp.status}`);
     }
 
@@ -113,7 +116,7 @@ VF.Auth = (() => {
     });
 
     sessionStorage.removeItem('pkce_verifier');
-    window.history.replaceState({}, '', REDIRECT_URI);
+    window.history.replaceState({}, '', window.location.pathname);
     return true;
   }
 
@@ -168,16 +171,55 @@ VF.Auth = (() => {
     }
   }
 
-  // ── Convenience helpers ──────────────────────────────────────
+  // ── Session helpers ────────────────────────────────────────
 
-  async function isAuthenticated() {
-    const token = await getValidToken();
-    return token !== null;
+  /** Get current session info or null */
+  function getSession() {
+    try {
+      const raw = sessionStorage.getItem('vf_session');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   }
 
+  /** Check if user has a valid session */
+  async function isAuthenticated() {
+    const session = getSession();
+    if (!session) return false;
+
+    if (session.authType === 'google') {
+      const token = await getValidToken();
+      return token !== null;
+    }
+
+    // Local auth — session exists means authenticated
+    return true;
+  }
+
+  /**
+   * Auth guard — call at the top of every protected page.
+   * Redirects to login.html if not authenticated.
+   */
+  async function requireAuth() {
+    const authed = await isAuthenticated();
+    if (!authed) {
+      sessionStorage.removeItem('vf_session');
+      window.location.href = 'login.html';
+      return null;
+    }
+    return getSession();
+  }
+
+  /** Logout — clear all session data */
   async function logout() {
     await VF.DB.saveTokens({ id: 'current', access_token: null, refresh_token: null, expires_at: 0 });
+    sessionStorage.removeItem('vf_session');
+    localStorage.removeItem('vf_current_user');
+    window.location.href = 'login.html';
   }
 
-  return { login, handleCallback, getValidToken, isAuthenticated, logout, REDIRECT_URI };
+  return {
+    login, handleCallback, getValidToken,
+    isAuthenticated, requireAuth, getSession, logout,
+    REDIRECT_URI
+  };
 })();

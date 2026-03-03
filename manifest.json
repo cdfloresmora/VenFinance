@@ -2,7 +2,7 @@
   "name": "VenFinance - Finanzas Venezuela",
   "short_name": "VenFinance",
   "description": "Control de gastos con tasas de cambio múltiples",
-  "start_url": "./index.html",
+  "start_url": "./login.html",
   "id": "venfinance-pwa",
   "display": "standalone",
   "orientation": "any",
