@@ -9,14 +9,14 @@
              user-scalable=no, viewport-fit=cover" />
 
   <!-- ── PWA Standard ── -->
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#080810" />
 
   <!-- ── iOS / Apple ── -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="VenFinance" />
-  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
 
   <title>VenFinance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -104,7 +104,7 @@
     z-index: 1;
     max-width: 430px;
     margin: 0 auto;
-    padding: 0 16px 100px;
+    padding: 0 16px calc(80px + var(--safe-bottom));
   }
 
   /* ═══════════════════════════════════════
@@ -670,6 +670,52 @@
   .offline-banner.show { display: flex; }
 
   /* ═══════════════════════════════════════
+     BOTTOM NAV
+  ═══════════════════════════════════════ */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(8,8,16,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .bottom-nav-inner {
+    display: flex;
+    max-width: 430px;
+    width: 100%;
+  }
+  .bottom-nav a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    gap: 3px;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+  }
+  .bottom-nav a:active { opacity: 0.6; }
+  .nav-icon { font-size: 20px; filter: grayscale(1) opacity(0.45); transition: filter 0.2s; }
+  .nav-label {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    transition: color 0.2s;
+  }
+  .bottom-nav a.active .nav-icon { filter: none; }
+  .bottom-nav a.active .nav-label { color: var(--gold); }
+
+  /* ═══════════════════════════════════════
      ANIMATIONS
   ═══════════════════════════════════════ */
   @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
@@ -872,6 +918,26 @@
 
 </div><!-- /#app -->
 
+<!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a href="index.html" class="active">
+      <span class="nav-icon">💸</span>
+      <span class="nav-label">Gastos</span>
+    </a>
+    <a href="dashboard.html">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="rates.html">
+      <span class="nav-icon">💱</span>
+      <span class="nav-label">Tasas</span>
+    </a>
+  </div>
+</nav>
+
 <script>
 /* ═══════════════════════════════════════
    CATEGORIES
@@ -924,19 +990,36 @@ function init() {
    CONFIG
 ═══════════════════════════════════════ */
 function loadConfig() {
-  const s = localStorage.getItem('vf_config');
-  if (s) {
-    const c = JSON.parse(s);
-    state.rateParallel = c.rateParallel || 0;
-    state.rateOfficial = c.rateOfficial || 0;
-    state.budgetUSD    = c.budgetUSD    || 0;
-    state.sheetId      = c.sheetId      || '';
-    state.apiKey       = c.apiKey       || '';
+  try {
+    const s = localStorage.getItem('vf_config');
+    if (s) {
+      const c = JSON.parse(s);
+      state.rateParallel = c.rateParallel || 0;
+      state.rateOfficial = c.rateOfficial || 0;
+      state.budgetUSD    = c.budgetUSD    || 0;
+      state.sheetId      = c.sheetId      || '';
+      state.apiKey       = c.apiKey       || '';
+    }
+    // Read latest rates from rates.html shared storage
+    const tasas = localStorage.getItem('vf_tasas');
+    if (tasas) {
+      const arr = JSON.parse(tasas);
+      if (arr.length > 0) {
+        const latest = arr[arr.length - 1];
+        // Only override if user hasn't set manual rates in config
+        if (!state.rateOfficial && latest.tasa_bcv)
+          state.rateOfficial = latest.tasa_bcv;
+        if (!state.rateParallel && latest.tasa_mi_compra)
+          state.rateParallel = latest.tasa_mi_compra;
+      }
+    }
+    const ex = localStorage.getItem('vf_expenses');
+    if (ex) state.expenses = JSON.parse(ex);
+    const ps = localStorage.getItem('vf_pending');
+    if (ps) state.pendingSync = JSON.parse(ps);
+  } catch (e) {
+    console.warn('Could not read localStorage, using in-memory state:', e);
   }
-  const ex = localStorage.getItem('vf_expenses');
-  if (ex) state.expenses = JSON.parse(ex);
-  const ps = localStorage.getItem('vf_pending');
-  if (ps) state.pendingSync = JSON.parse(ps);
 }
 
 function openConfig() {
@@ -955,13 +1038,20 @@ function saveConfig() {
   state.sheetId      = document.getElementById('cfg-sheet-id').value.trim();
   state.apiKey       = document.getElementById('cfg-api-key').value.trim();
 
-  localStorage.setItem('vf_config', JSON.stringify({
-    rateParallel: state.rateParallel,
-    rateOfficial: state.rateOfficial,
-    budgetUSD:    state.budgetUSD,
-    sheetId:      state.sheetId,
-    apiKey:       state.apiKey,
-  }));
+  try {
+    localStorage.setItem('vf_config', JSON.stringify({
+      rateParallel: state.rateParallel,
+      rateOfficial: state.rateOfficial,
+      budgetUSD:    state.budgetUSD,
+      sheetId:      state.sheetId,
+      apiKey:       state.apiKey,
+    }));
+    // Also share config with rates.html which reads these keys
+    if (state.sheetId) localStorage.setItem('vf_spreadsheet_id', state.sheetId);
+    if (state.apiKey)  localStorage.setItem('vf_api_key', state.apiKey);
+  } catch (e) {
+    console.warn('Could not persist config:', e);
+  }
 
   document.getElementById('config-overlay').classList.remove('visible');
   updateChips();
@@ -1149,7 +1239,7 @@ async function submitExpense() {
 
   // Save locally
   state.expenses.unshift(expense);
-  localStorage.setItem('vf_expenses', JSON.stringify(state.expenses));
+  try { localStorage.setItem('vf_expenses', JSON.stringify(state.expenses)); } catch(e) {}
 
   // Try Google Sheets
   const btn = document.getElementById('submit-btn');
@@ -1159,11 +1249,11 @@ async function submitExpense() {
 
   if (synced) {
     expense.synced = true;
-    localStorage.setItem('vf_expenses', JSON.stringify(state.expenses));
+    try { localStorage.setItem('vf_expenses', JSON.stringify(state.expenses)); } catch(e) {}
     showToast('success', '✓', 'Gasto guardado y sincronizado');
   } else {
     state.pendingSync.push(expense.id);
-    localStorage.setItem('vf_pending', JSON.stringify(state.pendingSync));
+    try { localStorage.setItem('vf_pending', JSON.stringify(state.pendingSync)); } catch(e) {}
     showToast('warning', '📡', 'Guardado sin conexión. Se sincronizará luego.');
   }
 
@@ -1186,8 +1276,12 @@ async function submitExpense() {
    GOOGLE SHEETS API
 ═══════════════════════════════════════ */
 async function saveToSheets(expense) {
-  if (!state.sheetId || !state.apiKey) return false;
+  if (!state.sheetId) return false;
   if (!navigator.onLine) return false;
+
+  // OAuth token is required for write operations (API Key is read-only)
+  const oauthToken = sessionStorage.getItem('vf_oauth_token') || localStorage.getItem('vf_oauth_token');
+  if (!oauthToken) return false;
 
   const catObj = CATEGORIES.find(c => c.id === expense.category);
   const row = [
@@ -1204,12 +1298,15 @@ async function saveToSheets(expense) {
     new Date(expense.id).toISOString(),
   ];
 
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Gastos!A:K:append?valueInputOption=USER_ENTERED&key=${state.apiKey}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/${encodeURIComponent('Gastos!A:K')}:append?valueInputOption=USER_ENTERED`;
 
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${oauthToken}`,
+      },
       body: JSON.stringify({ values: [row] }),
     });
     return res.ok;
@@ -1240,7 +1337,7 @@ async function syncPending() {
     }
   }
 
-  localStorage.setItem('vf_expenses', JSON.stringify(state.expenses));
+  try { localStorage.setItem('vf_expenses', JSON.stringify(state.expenses)); } catch(e) {}
   localStorage.setItem('vf_pending', JSON.stringify(state.pendingSync));
   renderTransactions();
   updateOfflineBanner();
@@ -1331,25 +1428,10 @@ function showToast(type, icon, msg) {
 }
 
 /* ═══════════════════════════════════════
-   SERVICE WORKER (inline)
+   SERVICE WORKER
 ═══════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'venfinance-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
-      self.skipWaiting();
-    });
-    self.addEventListener('fetch', e => {
-      if (e.request.url.includes('googleapis.com')) return;
-      e.respondWith(
-        fetch(e.request).catch(() => caches.match(e.request))
-      );
-    });
-  `;
-  const swBlob = new Blob([swCode], { type: 'application/javascript' });
-  const swURL  = URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swURL).catch(() => {});
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 /* ═══════════════════════════════════════
