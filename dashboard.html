@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VenFinance">
 <meta name="theme-color" content="#080D1A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <title>VenFinance — Dashboard</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -525,7 +527,7 @@
     align-items: center; justify-content: center;
     padding: 10px 8px;
     gap: 4px;
-    cursor: pointer;
+    text-decoration: none;
     -webkit-tap-highlight-color: transparent;
     transition: opacity 0.15s;
   }
@@ -813,81 +815,110 @@
 <!-- ── BOTTOM NAV ── -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-item active">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Dashboard</span>
-    </div>
-    <div class="nav-item">
+    <a href="index.html" class="nav-item">
       <span class="nav-icon">💸</span>
       <span class="nav-label">Gastos</span>
-    </div>
-    <div class="nav-item">
-      <span class="nav-icon">➕</span>
-      <span class="nav-icon" style="font-size:28px;filter:none;background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:-4px 0">⊕</span>
-      <span class="nav-label">Nuevo</span>
-    </div>
-    <div class="nav-item">
-      <span class="nav-icon">📈</span>
-      <span class="nav-label">Análisis</span>
-    </div>
-    <div class="nav-item">
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Ajustes</span>
-    </div>
+    </a>
+    <a href="dashboard.html" class="nav-item active">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="rates.html" class="nav-item">
+      <span class="nav-icon">💱</span>
+      <span class="nav-label">Tasas</span>
+    </a>
   </div>
 </nav>
 
 <script>
 /* ════════════════════════════════════════════════════════════════
    VenFinance Dashboard — Data Layer + Charts
-   Replace loadFromSheets() with real Google Sheets API call
+   Reads real data from localStorage (shared with index.html & rates.html)
+   Falls back to Google Sheets API if configured
    ════════════════════════════════════════════════════════════════ */
 
-// ─── MOCK DATA (mirrors Google Sheets schema) ──────────────────
-const MOCK_DATA = {
-  config: {
-    presupuesto_mensual_usd: 800,
-    nombre_usuario: "Carlos",
-    dia_corte_mes: 1,
-    alerta_presupuesto_pct: 80
-  },
-  tasas: [
-    { fecha: "2025-02-28", tasa_bcv: 408.25, tasa_paralelo: 420.0, tasa_mi_compra: 590, spread_bcv: 181.75, spread_pct: 0.445 },
-    { fecha: "2025-03-01", tasa_bcv: 410.50, tasa_paralelo: 425.0, tasa_mi_compra: 600, spread_bcv: 189.50, spread_pct: 0.462 },
-    { fecha: "2025-03-02", tasa_bcv: 411.00, tasa_paralelo: 426.5, tasa_mi_compra: 605, spread_bcv: 194.00, spread_pct: 0.472 }
-  ],
-  gastos: [
-    { id:"g1", fecha:"2025-03-01", descripcion:"Almuerzo restaurante", categoria:"Comida",     moneda_pago:"Bs",  monto_original:4100,  tasa_comercio:410, tasa_mi_compra:600, monto_bs:4100,  monto_usd_oficial:10,   monto_usd_real:6.83,  ventaja_usd:3.17 },
-    { id:"g2", fecha:"2025-03-01", descripcion:"Uber a la oficina",   categoria:"Transporte", moneda_pago:"USD", monto_original:5,     tasa_comercio:410, tasa_mi_compra:600, monto_bs:2050,  monto_usd_oficial:5,    monto_usd_real:3.42,  ventaja_usd:1.58 },
-    { id:"g3", fecha:"2025-03-02", descripcion:"Supermercado",        categoria:"Comida",     moneda_pago:"Bs",  monto_original:12300, tasa_comercio:410, tasa_mi_compra:600, monto_bs:12300, monto_usd_oficial:30,   monto_usd_real:20.50, ventaja_usd:9.50 },
-    { id:"g4", fecha:"2025-03-03", descripcion:"Netflix + Spotify",   categoria:"Servicios",  moneda_pago:"USD", monto_original:18,    tasa_comercio:410, tasa_mi_compra:605, monto_bs:7380,  monto_usd_oficial:18,   monto_usd_real:12.20, ventaja_usd:5.80 },
-    { id:"g5", fecha:"2025-03-04", descripcion:"Farmacia",            categoria:"Salud",      moneda_pago:"Bs",  monto_original:3280,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:3280,  monto_usd_oficial:7.98, monto_usd_real:5.42,  ventaja_usd:2.56 },
-    { id:"g6", fecha:"2025-03-05", descripcion:"Clase de inglés",     categoria:"Educación",  moneda_pago:"USD", monto_original:12,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:4932,  monto_usd_oficial:12,   monto_usd_real:8.15,  ventaja_usd:3.85 },
-    { id:"g7", fecha:"2025-03-06", descripcion:"Gasolina + peaje",    categoria:"Transporte", moneda_pago:"Bs",  monto_original:1640,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:1640,  monto_usd_oficial:3.99, monto_usd_real:2.71,  ventaja_usd:1.28 },
-    { id:"g8", fecha:"2025-03-07", descripcion:"Cine (2 entradas)",   categoria:"Ocio",       moneda_pago:"USD", monto_original:14,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:5754,  monto_usd_oficial:14,   monto_usd_real:9.51,  ventaja_usd:4.49 },
-    { id:"g9", fecha:"2025-03-08", descripcion:"Ropa — C.C. Sambil",  categoria:"Ropa",       moneda_pago:"USD", monto_original:35,    tasa_comercio:411, tasa_mi_compra:605, monto_bs:14385, monto_usd_oficial:35,   monto_usd_real:23.77, ventaja_usd:11.23 },
-    { id:"g10",fecha:"2025-03-09", descripcion:"Almuerzo diario",     categoria:"Comida",     moneda_pago:"Bs",  monto_original:5740,  tasa_comercio:411, tasa_mi_compra:605, monto_bs:5740,  monto_usd_oficial:13.97,monto_usd_real:9.49,  ventaja_usd:4.48 }
-  ],
-  categorias: [
-    { id:"cat_01", nombre:"Comida",     icono:"🍔", color:"#EF4444", presupuesto_usd:150 },
-    { id:"cat_02", nombre:"Transporte", icono:"🚗", color:"#F59E0B", presupuesto_usd:80  },
-    { id:"cat_03", nombre:"Hogar",      icono:"🏠", color:"#3B82F6", presupuesto_usd:200 },
-    { id:"cat_04", nombre:"Salud",      icono:"💊", color:"#10B981", presupuesto_usd:50  },
-    { id:"cat_05", nombre:"Ocio",       icono:"🎮", color:"#8B5CF6", presupuesto_usd:60  },
-    { id:"cat_06", nombre:"Ropa",       icono:"👕", color:"#EC4899", presupuesto_usd:40  },
-    { id:"cat_07", nombre:"Servicios",  icono:"📱", color:"#06B6D4", presupuesto_usd:100 },
-    { id:"cat_08", nombre:"Educación",  icono:"🎓", color:"#6366F1", presupuesto_usd:30  },
-    { id:"cat_09", nombre:"Mascotas",   icono:"🐕", color:"#84CC16", presupuesto_usd:25  },
-    { id:"cat_10", nombre:"Otros",      icono:"❓", color:"#6B7280", presupuesto_usd:50  }
-  ]
+// ─── CATEGORY MAP (aligned with index.html labels) ────────────
+const CATEGORY_MAP = {
+  'Comida':     { icono: '🍽️', color: '#EF4444' },
+  'Transporte': { icono: '🚌', color: '#F59E0B' },
+  'Mercado':    { icono: '🛒', color: '#F97316' },
+  'Salud':      { icono: '💊', color: '#10B981' },
+  'Hogar':      { icono: '🏠', color: '#3B82F6' },
+  'Personal':   { icono: '👤', color: '#8B5CF6' },
+  'Tech':       { icono: '💻', color: '#6366F1' },
+  'Ocio':       { icono: '🎬', color: '#8B5CF6' },
+  'Ropa':       { icono: '👕', color: '#EC4899' },
+  'Otro':       { icono: '📦', color: '#6B7280' },
+  'Servicios':  { icono: '📱', color: '#06B6D4' },
+  'Educación':  { icono: '🎓', color: '#6366F1' },
+  'Mascotas':   { icono: '🐕', color: '#84CC16' },
 };
 
-// ─── GOOGLE SHEETS LOADER (stub — replace with real API) ──────
-async function loadFromSheets(spreadsheetId) {
-  // TODO: replace with fetch to Google Sheets API v4
-  // const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${API_KEY}`;
-  console.log("📡 Using mock data (connect Google Sheets to go live)");
-  return MOCK_DATA;
+// ─── LOAD REAL DATA FROM SHARED STORAGE ──────────────────────
+function loadDashboardData() {
+  let config = { presupuesto_mensual_usd: 0, nombre_usuario: 'Usuario', alerta_presupuesto_pct: 80 };
+  let tasas = [];
+  let gastos = [];
+
+  try {
+    // Config from index.html shared storage
+    const cfgStr = localStorage.getItem('vf_config');
+    if (cfgStr) {
+      const cfg = JSON.parse(cfgStr);
+      config.presupuesto_mensual_usd = cfg.budgetUSD || 0;
+    }
+
+    // Rates from rates.html shared storage
+    const tasasStr = localStorage.getItem('vf_tasas');
+    if (tasasStr) {
+      tasas = JSON.parse(tasasStr);
+    }
+
+    // Expenses from index.html shared storage
+    const expStr = localStorage.getItem('vf_expenses');
+    if (expStr) {
+      const rawExpenses = JSON.parse(expStr);
+      // Convert index.html format to dashboard format
+      gastos = rawExpenses.map(e => {
+        const catLabel = getCategoryLabel(e.category);
+        return {
+          id: e.id,
+          fecha: e.date,
+          descripcion: e.description || '',
+          categoria: catLabel,
+          moneda_pago: e.currency,
+          monto_original: e.amountRaw,
+          tasa_comercio: e.rateOfficial,
+          tasa_mi_compra: e.rateParallel,
+          monto_bs: e.amountBs,
+          monto_usd_oficial: e.amountUSD,
+          monto_usd_real: e.amountUSD_real,
+          ventaja_usd: e.amountUSD - e.amountUSD_real,
+        };
+      });
+    }
+  } catch (e) {
+    console.warn('Could not read localStorage:', e);
+  }
+
+  // Get latest rates for config
+  if (tasas.length > 0) {
+    const latest = tasas[tasas.length - 1];
+    config.tasa_bcv = latest.tasa_bcv;
+    config.tasa_mi_compra = latest.tasa_mi_compra;
+  }
+
+  return { config, tasas, gastos };
+}
+
+// Map index.html category IDs to Spanish labels
+function getCategoryLabel(catId) {
+  const map = {
+    food: 'Comida', transport: 'Transporte', market: 'Mercado',
+    health: 'Salud', home: 'Hogar', personal: 'Personal',
+    tech: 'Tech', entertain: 'Ocio', clothes: 'Ropa', other: 'Otro'
+  };
+  return map[catId] || catId;
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -904,18 +935,21 @@ Chart.defaults.font.family = "'DM Mono', monospace";
 Chart.defaults.font.size = 10;
 
 // ─── MAIN RENDER FUNCTION ────────────────────────────────────
-async function renderDashboard() {
-  const data = await loadFromSheets(null);
-  const { config, tasas, gastos, categorias } = data;
+function renderDashboard() {
+  const data = loadDashboardData();
+  const { config, tasas, gastos } = data;
 
-  // Current rates
-  const latestRate = tasas[tasas.length - 1];
-  const { tasa_bcv, tasa_mi_compra, spread_bcv } = latestRate;
-  const ventajaPct = ((tasa_mi_compra - tasa_bcv) / tasa_bcv * 100).toFixed(1);
+  // Current rates (handle empty state)
+  const latestRate = tasas.length > 0 ? tasas[tasas.length - 1] : null;
+  const tasa_bcv = latestRate ? latestRate.tasa_bcv : (config.tasa_bcv || 0);
+  const tasa_mi_compra = latestRate ? latestRate.tasa_mi_compra : (config.tasa_mi_compra || 0);
+  const spread_bcv = tasa_mi_compra - tasa_bcv;
+  const ventajaPct = tasa_bcv > 0 ? ((tasa_mi_compra - tasa_bcv) / tasa_bcv * 100).toFixed(1) : '0.0';
 
   // Greeting
-  document.getElementById('userName').textContent = config.nombre_usuario;
-  document.getElementById('userAvatar').textContent = config.nombre_usuario[0];
+  const userName = config.nombre_usuario || 'Usuario';
+  document.getElementById('userName').textContent = userName;
+  document.getElementById('userAvatar').textContent = userName[0];
 
   // Month badge
   const now = new Date();
@@ -923,16 +957,20 @@ async function renderDashboard() {
     now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + now.getFullYear();
 
   // ── ④ TASA DEL DÍA ──────────────────────────────────────────
-  document.getElementById('rateBcv').textContent = fmt(tasa_bcv);
-  document.getElementById('rateMine').textContent = fmt(tasa_mi_compra);
+  document.getElementById('rateBcv').textContent = tasa_bcv ? fmt(tasa_bcv) : '--';
+  document.getElementById('rateMine').textContent = tasa_mi_compra ? fmt(tasa_mi_compra) : '--';
   document.getElementById('ventajaPct').textContent = '+' + ventajaPct + '%';
   document.getElementById('ventajaDesc').innerHTML =
     `Tu $1 vale <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> a tasa BCV<br>` +
     `Diferencia: <strong>${fmt(spread_bcv,0)} Bs</strong> por dólar`;
 
-  const rateD = new Date(latestRate.fecha + 'T12:00:00');
-  document.getElementById('rateDate').textContent =
-    rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
+  if (latestRate && latestRate.fecha) {
+    const rateD = new Date(latestRate.fecha + 'T12:00:00');
+    document.getElementById('rateDate').textContent =
+      rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
+  } else {
+    document.getElementById('rateDate').textContent = 'sin datos';
+  }
 
   // ── ⑤ RESUMEN MENSUAL ───────────────────────────────────────
   const {y, m} = getMonth();
@@ -979,9 +1017,13 @@ async function renderDashboard() {
 
   // ── ① DONUT: GASTOS POR CATEGORÍA ──────────────────────────
   const catMap = {};
-  categorias.forEach(c => catMap[c.nombre] = { ...c, total: 0 });
   monthGastos.forEach(g => {
-    if (catMap[g.categoria]) catMap[g.categoria].total += g.monto_usd_oficial;
+    const cat = g.categoria || 'Otro';
+    if (!catMap[cat]) {
+      const info = CATEGORY_MAP[cat] || { icono: '📦', color: '#6B7280' };
+      catMap[cat] = { nombre: cat, icono: info.icono, color: info.color, total: 0 };
+    }
+    catMap[cat].total += g.monto_usd_oficial;
   });
 
   const activeCats = Object.values(catMap).filter(c => c.total > 0);
@@ -1117,13 +1159,10 @@ async function renderDashboard() {
   });
 }
 
-// ─── NAV INTERACTION ─────────────────────────────────────────
-document.querySelectorAll('.nav-item').forEach((item, idx) => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-  });
-});
+// ─── SERVICE WORKER ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 // ─── BOOT ────────────────────────────────────────────────────
 renderDashboard();

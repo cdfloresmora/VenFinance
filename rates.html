@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VenFinance">
 <meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <title>VenFinance — Tasas</title>
 
 <!-- Chart.js -->
@@ -398,6 +400,8 @@
     font-size: 9px; font-weight: 600; letter-spacing:.06em;
     color: var(--muted); cursor: pointer; transition: color .15s;
     text-transform: uppercase;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
   }
   .nav-item.active { color: var(--gold); }
   .nav-icon { font-size: 20px; }
@@ -633,21 +637,15 @@
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <div class="nav-item" onclick="navTo('dashboard')">
-    <span class="nav-icon">📊</span>Dashboard
-  </div>
-  <div class="nav-item" onclick="navTo('gastos')">
+  <a href="index.html" class="nav-item">
     <span class="nav-icon">💸</span>Gastos
-  </div>
-  <div class="nav-item active">
+  </a>
+  <a href="dashboard.html" class="nav-item">
+    <span class="nav-icon">📊</span>Dashboard
+  </a>
+  <a href="rates.html" class="nav-item active">
     <span class="nav-icon">💱</span>Tasas
-  </div>
-  <div class="nav-item" onclick="navTo('ingresos')">
-    <span class="nav-icon">💰</span>Ingresos
-  </div>
-  <div class="nav-item" onclick="navTo('config')">
-    <span class="nav-icon">⚙️</span>Config
-  </div>
+  </a>
 </nav>
 
 <!-- TOAST -->
@@ -661,17 +659,29 @@
    ================================================================ */
 
 // ── CONFIG ──────────────────────────────────────────────────────
-const CONFIG = {
-  // Reemplazar con el ID real del Google Sheet
-  SPREADSHEET_ID: localStorage.getItem('vf_spreadsheet_id') || '',
-  // La API Key de Google (solo lectura, pública). Para escritura usar OAuth.
-  API_KEY: localStorage.getItem('vf_api_key') || '',
-  SHEET_TASAS: 'Tasas',
-  SHEET_GASTOS: 'Gastos',
-  // Rango de la hoja Tasas: columnas fecha,tasa_bcv,tasa_paralelo,tasa_mi_compra,spread_bcv,spread_pct,fuente
-  RANGE_TASAS: 'Tasas!A:G',
-  RANGE_GASTOS: 'Gastos!A:O',
-};
+const CONFIG = (function() {
+  let sheetId = '', apiKey = '';
+  try {
+    // Read from shared vf_config (set by index.html)
+    const cfgStr = localStorage.getItem('vf_config');
+    if (cfgStr) {
+      const cfg = JSON.parse(cfgStr);
+      sheetId = cfg.sheetId || '';
+      apiKey  = cfg.apiKey  || '';
+    }
+    // Fallback to separate keys
+    if (!sheetId) sheetId = localStorage.getItem('vf_spreadsheet_id') || '';
+    if (!apiKey)  apiKey  = localStorage.getItem('vf_api_key') || '';
+  } catch(e) {}
+  return {
+    SPREADSHEET_ID: sheetId,
+    API_KEY: apiKey,
+    SHEET_TASAS: 'Tasas',
+    SHEET_GASTOS: 'Gastos',
+    RANGE_TASAS: 'Tasas!A:G',
+    RANGE_GASTOS: 'Gastos!A:O',
+  };
+})();
 
 // ── STATE ────────────────────────────────────────────────────────
 let state = {
@@ -769,13 +779,15 @@ async function loadData() {
       showToast('Datos sincronizados con Google Sheets', 'success');
     } else {
       // Usar demo data + datos locales
-      const local = JSON.parse(localStorage.getItem('vf_tasas') || '[]');
+      let local = [];
+      try { local = JSON.parse(localStorage.getItem('vf_tasas') || '[]'); } catch(e) {}
       state.tasas  = local.length ? local : DEMO_TASAS;
       state.gastos = DEMO_GASTOS;
     }
   } catch (e) {
     console.warn('Sheets API no disponible, usando datos locales:', e.message);
-    const local = JSON.parse(localStorage.getItem('vf_tasas') || '[]');
+    let local = [];
+    try { local = JSON.parse(localStorage.getItem('vf_tasas') || '[]'); } catch(e2) {}
     state.tasas  = local.length ? local : DEMO_TASAS;
     state.gastos = DEMO_GASTOS;
   }
@@ -866,10 +878,20 @@ async function saveRate() {
   state.tasas.sort((a,b) => a.fecha.localeCompare(b.fecha));
 
   // Persistir localmente
-  localStorage.setItem('vf_tasas', JSON.stringify(state.tasas));
+  try {
+    localStorage.setItem('vf_tasas', JSON.stringify(state.tasas));
+    // Also update vf_config so index.html picks up the latest rates
+    const cfgStr = localStorage.getItem('vf_config');
+    if (cfgStr) {
+      const cfg = JSON.parse(cfgStr);
+      cfg.rateOfficial = nuevaTasa.tasa_bcv;
+      cfg.rateParallel = nuevaTasa.tasa_mi_compra;
+      localStorage.setItem('vf_config', JSON.stringify(cfg));
+    }
+  } catch(e) {}
 
   // Intentar guardar en Google Sheets si está configurado
-  const oauthToken = localStorage.getItem('vf_oauth_token');
+  const oauthToken = sessionStorage.getItem('vf_oauth_token') || localStorage.getItem('vf_oauth_token');
   if (CONFIG.SPREADSHEET_ID && oauthToken) {
     try {
       await SheetsAPI.append(CONFIG.RANGE_TASAS, [[
@@ -1105,13 +1127,6 @@ function clearForm() {
   document.getElementById('inMine').value = '';
 }
 
-function navTo(page) {
-  // Integración con el router principal de la PWA
-  // Por ahora navegación simple
-  showToast(`Navegando a ${page}…`, 'success');
-}
-
-
 // ── TOAST ────────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg, type = 'success') {
@@ -1138,6 +1153,11 @@ function formatDate(str) {
   return d.toLocaleDateString('es-VE', { day:'numeric', month:'short', year:'2-digit' });
 }
 
+
+// ── SERVICE WORKER ───────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 // ── INIT ─────────────────────────────────────────────────────────
 (function init() {
