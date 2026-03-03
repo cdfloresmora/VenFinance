@@ -1,12 +1,14 @@
 // sw.js — VenFinance Service Worker
-const CACHE_VERSION = 'vf-v2.0.0';
+const CACHE_VERSION = 'vf-v3.0.0';
 const STATIC_ASSETS = [
   './',
+  './login.html',
   './index.html',
   './dashboard.html',
   './rates.html',
   './style.css',
   './db.js',
+  './auth.js',
   './manifest.json'
 ];
 
@@ -58,9 +60,9 @@ self.addEventListener('fetch', (event) => {
         return response;
       });
     }).catch(() => {
-      // Offline fallback: return index.html for navigation requests
+      // Offline fallback: return login.html for navigation requests
       if (event.request.mode === 'navigate') {
-        return caches.match('./index.html');
+        return caches.match('./login.html');
       }
     })
   );

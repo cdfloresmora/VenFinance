@@ -1,8 +1,8 @@
-// db.js — IndexedDB para datos offline
+// db.js — IndexedDB para datos offline (v2: multi-user support)
 window.VF = window.VF || {};
 VF.DB = (() => {
   const DB_NAME    = 'VenFinanceDB';
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   let db = null;
 
   // ── Open / upgrade ─────────────────────────────────────────
@@ -22,6 +22,7 @@ VF.DB = (() => {
           tasas:        { keyPath: 'fecha' },
           categorias:   { keyPath: 'id' },
           pendingQueue: { keyPath: 'queueId', autoIncrement: true },
+          users:        { keyPath: 'email' },
         };
         for (const [name, opts] of Object.entries(stores)) {
           if (!database.objectStoreNames.contains(name)) {
@@ -122,5 +123,41 @@ VF.DB = (() => {
     }
   }
 
-  return { open, put, get, getAll, saveTokens, getTokens, setConfig, getConfig, queueOperation };
+  // ── Per-user localStorage helpers ──────────────────────────
+
+  /** Get the current user's email (for namespacing) */
+  function currentUserKey() {
+    return localStorage.getItem('vf_current_user') || '__default__';
+  }
+
+  /** Get a user-scoped localStorage key */
+  function userKey(key) {
+    return `vf_${currentUserKey()}_${key}`;
+  }
+
+  /** Set user-scoped localStorage value */
+  function setUserData(key, value) {
+    localStorage.setItem(userKey(key), JSON.stringify(value));
+  }
+
+  /** Get user-scoped localStorage value */
+  function getUserData(key) {
+    try {
+      const raw = localStorage.getItem(userKey(key));
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  /** Remove user-scoped localStorage value */
+  function removeUserData(key) {
+    localStorage.removeItem(userKey(key));
+  }
+
+  return {
+    open, put, get, getAll,
+    saveTokens, getTokens,
+    setConfig, getConfig,
+    queueOperation,
+    currentUserKey, userKey, setUserData, getUserData, removeUserData
+  };
 })();

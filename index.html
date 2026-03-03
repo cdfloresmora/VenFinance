@@ -498,6 +498,54 @@
   .config-input:focus { border-color: var(--gold); }
 
   /* ═══════════════════════════════════════
+     RATE TYPE SELECTOR
+  ═══════════════════════════════════════ */
+  .rate-type-row {
+    margin-bottom: 12px;
+  }
+
+  .rate-type-options {
+    display: flex;
+    gap: 6px;
+  }
+
+  .rate-type-btn {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-2);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all .15s;
+  }
+
+  .rate-type-btn.active {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .rate-type-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .rate-custom-input {
+    margin-top: 8px;
+  }
+
+  .rate-custom-input.hidden { display: none; }
+
+  /* ═══════════════════════════════════════
      OFFLINE BANNER
   ═══════════════════════════════════════ */
   .offline-banner {
@@ -611,6 +659,7 @@
     <div class="header-actions">
       <button class="icon-btn" id="sync-btn" onclick="syncPending()" title="Sincronizar">↑</button>
       <button class="icon-btn" onclick="openConfig()">⚙</button>
+      <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión">⏻</button>
     </div>
   </div>
 
@@ -681,6 +730,28 @@
       />
     </div>
 
+    <!-- Rate type selector -->
+    <div class="rate-type-row" id="rate-type-row">
+      <span class="form-section-label" style="margin-bottom:6px;">Tasa al comprar</span>
+      <div class="rate-type-options">
+        <button class="rate-type-btn active" data-type="paralelo" onclick="setRateType('paralelo')">
+          <span class="rate-type-dot" style="background:var(--gold)"></span>
+          Paralelo
+        </button>
+        <button class="rate-type-btn" data-type="bcv" onclick="setRateType('bcv')">
+          <span class="rate-type-dot" style="background:var(--teal)"></span>
+          BCV
+        </button>
+        <button class="rate-type-btn" data-type="custom" onclick="setRateType('custom')">
+          <span class="rate-type-dot" style="background:var(--blue)"></span>
+          Otra
+        </button>
+      </div>
+      <div class="rate-custom-input hidden" id="rate-custom-wrap">
+        <input type="number" id="rate-custom-value" class="text-input" placeholder="Tasa personalizada (Bs/$)" inputmode="decimal" step="0.01" oninput="onRateTypeChange()">
+      </div>
+    </div>
+
     <!-- Conversion strip -->
     <div class="conversion-strip hidden" id="conv-strip">
       <div class="conv-item">
@@ -689,7 +760,7 @@
       </div>
       <div class="conv-sep"></div>
       <div class="conv-item">
-        <div class="conv-label">A tu tasa</div>
+        <div class="conv-label" id="conv-rate-label">A tu tasa</div>
         <div class="conv-value" id="conv-parallel">—</div>
       </div>
       <div class="conv-sep"></div>
@@ -792,13 +863,14 @@ const CATEGORIES = [
    STATE  (all persistence via VF.DB)
 ═══════════════════════════════════════ */
 let state = {
-  currency:     'Bs',   // 'Bs' | '$'
+  currency:     'Bs',       // 'Bs' | '$'
   selectedCat:  null,
-  rateParallel: 0,      // Bs/$ tasa de compra (mi tasa)
-  rateOfficial: 0,      // Bs/$ tasa BCV
-  budgetUSD:    0,      // presupuesto mensual en $
-  expenses:     [],     // loaded from IndexedDB
-  pendingCount: 0,      // # of pending sync operations
+  rateParallel: 0,          // Bs/$ tasa de compra (mi tasa)
+  rateOfficial: 0,          // Bs/$ tasa BCV
+  rateType:     'paralelo', // 'paralelo' | 'bcv' | 'custom'
+  budgetUSD:    0,          // presupuesto mensual en $
+  expenses:     [],         // loaded from IndexedDB
+  pendingCount: 0,          // # of pending sync operations
 };
 
 /* ═══════════════════════════════════════
@@ -808,19 +880,9 @@ async function init() {
   // 1. Open IndexedDB first (all other modules depend on it)
   await VF.DB.open();
 
-  // 2. Handle OAuth redirect callback if present in URL
-  try {
-    const callbackHandled = await VF.Auth.handleCallback();
-    if (callbackHandled) {
-      // First-time login: ensure the spreadsheet exists
-      VF.Sheets.setup().then(ssId => {
-        if (ssId) showToast('success', '✓', 'Google conectado. Hoja lista.');
-      }).catch(e => console.warn('Sheets setup failed:', e));
-    }
-  } catch (e) {
-    console.error('Auth callback error:', e);
-    showToast('error', '⚠', 'Error de autenticación Google');
-  }
+  // 2. Auth guard — redirect to login if no session
+  const session = await VF.Auth.requireAuth();
+  if (!session) return; // redirect happening
 
   // 3. Load persisted data into state
   await loadConfig();
@@ -834,7 +896,14 @@ async function init() {
   updateOfflineBanner();
   await updateAuthStatus();
 
-  // 5. Network listeners
+  // 5. If Google user, ensure Sheets setup
+  if (session.authType === 'google') {
+    VF.Sheets.setup().then(ssId => {
+      if (ssId) showToast('success', '✓', 'Hoja de Google lista.');
+    }).catch(e => console.warn('Sheets setup:', e));
+  }
+
+  // 6. Network listeners
   window.addEventListener('online',  () => { checkOnlineStatus(); syncPending(); });
   window.addEventListener('offline', () => checkOnlineStatus());
 }
@@ -1008,6 +1077,34 @@ function renderCategories() {
 }
 
 /* ═══════════════════════════════════════
+   RATE TYPE SELECTOR
+═══════════════════════════════════════ */
+function setRateType(type) {
+  state.rateType = type;
+  document.querySelectorAll('.rate-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  document.getElementById('rate-custom-wrap').classList.toggle('hidden', type !== 'custom');
+  onAmountChange();
+}
+
+function getActiveRate() {
+  if (state.rateType === 'bcv') return state.rateOfficial;
+  if (state.rateType === 'custom') return parseFloat(document.getElementById('rate-custom-value').value) || 0;
+  return state.rateParallel; // paralelo (default)
+}
+
+function getRateLabel() {
+  if (state.rateType === 'bcv') return 'BCV';
+  if (state.rateType === 'custom') return 'Personalizada';
+  return 'Paralelo';
+}
+
+function onRateTypeChange() {
+  onAmountChange();
+}
+
+/* ═══════════════════════════════════════
    CURRENCY TOGGLE
 ═══════════════════════════════════════ */
 function setCurrency(cur) {
@@ -1023,26 +1120,27 @@ function setCurrency(cur) {
 function onAmountChange() {
   const raw   = parseFloat(document.getElementById('amount-input').value);
   const strip = document.getElementById('conv-strip');
+  const activeRate = getActiveRate();
 
-  if (!raw || raw <= 0 || !state.rateOfficial || !state.rateParallel) {
+  if (!raw || raw <= 0 || !state.rateOfficial || !activeRate) {
     strip.classList.add('hidden');
     return;
   }
   strip.classList.remove('hidden');
 
-  let amountBs, amountUSD_official, amountUSD_parallel;
+  let amountBs, amountUSD_official, amountUSD_real;
 
   if (state.currency === 'Bs') {
     amountBs           = raw;
-    amountUSD_official = Math.round((raw / state.rateOfficial)  * 10000) / 10000;
-    amountUSD_parallel = Math.round((raw / state.rateParallel) * 10000) / 10000;
+    amountUSD_official = Math.round((raw / state.rateOfficial) * 10000) / 10000;
+    amountUSD_real     = Math.round((raw / activeRate) * 10000) / 10000;
   } else {
     amountUSD_official = raw;
     amountBs           = Math.round(raw * state.rateOfficial * 100) / 100;
-    amountUSD_parallel = Math.round((raw * state.rateOfficial / state.rateParallel) * 10000) / 10000;
+    amountUSD_real     = Math.round((raw * state.rateOfficial / activeRate) * 10000) / 10000;
   }
 
-  const diff = Math.round((amountUSD_official - amountUSD_parallel) * 10000) / 10000;
+  const diff = Math.round((amountUSD_official - amountUSD_real) * 10000) / 10000;
 
   document.getElementById('conv-official').textContent =
     state.currency === 'Bs'
@@ -1051,8 +1149,8 @@ function onAmountChange() {
 
   document.getElementById('conv-parallel').textContent =
     state.currency === 'Bs'
-      ? `$${amountUSD_parallel.toFixed(2)}`
-      : `$${amountUSD_parallel.toFixed(2)}`;
+      ? `$${amountUSD_real.toFixed(2)}`
+      : `$${amountUSD_real.toFixed(2)}`;
 
   document.getElementById('conv-diff').textContent =
     diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
@@ -1083,16 +1181,22 @@ async function submitExpense() {
     return;
   }
 
+  const activeRate = getActiveRate();
+  if (!activeRate) {
+    showToast('error', '⚠', 'Ingresa una tasa válida');
+    return;
+  }
+
   // Rounded arithmetic to avoid floating-point drift
-  let amountBs, amountUSD_official, amountUSD_parallel;
+  let amountBs, amountUSD_official, amountUSD_real;
   if (state.currency === 'Bs') {
     amountBs           = raw;
-    amountUSD_official = Math.round((raw / state.rateOfficial)  * 10000) / 10000;
-    amountUSD_parallel = Math.round((raw / state.rateParallel) * 10000) / 10000;
+    amountUSD_official = Math.round((raw / state.rateOfficial) * 10000) / 10000;
+    amountUSD_real     = Math.round((raw / activeRate) * 10000) / 10000;
   } else {
     amountUSD_official = raw;
     amountBs           = Math.round(raw * state.rateOfficial * 100) / 100;
-    amountUSD_parallel = Math.round((raw * state.rateOfficial / state.rateParallel) * 10000) / 10000;
+    amountUSD_real     = Math.round((raw * state.rateOfficial / activeRate) * 10000) / 10000;
   }
 
   const expense = {
@@ -1104,9 +1208,12 @@ async function submitExpense() {
     amountRaw:      raw,
     amountBs,
     amountUSD:      amountUSD_official,
-    amountUSD_real: amountUSD_parallel,
+    amountUSD_real: amountUSD_real,
     rateOfficial:   state.rateOfficial,
     rateParallel:   state.rateParallel,
+    rateType:       state.rateType,
+    rateUsed:       activeRate,
+    rateLabel:      getRateLabel(),
     synced:         false,
   };
 
@@ -1252,7 +1359,7 @@ function renderTransactions() {
           : '$' + exp.amountRaw.toFixed(2)}</div>
         <div class="tx-secondary">${exp.currency === 'Bs'
           ? '$' + exp.amountUSD.toFixed(2)
-          : fmtBs(exp.amountBs) + ' Bs'}</div>
+          : fmtBs(exp.amountBs) + ' Bs'}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
       </div>
       ${!exp.synced ? '<div class="sync-pending" title="Pendiente de sincronizar"></div>' : ''}
     `;

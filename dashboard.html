@@ -16,6 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="db.js"></script>
+<script src="auth.js"></script>
 
 <style>
   /* ═══════════════════════════════════════
@@ -395,7 +397,7 @@
     </div>
     <div class="header-actions">
       <div class="month-badge" id="monthBadge">MAR 2025</div>
-      <div class="avatar" id="userAvatar">C</div>
+      <div class="avatar" id="userAvatar" onclick="VF.Auth.logout()" title="Cerrar sesión" style="cursor:pointer;">C</div>
     </div>
   </div>
 </header>
@@ -935,8 +937,20 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-// ─── BOOT ────────────────────────────────────────────────────
-renderDashboard();
+// ─── BOOT (with auth guard) ─────────────────────────────────
+async function boot() {
+  await VF.DB.open();
+  const session = await VF.Auth.requireAuth();
+  if (!session) return;
+
+  // Set user name from session
+  const userName = session.name || session.email.split('@')[0];
+  document.getElementById('userName').textContent = userName;
+  document.getElementById('userAvatar').textContent = userName[0].toUpperCase();
+
+  renderDashboard();
+}
+boot();
 </script>
 </body>
 </html>
