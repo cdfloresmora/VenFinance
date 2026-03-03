@@ -48,7 +48,7 @@ VF.DB = (() => {
     return new Promise((resolve, reject) => {
       const tx  = db.transaction(store, 'readwrite');
       const req = tx.objectStore(store).put(data);
-      req.onsuccess = () => resolve(req.result);
+      tx.oncomplete = () => resolve(req.result);
       req.onerror   = () => reject(req.error);
       tx.onerror    = () => reject(tx.error);
     });

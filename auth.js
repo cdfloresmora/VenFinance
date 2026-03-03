@@ -1,8 +1,17 @@
-// auth.js — Google Identity Services (GIS) + Local Auth + Session Management
-// Uses GIS Token Model for SPA — no client_secret required.
+// auth.js — Google OAuth + Local Auth + Session Management
+// Primary: GIS Token Model (popup). Fallback: Implicit flow (redirect).
 window.VF = window.VF || {};
 VF.Auth = (() => {
   const CLIENT_ID = '191388644055-g85d4jrlpr8a2asjt9ugbhdhci0q73a6.apps.googleusercontent.com';
+
+  // Redirect URI for implicit flow fallback — must match Google Cloud Console.
+  const REDIRECT_URI = (() => {
+    const { origin, pathname } = window.location;
+    const dir = pathname.endsWith('/')
+      ? pathname
+      : pathname.slice(0, pathname.lastIndexOf('/') + 1);
+    return origin + dir + 'login.html';
+  })();
 
   const SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
@@ -14,7 +23,7 @@ VF.Auth = (() => {
   let tokenClient = null;
   let _loginCallback = null;
 
-  // ── Initialize GIS token client ────────────────────────────────
+  // ── GIS initialization ─────────────────────────────────────
 
   function initTokenClient() {
     if (typeof google === 'undefined' || !google.accounts?.oauth2) {
@@ -28,69 +37,109 @@ VF.Auth = (() => {
         if (_loginCallback) _loginCallback(resp);
       },
       error_callback: (err) => {
-        if (_loginCallback) _loginCallback({ error: err.type || 'unknown_error' });
+        if (_loginCallback) _loginCallback({ error: err.type || 'popup_error' });
       },
     });
     return true;
   }
 
-  // ── Login via Google (popup) ───────────────────────────────────
+  // ── Login ──────────────────────────────────────────────────
 
   /**
-   * Opens the Google sign-in popup.
-   * Resolves with the access_token on success.
-   * Rejects on error or if GIS is not loaded.
+   * Initiates Google login.
+   * - If GIS library is loaded → opens a popup (resolves with access_token).
+   * - Otherwise → falls back to implicit redirect flow (navigates away).
    */
   function login() {
-    return new Promise((resolve, reject) => {
-      if (!tokenClient && !initTokenClient()) {
-        reject(new Error('Google Identity Services no está disponible. Recarga la página e intenta de nuevo.'));
-        return;
-      }
+    // Try GIS popup first
+    if (tokenClient || initTokenClient()) {
+      return new Promise((resolve, reject) => {
+        _loginCallback = async (response) => {
+          _loginCallback = null;
 
-      _loginCallback = async (response) => {
-        _loginCallback = null;
+          if (response.error) {
+            reject(new Error(`Error de Google: ${response.error}`));
+            return;
+          }
 
-        if (response.error) {
-          reject(new Error(`Error de Google: ${response.error}`));
-          return;
-        }
+          try {
+            await VF.DB.saveTokens({
+              access_token: response.access_token,
+              expires_at:   Date.now() + (response.expires_in || 3600) * 1000,
+            });
+            resolve(response.access_token);
+          } catch (err) {
+            reject(err);
+          }
+        };
 
-        try {
-          await VF.DB.saveTokens({
-            access_token: response.access_token,
-            expires_at:   Date.now() + (response.expires_in || 3600) * 1000,
-          });
-          resolve(response.access_token);
-        } catch (err) {
-          reject(err);
-        }
-      };
+        tokenClient.requestAccessToken();
+      });
+    }
 
-      tokenClient.requestAccessToken();
+    // Fallback: implicit redirect flow (response_type=token)
+    console.log('[Auth] GIS not available, falling back to implicit redirect');
+    const params = new URLSearchParams({
+      client_id:              CLIENT_ID,
+      redirect_uri:           REDIRECT_URI,
+      response_type:          'token',
+      scope:                  SCOPES,
+      include_granted_scopes: 'true',
     });
+    window.location.href =
+      `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+
+    // Page navigates away — return a never-resolving promise
+    return new Promise(() => {});
   }
 
-  // ── Handle redirect callback (legacy cleanup) ─────────────────
+  // ── Handle redirect callback ──────────────────────────────
 
   /**
-   * Cleans up any stale OAuth params in the URL from the old redirect flow.
-   * Always returns false — the GIS popup flow doesn't use redirects.
+   * Call on every page load.
+   * Handles the hash fragment from the implicit flow (#access_token=...).
+   * Also cleans up stale code= params from the old PKCE flow.
+   * Returns true if a token was extracted and saved, false otherwise.
    */
   async function handleCallback() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('code') || params.has('error')) {
+    // ① Check hash fragment for implicit flow token
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const expiresIn   = params.get('expires_in');
+      const error       = params.get('error');
+
+      if (error) {
+        window.history.replaceState({}, '', window.location.pathname);
+        throw new Error(`Error de Google: ${error}`);
+      }
+
+      if (accessToken) {
+        await VF.DB.saveTokens({
+          access_token: accessToken,
+          expires_at:   Date.now() + (parseInt(expiresIn) || 3600) * 1000,
+        });
+        window.history.replaceState({}, '', window.location.pathname);
+        return true;
+      }
+    }
+
+    // ② Clean up stale code= params from old PKCE flow
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('code') || searchParams.has('error')) {
       window.history.replaceState({}, '', window.location.pathname);
     }
+
     return false;
   }
 
-  // ── Transparent token access ───────────────────────────────────
+  // ── Token access ──────────────────────────────────────────
 
   /**
-   * Returns a valid access_token if available, or null.
-   * With GIS Token Model there are no refresh_tokens — the caller
-   * should re-trigger login() when this returns null.
+   * Returns a valid access_token or null.
+   * No refresh_token with implicit/GIS flows — caller should
+   * re-trigger login() when this returns null.
    */
   async function getValidToken() {
     const tokens = await VF.DB.getTokens();
@@ -101,11 +150,10 @@ VF.Auth = (() => {
       return tokens.access_token;
     }
 
-    // Expired — caller must re-authenticate
     return null;
   }
 
-  // ── Session helpers ────────────────────────────────────────────
+  // ── Session helpers ───────────────────────────────────────
 
   function getSession() {
     try {
@@ -126,10 +174,6 @@ VF.Auth = (() => {
     return true;
   }
 
-  /**
-   * Auth guard — call at the top of every protected page.
-   * Redirects to login.html if not authenticated.
-   */
   async function requireAuth() {
     const authed = await isAuthenticated();
     if (!authed) {
@@ -140,16 +184,12 @@ VF.Auth = (() => {
     return getSession();
   }
 
-  /** Logout — clear all session data */
   async function logout() {
-    // Revoke the Google token if available
     const tokens = await VF.DB.getTokens();
     if (tokens?.access_token) {
-      try {
-        google.accounts.oauth2.revoke(tokens.access_token);
-      } catch (_) { /* ignore — revoke is best-effort */ }
+      try { google.accounts.oauth2.revoke(tokens.access_token); }
+      catch (_) { /* best-effort */ }
     }
-
     await VF.DB.saveTokens({ id: 'current', access_token: null, refresh_token: null, expires_at: 0 });
     sessionStorage.removeItem('vf_session');
     localStorage.removeItem('vf_current_user');
@@ -159,6 +199,6 @@ VF.Auth = (() => {
   return {
     login, handleCallback, getValidToken,
     isAuthenticated, requireAuth, getSession, logout,
-    initTokenClient,
+    initTokenClient, REDIRECT_URI,
   };
 })();

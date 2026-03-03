@@ -611,8 +611,22 @@ async function checkExistingSession() {
   loading.classList.add('show');
 
   try {
-    // Clean up any stale OAuth params from the old redirect flow
-    await VF.Auth.handleCallback();
+    // Handle implicit flow redirect (#access_token=...) or clean stale params
+    const handled = await VF.Auth.handleCallback();
+    if (handled) {
+      // Token was extracted from redirect — fetch user info and go to app
+      const token = await VF.Auth.getValidToken();
+      if (token) {
+        const userInfo = await fetchGoogleUserInfo(token);
+        setSession({
+          email: userInfo.email,
+          name: userInfo.name || userInfo.email.split('@')[0],
+          authType: 'google'
+        });
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    }
 
     // Check for existing valid session
     const session = sessionStorage.getItem('vf_session');
@@ -644,6 +658,7 @@ async function checkExistingSession() {
     }
   } catch (err) {
     console.warn('Session check error:', err);
+    showMsg(err.message || 'Error al verificar sesión', 'error');
   }
 
   // No valid session — show login form
