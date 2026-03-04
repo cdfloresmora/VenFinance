@@ -654,7 +654,7 @@
   <div class="top-bar">
     <div class="logo">
       <div class="logo-icon">₿</div>
-      <div class="logo-text">VenFinance</div>
+      <div class="logo-text" id="greeting-text">VenFinance</div>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="sync-btn" onclick="syncPending()" title="Sincronizar">↑</button>
@@ -885,7 +885,16 @@ async function init() {
   const session = await VF.Auth.requireAuth();
   if (!session) return; // redirect happening
 
-  // 3. Load persisted data into state
+  // 3. Personalized greeting
+  const greetEl = document.getElementById('greeting-text');
+  if (greetEl && session.name) {
+    const h = new Date().getHours();
+    const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
+    const firstName = session.name.split(' ')[0];
+    greetEl.textContent = `${saludo}, ${firstName}`;
+  }
+
+  // 4. Load persisted data into state
   await loadConfig();
 
   // 4. Render UI
