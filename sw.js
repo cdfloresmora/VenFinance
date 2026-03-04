@@ -1,14 +1,16 @@
 // sw.js — VenFinance Service Worker
-const CACHE_VERSION = 'vf-v4.0.0';
+const CACHE_VERSION = 'vf-v5.0.0';
 const STATIC_ASSETS = [
   './',
   './login.html',
   './index.html',
+  './ingresos.html',
   './dashboard.html',
   './rates.html',
   './style.css',
   './db.js',
   './auth.js',
+  './firebase-config.js',
   './manifest.json'
 ];
 
@@ -38,10 +40,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Google API & auth calls always go to network
+  // Firebase, Google API & auth calls always go to network
   if (url.hostname.includes('googleapis.com') ||
       url.hostname.includes('accounts.google.com') ||
       url.hostname.includes('gstatic.com') ||
+      url.hostname.includes('firebaseio.com') ||
+      url.hostname.includes('firestore.googleapis.com') ||
       url.hostname.includes('dolarapi.com')) {
     event.respondWith(fetch(event.request));
     return;

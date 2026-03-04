@@ -1,163 +1,114 @@
-// db.js — IndexedDB para datos offline (v2: multi-user support)
+// db.js — Firestore wrapper for VenFinance (cloud-synced, offline-capable)
 window.VF = window.VF || {};
 VF.DB = (() => {
-  const DB_NAME    = 'VenFinanceDB';
-  const DB_VERSION = 2;
-  let db = null;
 
-  // ── Open / upgrade ─────────────────────────────────────────
-  function open() {
-    return new Promise((resolve, reject) => {
-      if (db) { resolve(db); return; }
-
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-
-      req.onupgradeneeded = (e) => {
-        const database = e.target.result;
-        const stores = {
-          tokens:       { keyPath: 'id' },
-          config:       { keyPath: 'clave' },
-          gastos:       { keyPath: 'id' },
-          ingresos:     { keyPath: 'id' },
-          tasas:        { keyPath: 'fecha' },
-          categorias:   { keyPath: 'id' },
-          pendingQueue: { keyPath: 'queueId', autoIncrement: true },
-          users:        { keyPath: 'email' },
-        };
-        for (const [name, opts] of Object.entries(stores)) {
-          if (!database.objectStoreNames.contains(name)) {
-            database.createObjectStore(name, opts);
-          }
-        }
-      };
-
-      req.onsuccess = (e) => { db = e.target.result; resolve(db); };
-      req.onerror   = (e) => reject(e.target.error);
-    });
+  /** Reference to current user's Firestore document */
+  function userRef() {
+    const user = firebaseAuth.currentUser;
+    if (!user) throw new Error('No authenticated user');
+    return firestore.collection('users').doc(user.uid);
   }
 
-  async function ensureOpen() {
-    if (!db) await open();
-  }
+  // ── Config ──────────────────────────────────────────────────
 
-  // ── Generic CRUD ───────────────────────────────────────────
-
-  /** Upsert a single record */
-  async function put(store, data) {
-    await ensureOpen();
-    return new Promise((resolve, reject) => {
-      const tx  = db.transaction(store, 'readwrite');
-      const req = tx.objectStore(store).put(data);
-      tx.oncomplete = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-      tx.onerror    = () => reject(tx.error);
-    });
-  }
-
-  /** Get a single record by primary key */
-  async function get(store, key) {
-    await ensureOpen();
-    return new Promise((resolve, reject) => {
-      const tx  = db.transaction(store, 'readonly');
-      const req = tx.objectStore(store).get(key);
-      req.onsuccess = () => resolve(req.result ?? null);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  /** Get all records in a store */
-  async function getAll(store) {
-    await ensureOpen();
-    return new Promise((resolve, reject) => {
-      const tx  = db.transaction(store, 'readonly');
-      const req = tx.objectStore(store).getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror   = () => reject(req.error);
-    });
-  }
-
-  // ── Token storage ──────────────────────────────────────────
-
-  /** Save OAuth tokens to IndexedDB (standardized storage — no localStorage) */
-  async function saveTokens(data) {
-    if (!data) return;
-    return put('tokens', { id: 'current', ...data });
-  }
-
-  /** Retrieve stored OAuth tokens, or null if none */
-  async function getTokens() {
-    return get('tokens', 'current');
-  }
-
-  // ── Config storage ─────────────────────────────────────────
-
-  /** Persist a key→value config entry */
   async function setConfig(key, value) {
-    return put('config', { clave: key, valor: value });
+    await userRef().collection('config').doc(key).set({ valor: value });
   }
 
-  /** Retrieve a config value by key, or null */
   async function getConfig(key) {
-    const record = await get('config', key);
-    return record ? record.valor : null;
+    const doc = await userRef().collection('config').doc(key).get();
+    return doc.exists ? doc.data().valor : null;
   }
 
-  // ── Offline operation queue ────────────────────────────────
+  // ── Expenses (gastos) ───────────────────────────────────────
 
-  /**
-   * Queue an operation for deferred sync.
-   * operation = { type: 'append'|'update', sheet, data, ... }
-   */
-  async function queueOperation(operation) {
-    await put('pendingQueue', {
-      ...operation,
-      timestamp: Date.now(),
-      status:    'pending',
-    });
-    // Ask the Service Worker to trigger a background sync
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        await reg.sync.register('sync-pending');
-      } catch (_) { /* Background Sync not supported — will retry on next online event */ }
-    }
+  async function putExpense(expense) {
+    await userRef().collection('gastos').doc(String(expense.id)).set(expense);
   }
 
-  // ── Per-user localStorage helpers ──────────────────────────
-
-  /** Get the current user's email (for namespacing) */
-  function currentUserKey() {
-    return localStorage.getItem('vf_current_user') || '__default__';
+  async function getExpenses() {
+    const snap = await userRef().collection('gastos')
+      .orderBy('id', 'desc').get();
+    return snap.docs.map(d => d.data());
   }
 
-  /** Get a user-scoped localStorage key */
-  function userKey(key) {
-    return `vf_${currentUserKey()}_${key}`;
+  async function deleteExpense(id) {
+    await userRef().collection('gastos').doc(String(id)).delete();
   }
 
-  /** Set user-scoped localStorage value */
-  function setUserData(key, value) {
-    localStorage.setItem(userKey(key), JSON.stringify(value));
+  // ── Income (ingresos) ──────────────────────────────────────
+
+  async function putIncome(income) {
+    await userRef().collection('ingresos').doc(String(income.id)).set(income);
   }
 
-  /** Get user-scoped localStorage value */
-  function getUserData(key) {
-    try {
-      const raw = localStorage.getItem(userKey(key));
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+  async function getIncomes() {
+    const snap = await userRef().collection('ingresos')
+      .orderBy('id', 'desc').get();
+    return snap.docs.map(d => d.data());
   }
 
-  /** Remove user-scoped localStorage value */
-  function removeUserData(key) {
-    localStorage.removeItem(userKey(key));
+  async function deleteIncome(id) {
+    await userRef().collection('ingresos').doc(String(id)).delete();
   }
+
+  // ── Budgets (presupuestos mensuales) ───────────────────────
+
+  async function setBudget(yearMonth, budgetUSD) {
+    await userRef().collection('presupuestos').doc(yearMonth).set({
+      month:     yearMonth,
+      budgetUSD: budgetUSD,
+      updatedAt: Date.now()
+    }, { merge: true });
+  }
+
+  async function getBudget(yearMonth) {
+    const doc = await userRef().collection('presupuestos').doc(yearMonth).get();
+    return doc.exists ? doc.data() : null;
+  }
+
+  async function getAllBudgets() {
+    const snap = await userRef().collection('presupuestos')
+      .orderBy('month', 'desc').get();
+    return snap.docs.map(d => d.data());
+  }
+
+  // ── Rates (tasas) ──────────────────────────────────────────
+
+  async function putRate(rate) {
+    await userRef().collection('tasas').doc(rate.fecha).set(rate, { merge: true });
+  }
+
+  async function getRates() {
+    const snap = await userRef().collection('tasas')
+      .orderBy('fecha', 'asc').get();
+    return snap.docs.map(d => d.data());
+  }
+
+  // ── User Profile ───────────────────────────────────────────
+
+  async function saveProfile(data) {
+    await userRef().set(data, { merge: true });
+  }
+
+  async function getProfile() {
+    const doc = await userRef().get();
+    return doc.exists ? doc.data() : null;
+  }
+
+  // ── Legacy compat (no-op for old code) ─────────────────────
+
+  function open()       { return Promise.resolve(); }
+  function saveTokens() { return Promise.resolve(); }
+  function getTokens()  { return Promise.resolve(null); }
 
   return {
-    open, put, get, getAll,
-    saveTokens, getTokens,
     setConfig, getConfig,
-    queueOperation,
-    currentUserKey, userKey, setUserData, getUserData, removeUserData
+    putExpense, getExpenses, deleteExpense,
+    putIncome, getIncomes, deleteIncome,
+    setBudget, getBudget, getAllBudgets,
+    putRate, getRates,
+    saveProfile, getProfile,
+    open, saveTokens, getTokens,
   };
 })();

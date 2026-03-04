@@ -13,7 +13,11 @@
 
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="db.js"></script>
 <script src="auth.js"></script>
 
@@ -547,9 +551,13 @@
       <span class="nav-icon">💸</span>
       <span class="nav-label">Gastos</span>
     </a>
+    <a href="ingresos.html">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Ingresos</span>
+    </a>
     <a href="dashboard.html">
       <span class="nav-icon">📊</span>
-      <span class="nav-label">Dashboard</span>
+      <span class="nav-label">Resumen</span>
     </a>
     <a href="rates.html" class="active">
       <span class="nav-icon">💱</span>
@@ -565,33 +573,8 @@
 <script>
 /* ================================================================
    VENFINANCE — MÓDULO DE TASAS
-   Arquitectura: PWA + Google Sheets API como backend
+   Arquitectura: PWA + Firebase Firestore
    ================================================================ */
-
-// ── CONFIG ──────────────────────────────────────────────────────
-const CONFIG = (function() {
-  let sheetId = '', apiKey = '';
-  try {
-    // Read from shared vf_config (set by index.html)
-    const cfgStr = localStorage.getItem('vf_config');
-    if (cfgStr) {
-      const cfg = JSON.parse(cfgStr);
-      sheetId = cfg.sheetId || '';
-      apiKey  = cfg.apiKey  || '';
-    }
-    // Fallback to separate keys
-    if (!sheetId) sheetId = localStorage.getItem('vf_spreadsheet_id') || '';
-    if (!apiKey)  apiKey  = localStorage.getItem('vf_api_key') || '';
-  } catch(e) {}
-  return {
-    SPREADSHEET_ID: sheetId,
-    API_KEY: apiKey,
-    SHEET_TASAS: 'Tasas',
-    SHEET_GASTOS: 'Gastos',
-    RANGE_TASAS: 'Tasas!A:G',
-    RANGE_GASTOS: 'Gastos!A:O',
-  };
-})();
 
 // ── STATE ────────────────────────────────────────────────────────
 let state = {
@@ -602,104 +585,34 @@ let state = {
   chart: null,
 };
 
-// ── DEMO DATA (se reemplaza con datos reales de Sheets) ──────────
-const DEMO_TASAS = [
-  { fecha:'2025-02-28', tasa_bcv:408.25, tasa_paralelo:591.00, tasa_mi_compra:600, spread_bcv:191.75, spread_pct:44.52, fuente:'BCV + Monitor Dólar' },
-  { fecha:'2025-03-01', tasa_bcv:410.50, tasa_paralelo:597.00, tasa_mi_compra:600, spread_bcv:189.50, spread_pct:46.16, fuente:'BCV + Monitor Dólar' },
-  { fecha:'2025-03-02', tasa_bcv:411.00, tasa_paralelo:600.00, tasa_mi_compra:600, spread_bcv:189.00, spread_pct:47.20, fuente:'BCV + Monitor Dólar' },
-];
 
-const DEMO_GASTOS = [
-  { fecha:'2025-03-01', ventaja_usd: 22.14, ventaja_bs: 9100 },
-  { fecha:'2025-03-01', ventaja_usd: 5.31,  ventaja_bs: 2180 },
-  { fecha:'2025-03-02', ventaja_usd: 31.58, ventaja_bs: 12950 },
-];
-
-
-// ── GOOGLE SHEETS API ────────────────────────────────────────────
-const SheetsAPI = {
-  baseURL: 'https://sheets.googleapis.com/v4/spreadsheets',
-
-  async read(range) {
-    if (!CONFIG.SPREADSHEET_ID || !CONFIG.API_KEY) return null;
-    const url = `${this.baseURL}/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${CONFIG.API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Sheets API error: ${res.status}`);
-    const data = await res.json();
-    return data.values || [];
-  },
-
-  // Requiere OAuth token para escritura
-  async append(range, values, oauthToken) {
-    if (!CONFIG.SPREADSHEET_ID) return null;
-    const url = `${this.baseURL}/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${oauthToken}`,
-    };
-    const res = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ values }),
-    });
-    if (!res.ok) throw new Error(`Sheets append error: ${res.status}`);
-    return await res.json();
-  },
-
-  /** Parsea las filas crudas de la hoja Tasas en objetos tipados */
-  parseTasas(rows) {
-    if (!rows || rows.length < 2) return [];
-    const [_header, ...data] = rows;
-    return data.map(r => ({
-      fecha:          r[0] || '',
-      tasa_bcv:       parseFloat(r[1]) || 0,
-      tasa_paralelo:  parseFloat(r[2]) || 0,
-      tasa_mi_compra: parseFloat(r[3]) || 0,
-      spread_bcv:     parseFloat(r[4]) || 0,
-      spread_pct:     parseFloat(r[5]) || 0,
-      fuente:         r[6] || '',
-    })).filter(r => r.fecha);
-  },
-
-  /** Parsea la hoja Gastos para calcular ventajas */
-  parseGastos(rows) {
-    if (!rows || rows.length < 2) return [];
-    const [header, ...data] = rows;
-    const idx = (name) => header.indexOf(name);
-    return data.map(r => ({
-      fecha:       r[idx('fecha')] || r[1] || '',
-      ventaja_usd: parseFloat(r[idx('ventaja_usd')] || r[12]) || 0,
-      ventaja_bs:  parseFloat(r[idx('ventaja_bs')]  || r[11]) || 0,
-    })).filter(r => r.fecha);
-  },
-};
-
-
-// ── CARGAR DATOS ─────────────────────────────────────────────────
+// ── CARGAR DATOS DESDE FIRESTORE ─────────────────────────────────
 async function loadData() {
   try {
-    // Intentar cargar desde Google Sheets
-    if (CONFIG.SPREADSHEET_ID && CONFIG.API_KEY) {
-      const [tasasRows, gastosRows] = await Promise.all([
-        SheetsAPI.read(CONFIG.RANGE_TASAS),
-        SheetsAPI.read(CONFIG.RANGE_GASTOS),
-      ]);
-      state.tasas  = SheetsAPI.parseTasas(tasasRows);
-      state.gastos = SheetsAPI.parseGastos(gastosRows);
-      showToast('Datos sincronizados con Google Sheets', 'success');
-    } else {
-      // Usar demo data + datos locales
-      let local = [];
-      try { local = JSON.parse(localStorage.getItem('vf_tasas') || '[]'); } catch(e) {}
-      state.tasas  = local.length ? local : DEMO_TASAS;
-      state.gastos = DEMO_GASTOS;
-    }
+    const [rates, expenses] = await Promise.all([
+      VF.DB.getRates(),
+      VF.DB.getExpenses(),
+    ]);
+
+    // Map Firestore rate docs to state format
+    state.tasas = rates.map(r => ({
+      fecha:          r.fecha || '',
+      tasa_bcv:       r.tasa_bcv || 0,
+      tasa_paralelo:  r.tasa_paralelo || 0,
+      tasa_mi_compra: r.tasa_mi_compra || 0,
+      spread_bcv:     r.spread_bcv || 0,
+      spread_pct:     r.spread_pct || 0,
+      fuente:         r.fuente || '',
+    }));
+
+    // Map expenses for advantage calculation
+    state.gastos = expenses.map(g => ({
+      fecha:       g.fecha || '',
+      ventaja_usd: g.ventaja_usd || 0,
+      ventaja_bs:  g.ventaja_bs || 0,
+    }));
   } catch (e) {
-    console.warn('Sheets API no disponible, usando datos locales:', e.message);
-    let local = [];
-    try { local = JSON.parse(localStorage.getItem('vf_tasas') || '[]'); } catch(e2) {}
-    state.tasas  = local.length ? local : DEMO_TASAS;
-    state.gastos = DEMO_GASTOS;
+    console.warn('Error cargando datos:', e.message);
   }
   renderAll();
 }
@@ -782,38 +695,18 @@ async function saveRate() {
     fuente:         state.source === 'auto' ? 'Auto BCV + Manual' : 'Manual',
   };
 
-  // Remover si ya existe para esa fecha y agregar la nueva
+  // Update local state
   state.tasas = state.tasas.filter(t => t.fecha !== fecha);
   state.tasas.push(nuevaTasa);
   state.tasas.sort((a,b) => a.fecha.localeCompare(b.fecha));
 
-  // Persistir localmente
+  // Save to Firestore
   try {
-    localStorage.setItem('vf_tasas', JSON.stringify(state.tasas));
-    // Also update vf_config so index.html picks up the latest rates
-    const cfgStr = localStorage.getItem('vf_config');
-    if (cfgStr) {
-      const cfg = JSON.parse(cfgStr);
-      cfg.rateOfficial = nuevaTasa.tasa_bcv;
-      cfg.rateParallel = nuevaTasa.tasa_mi_compra;
-      localStorage.setItem('vf_config', JSON.stringify(cfg));
-    }
-  } catch(e) {}
-
-  // Intentar guardar en Google Sheets si está configurado
-  const oauthToken = sessionStorage.getItem('vf_oauth_token') || localStorage.getItem('vf_oauth_token');
-  if (CONFIG.SPREADSHEET_ID && oauthToken) {
-    try {
-      await SheetsAPI.append(CONFIG.RANGE_TASAS, [[
-        nuevaTasa.fecha, nuevaTasa.tasa_bcv, nuevaTasa.tasa_paralelo,
-        nuevaTasa.tasa_mi_compra, nuevaTasa.spread_bcv, nuevaTasa.spread_pct, nuevaTasa.fuente
-      ]], oauthToken);
-      showToast('✅ Guardado en Google Sheets', 'success');
-    } catch (e) {
-      showToast('💾 Guardado localmente (Sheets no disponible)', 'success');
-    }
-  } else {
-    showToast('💾 Tasa guardada localmente', 'success');
+    await VF.DB.putRate(nuevaTasa);
+    showToast('✅ Tasa guardada y sincronizada', 'success');
+  } catch (e) {
+    showToast('⚠️ Error al guardar tasa', 'error');
+    console.error(e);
   }
 
   clearForm();
@@ -1071,7 +964,6 @@ if ('serviceWorker' in navigator) {
 
 // ── INIT (with auth guard) ───────────────────────────────────────
 (async function init() {
-  await VF.DB.open();
   const session = await VF.Auth.requireAuth();
   if (!session) return;
 

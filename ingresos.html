@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VenFinance">
+<meta name="theme-color" content="#080810">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<title>VenFinance — Ingresos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0 12px;
+  }
+  .form-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 20px; margin-bottom: 16px;
+  }
+  .form-section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: 12px;
+  }
+  .amount-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-elevated); border: 1px solid var(--border-bright);
+    border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 10px;
+    transition: border-color .2s;
+  }
+  .amount-row:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,212,170,0.1); }
+  .amount-prefix {
+    font-family: var(--font-mono); font-size: 20px; font-weight: 600;
+    color: var(--teal); flex-shrink: 0;
+  }
+  #income-amount {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: var(--font-mono); font-size: 28px; font-weight: 600;
+    color: var(--text-1); text-align: right; width: 100%; min-width: 0;
+    -webkit-appearance: none;
+  }
+  #income-amount::placeholder { color: var(--text-3); }
+  .category-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .cat-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 4px 8px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    cursor: pointer; transition: all .2s; -webkit-appearance: none;
+  }
+  .cat-btn:active { transform: scale(0.93); }
+  .cat-btn.selected {
+    background: rgba(0,212,170,0.1); border-color: var(--teal);
+    box-shadow: 0 0 12px rgba(0,212,170,0.1);
+  }
+  .cat-icon { font-size: 20px; line-height: 1; }
+  .cat-label { font-size: 8px; font-weight: 500; color: var(--text-3); text-align: center; letter-spacing: 0.3px; }
+  .cat-btn.selected .cat-label { color: var(--teal); }
+  .fields-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 16px;
+  }
+  .input-wrap { position: relative; }
+  .field-label {
+    position: absolute; top: -6px; left: 10px;
+    font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    background: var(--bg-card); padding: 0 4px; color: var(--text-3);
+  }
+  .text-input {
+    width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 12px 14px; font-family: var(--font-ui);
+    font-size: 13px; color: var(--text-1); outline: none; transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .text-input::placeholder { color: var(--text-3); }
+  .text-input:focus { border-color: var(--border-bright); }
+  .date-input {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 12px 10px; font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-2); outline: none; -webkit-appearance: none;
+    color-scheme: dark; width: 100%;
+  }
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--teal) 0%, #0A8A6E 100%);
+    border: none; border-radius: var(--r-md); font-family: var(--font-ui);
+    font-size: 15px; font-weight: 700; color: #000; cursor: pointer;
+    position: relative; overflow: hidden; transition: all .2s;
+    -webkit-appearance: none; box-shadow: 0 4px 20px rgba(0,212,170,0.2);
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn.loading { opacity: 0.7; pointer-events: none; }
+
+  /* Summary card */
+  .income-summary {
+    background: linear-gradient(145deg, #0A1F20 0%, #0A1420 100%);
+    border: 1px solid rgba(0,212,170,0.2); border-radius: var(--r-lg);
+    padding: 20px; margin-bottom: 16px; position: relative; overflow: hidden;
+  }
+  .income-summary::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,170,0.3), transparent);
+  }
+  .income-total-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); }
+  .income-total-amount {
+    font-family: var(--font-mono); font-size: 32px; font-weight: 600;
+    color: var(--teal); line-height: 1; margin: 8px 0 4px;
+  }
+  .income-total-amount span { color: var(--teal); font-size: 20px; }
+  .income-month { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+
+  /* Transaction list */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0.3px; }
+  .tx-list { display: flex; flex-direction: column; gap: 8px; }
+  .tx-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: 12px 14px; animation: slideUp .3s ease;
+  }
+  .tx-cat-icon {
+    width: 40px; height: 40px; border-radius: var(--r-sm);
+    background: var(--bg-elevated); display: grid; place-items: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-cat-name { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .tx-desc { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-amounts { text-align: right; flex-shrink: 0; }
+  .tx-primary { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--teal); }
+  .tx-secondary { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg">Ingreso guardado</span>
+</div>
+
+<div id="app" class="app-container">
+
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-icon" style="background: linear-gradient(135deg, var(--teal) 0%, #0A8A6E 100%); box-shadow: 0 0 32px rgba(0,212,170,0.2);">💰</div>
+      <div class="logo-text" id="greeting-text">Ingresos</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión">⏻</button>
+    </div>
+  </div>
+
+  <!-- INCOME SUMMARY -->
+  <div class="income-summary">
+    <div class="income-total-label">Ingresos este mes</div>
+    <div class="income-total-amount"><span>$</span><span id="income-total">0.00</span></div>
+    <div class="income-month" id="income-month">—</div>
+  </div>
+
+  <!-- INCOME FORM -->
+  <div class="form-card">
+    <div class="form-section-label">Registrar ingreso</div>
+
+    <div class="amount-row">
+      <div class="amount-prefix">$</div>
+      <input id="income-amount" type="number" inputmode="decimal" placeholder="0.00" autocomplete="off" />
+    </div>
+
+    <div class="form-section-label">Fuente</div>
+    <div class="category-grid" id="source-grid"></div>
+
+    <div class="fields-row">
+      <div class="input-wrap" style="position: relative;">
+        <span class="field-label">Descripción</span>
+        <input class="text-input" id="income-desc" type="text" placeholder="Opcional..." autocomplete="off" />
+      </div>
+      <div class="input-wrap" style="min-width: 120px; position: relative;">
+        <span class="field-label">Fecha</span>
+        <input class="date-input" id="income-date" type="date" />
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitIncome()">
+      + Registrar Ingreso
+    </button>
+  </div>
+
+  <!-- RECENT INCOMES -->
+  <div class="section-header">
+    <span class="section-title">Ingresos recientes</span>
+  </div>
+  <div class="tx-list" id="income-list">
+    <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
+      Aún no hay ingresos registrados.
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a href="index.html">
+      <span class="nav-icon">💸</span>
+      <span class="nav-label">Gastos</span>
+    </a>
+    <a href="ingresos.html" class="active">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Ingresos</span>
+    </a>
+    <a href="dashboard.html">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Resumen</span>
+    </a>
+    <a href="rates.html">
+      <span class="nav-icon">💱</span>
+      <span class="nav-label">Tasas</span>
+    </a>
+  </div>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+<script src="auth.js"></script>
+
+<script>
+const INCOME_SOURCES = [
+  { id: 'salary',     icon: '💼', label: 'Salario'   },
+  { id: 'freelance',  icon: '💻', label: 'Freelance' },
+  { id: 'sale',       icon: '🏷️', label: 'Venta'     },
+  { id: 'transfer',   icon: '🔄', label: 'Transferencia' },
+  { id: 'investment', icon: '📈', label: 'Inversión' },
+  { id: 'gift',       icon: '🎁', label: 'Regalo'    },
+  { id: 'refund',     icon: '↩️', label: 'Reembolso' },
+  { id: 'other',      icon: '📦', label: 'Otro'      },
+];
+
+let state = {
+  selectedSource: null,
+  incomes: [],
+};
+
+async function init() {
+  const session = await VF.Auth.requireAuth();
+  if (!session) return;
+
+  // Greeting
+  const greetEl = document.getElementById('greeting-text');
+  if (greetEl && session.name) {
+    const h = new Date().getHours();
+    const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
+    greetEl.textContent = `${saludo}, ${session.name.split(' ')[0]}`;
+  }
+
+  renderSources();
+  document.getElementById('income-date').value = new Date().toISOString().split('T')[0];
+
+  state.incomes = await VF.DB.getIncomes();
+  renderSummary();
+  renderIncomes();
+}
+
+function renderSources() {
+  const grid = document.getElementById('source-grid');
+  grid.innerHTML = '';
+  INCOME_SOURCES.forEach(src => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.id = src.id;
+    btn.innerHTML = `<span class="cat-icon">${src.icon}</span><span class="cat-label">${src.label}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.selectedSource = src.id;
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function renderSummary() {
+  const now = new Date();
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const monthTotal = state.incomes
+    .filter(i => i.date && i.date.startsWith(ym))
+    .reduce((acc, i) => acc + (i.amountUSD || 0), 0);
+
+  document.getElementById('income-total').textContent = monthTotal.toFixed(2);
+  document.getElementById('income-month').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+async function submitIncome() {
+  const amount = parseFloat(document.getElementById('income-amount').value);
+  const desc   = document.getElementById('income-desc').value.trim();
+  const date   = document.getElementById('income-date').value;
+  const source = state.selectedSource;
+
+  if (!amount || amount <= 0) { showToast('error', '⚠', 'Ingresa un monto válido'); return; }
+  if (!source) { showToast('error', '⚠', 'Selecciona una fuente'); return; }
+  if (!date)   { showToast('error', '⚠', 'Selecciona una fecha'); return; }
+
+  const income = {
+    id:          Date.now(),
+    date,
+    source,
+    description: desc,
+    amountUSD:   amount,
+    createdAt:   Date.now(),
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.classList.add('loading');
+
+  try {
+    await VF.DB.putIncome(income);
+    state.incomes.unshift(income);
+    showToast('success', '✓', 'Ingreso registrado');
+  } catch (e) {
+    console.error('Save error:', e);
+    showToast('error', '✗', 'Error al guardar');
+  }
+
+  btn.classList.remove('loading');
+
+  // Reset form
+  document.getElementById('income-amount').value = '';
+  document.getElementById('income-desc').value   = '';
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  state.selectedSource = null;
+  document.getElementById('income-date').value = new Date().toISOString().split('T')[0];
+
+  renderSummary();
+  renderIncomes();
+}
+
+function renderIncomes() {
+  const list   = document.getElementById('income-list');
+  const recent = state.incomes.slice(0, 15);
+
+  if (recent.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
+      Aún no hay ingresos registrados.</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  recent.forEach(inc => {
+    const src  = INCOME_SOURCES.find(s => s.id === inc.source);
+    const item = document.createElement('div');
+    item.className = 'tx-item';
+    item.innerHTML = `
+      <div class="tx-cat-icon">${src ? src.icon : '📦'}</div>
+      <div class="tx-info">
+        <div class="tx-cat-name">${src ? src.label : inc.source}</div>
+        <div class="tx-desc">${inc.description || inc.date}</div>
+      </div>
+      <div class="tx-amounts">
+        <div class="tx-primary">+$${inc.amountUSD.toFixed(2)}</div>
+        <div class="tx-secondary">${inc.date}</div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function showToast(type, icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+init().catch(err => console.error('Init failed:', err));
+</script>
+</body>
+</html>
