@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   /* ═══════════════════════════════════════
@@ -431,8 +432,28 @@ function toggleMode() {
 }
 
 // ── Google Login ─────────────────────────────────────────────
-function loginWithGoogle() {
-  VF.Auth.login();
+async function loginWithGoogle() {
+  clearMsg();
+  const btn = document.getElementById('btnGoogle');
+  btn.disabled = true;
+
+  try {
+    const token = await VF.Auth.login();
+    if (token) {
+      showMsg('Conectado con Google. Redirigiendo...', 'success');
+      const userInfo = await fetchGoogleUserInfo(token);
+      setSession({
+        email: userInfo.email,
+        name: userInfo.name || userInfo.email.split('@')[0],
+        authType: 'google'
+      });
+      window.location.href = 'dashboard.html';
+    }
+  } catch (err) {
+    console.error('Google login error:', err);
+    showMsg(err.message || 'Error al iniciar sesión con Google', 'error');
+    btn.disabled = false;
+  }
 }
 
 // ── Local Auth Handler ───────────────────────────────────────
@@ -590,10 +611,10 @@ async function checkExistingSession() {
   loading.classList.add('show');
 
   try {
-    // Check for OAuth callback (code in URL)
+    // Handle implicit flow redirect (#access_token=...) or clean stale params
     const handled = await VF.Auth.handleCallback();
     if (handled) {
-      // Google OAuth successful — get user info and set session
+      // Token was extracted from redirect — fetch user info and go to app
       const token = await VF.Auth.getValidToken();
       if (token) {
         const userInfo = await fetchGoogleUserInfo(token);
@@ -637,6 +658,7 @@ async function checkExistingSession() {
     }
   } catch (err) {
     console.warn('Session check error:', err);
+    showMsg(err.message || 'Error al verificar sesión', 'error');
   }
 
   // No valid session — show login form

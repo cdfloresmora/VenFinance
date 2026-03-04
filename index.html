@@ -836,6 +836,7 @@
 
 
 <!-- VF Modules must load before the inline app script -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="db.js"></script>
 <script src="auth.js"></script>
 <script src="sheets.js"></script>
@@ -973,7 +974,7 @@ document.getElementById('config-overlay').addEventListener('click', function(e) 
 });
 
 /* ═══════════════════════════════════════
-   GOOGLE AUTH  (VF.Auth PKCE flow)
+   GOOGLE AUTH  (GIS popup flow)
 ═══════════════════════════════════════ */
 async function googleLogin() {
   const isAuth = await VF.Auth.isAuthenticated();
@@ -986,8 +987,14 @@ async function googleLogin() {
     }
     return;
   }
-  // Initiates redirect — this will leave and return to this page
-  await VF.Auth.login();
+  try {
+    await VF.Auth.login();
+    showToast('success', '✓', 'Conectado con Google');
+    await updateAuthStatus();
+  } catch (err) {
+    console.error('Google login error:', err);
+    showToast('error', '✗', err.message || 'Error al conectar con Google');
+  }
 }
 
 async function updateAuthStatus() {

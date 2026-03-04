@@ -1,5 +1,5 @@
 // sw.js — VenFinance Service Worker
-const CACHE_VERSION = 'vf-v3.0.0';
+const CACHE_VERSION = 'vf-v4.0.0';
 const STATIC_ASSETS = [
   './',
   './login.html',
