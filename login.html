@@ -15,7 +15,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   /* ═══════════════════════════════════════
@@ -394,7 +393,7 @@
     </div><!-- /authContent -->
 
     <div class="login-footer">
-      Tus datos se almacenan de forma segura en tu dispositivo
+      Tus datos se sincronizan de forma segura en la nube
     </div>
 
   </div>
@@ -403,11 +402,16 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK (compat for non-module usage) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="db.js"></script>
 <script src="auth.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════
-   LOGIN PAGE — Logic
+   LOGIN PAGE — Logic (Firebase Auth)
    ════════════════════════════════════════════════════════════════ */
 
 let isRegisterMode = false;
@@ -438,20 +442,13 @@ async function loginWithGoogle() {
   btn.disabled = true;
 
   try {
-    const token = await VF.Auth.login();
-    if (token) {
-      showMsg('Conectado con Google. Redirigiendo...', 'success');
-      const userInfo = await fetchGoogleUserInfo(token);
-      setSession({
-        email: userInfo.email,
-        name: userInfo.name || userInfo.email.split('@')[0],
-        authType: 'google'
-      });
-      window.location.href = 'dashboard.html';
-    }
+    await VF.Auth.login();
+    showMsg('Conectado con Google. Redirigiendo...', 'success');
+    setTimeout(() => window.location.href = 'index.html', 600);
   } catch (err) {
     console.error('Google login error:', err);
-    showMsg(err.message || 'Error al iniciar sesión con Google', 'error');
+    const msg = firebaseErrorMsg(err);
+    showMsg(msg, 'error');
     btn.disabled = false;
   }
 }
@@ -495,100 +492,39 @@ async function handleLocalAuth(e) {
         return;
       }
 
-      // Check if user already exists
-      const existing = await VF.DB.get('users', email);
-      if (existing) {
-        showMsg('Ya existe una cuenta con este correo', 'error');
-        btn.disabled = false;
-        return;
-      }
-
-      // Hash password with PBKDF2
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const hash = await hashPassword(password, salt);
-
-      // Save user
-      await VF.DB.put('users', {
-        email,
-        name,
-        passwordHash: arrayToBase64(hash),
-        salt: arrayToBase64(salt),
-        createdAt: Date.now(),
-        authType: 'local'
-      });
-
-      // Set session and redirect
-      setSession({ email, name, authType: 'local' });
+      await VF.Auth.register(email, password, name);
       showMsg('Cuenta creada. Redirigiendo...', 'success');
-      setTimeout(() => window.location.href = 'dashboard.html', 800);
+      setTimeout(() => window.location.href = 'index.html', 800);
 
     } else {
-      // Login mode
-      const user = await VF.DB.get('users', email);
-      if (!user) {
-        showMsg('No existe una cuenta con este correo', 'error');
-        btn.disabled = false;
-        return;
-      }
-
-      // Verify password
-      const salt = base64ToArray(user.salt);
-      const hash = await hashPassword(password, salt);
-      const hashB64 = arrayToBase64(hash);
-
-      if (hashB64 !== user.passwordHash) {
-        showMsg('Contraseña incorrecta', 'error');
-        btn.disabled = false;
-        return;
-      }
-
-      // Set session and redirect
-      setSession({ email: user.email, name: user.name, authType: 'local' });
+      await VF.Auth.loginWithEmail(email, password);
       showMsg('Bienvenido de vuelta. Redirigiendo...', 'success');
-      setTimeout(() => window.location.href = 'dashboard.html', 800);
+      setTimeout(() => window.location.href = 'index.html', 800);
     }
   } catch (err) {
     console.error('Auth error:', err);
-    showMsg('Error inesperado. Intenta de nuevo.', 'error');
+    const msg = firebaseErrorMsg(err);
+    showMsg(msg, 'error');
     btn.disabled = false;
   }
 }
 
-// ── Password Hashing (PBKDF2) ───────────────────────────────
-async function hashPassword(password, salt) {
-  const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    256
-  );
-  return new Uint8Array(bits);
-}
-
-function arrayToBase64(arr) {
-  return btoa(String.fromCharCode(...new Uint8Array(arr)));
-}
-
-function base64ToArray(b64) {
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return arr;
-}
-
-// ── Session Management ───────────────────────────────────────
-function setSession(userData) {
-  const session = {
-    email: userData.email,
-    name: userData.name,
-    authType: userData.authType,
-    loginAt: Date.now()
+// ── Firebase error messages in Spanish ───────────────────────
+function firebaseErrorMsg(err) {
+  const code = err.code || '';
+  const map = {
+    'auth/user-not-found':            'No existe una cuenta con este correo',
+    'auth/wrong-password':            'Contraseña incorrecta',
+    'auth/invalid-credential':        'Credenciales incorrectas',
+    'auth/email-already-in-use':      'Ya existe una cuenta con este correo',
+    'auth/weak-password':             'La contraseña debe tener al menos 6 caracteres',
+    'auth/invalid-email':             'Correo electrónico inválido',
+    'auth/too-many-requests':         'Demasiados intentos. Intenta más tarde',
+    'auth/popup-closed-by-user':      'Ventana de Google cerrada',
+    'auth/cancelled-popup-request':   'Solicitud cancelada',
+    'auth/network-request-failed':    'Error de conexión. Verifica tu internet',
   };
-  sessionStorage.setItem('vf_session', JSON.stringify(session));
-  localStorage.setItem('vf_current_user', userData.email);
+  return map[code] || err.message || 'Error inesperado. Intenta de nuevo.';
 }
 
 // ── Messages ─────────────────────────────────────────────────
@@ -605,73 +541,21 @@ function clearMsg() {
 }
 
 // ── Check existing session on load ───────────────────────────
-async function checkExistingSession() {
+function checkExistingSession() {
   const loading = document.getElementById('loginLoading');
   const content = document.getElementById('authContent');
   loading.classList.add('show');
 
-  try {
-    // Handle implicit flow redirect (#access_token=...) or clean stale params
-    const handled = await VF.Auth.handleCallback();
-    if (handled) {
-      // Token was extracted from redirect — fetch user info and go to app
-      const token = await VF.Auth.getValidToken();
-      if (token) {
-        const userInfo = await fetchGoogleUserInfo(token);
-        setSession({
-          email: userInfo.email,
-          name: userInfo.name || userInfo.email.split('@')[0],
-          authType: 'google'
-        });
-        window.location.href = 'dashboard.html';
-        return;
-      }
+  firebaseAuth.onAuthStateChanged(user => {
+    if (user) {
+      // Already logged in — redirect
+      window.location.href = 'index.html';
+    } else {
+      // No session — show login form
+      loading.classList.remove('show');
+      content.style.display = 'block';
     }
-
-    // Check for existing valid session
-    const session = sessionStorage.getItem('vf_session');
-    if (session) {
-      const s = JSON.parse(session);
-      if (s.authType === 'google') {
-        const token = await VF.Auth.getValidToken();
-        if (token) {
-          window.location.href = 'dashboard.html';
-          return;
-        }
-      } else if (s.authType === 'local') {
-        window.location.href = 'dashboard.html';
-        return;
-      }
-    }
-
-    // Check for Google tokens without session (returning user)
-    const token = await VF.Auth.getValidToken();
-    if (token) {
-      const userInfo = await fetchGoogleUserInfo(token);
-      setSession({
-        email: userInfo.email,
-        name: userInfo.name || userInfo.email.split('@')[0],
-        authType: 'google'
-      });
-      window.location.href = 'dashboard.html';
-      return;
-    }
-  } catch (err) {
-    console.warn('Session check error:', err);
-    showMsg(err.message || 'Error al verificar sesión', 'error');
-  }
-
-  // No valid session — show login form
-  loading.classList.remove('show');
-  content.style.display = 'block';
-}
-
-async function fetchGoogleUserInfo(token) {
-  const resp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: { Authorization: `Bearer ${token}` }
   });
-  if (!resp.ok) throw new Error('Failed to fetch user info');
-  return resp.json();
 }
 
 // ── Service Worker ───────────────────────────────────────────

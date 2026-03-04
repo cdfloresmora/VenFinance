@@ -16,380 +16,107 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="db.js"></script>
-<script src="auth.js"></script>
 
 <style>
-  /* ═══════════════════════════════════════
-     DASHBOARD — Page-specific styles only
-     (Shared styles in style.css)
-  ═══════════════════════════════════════ */
+  .greeting { padding: 4px 0 8px; }
+  .greeting-sub { font-size: 12px; color: var(--text-2); font-family: var(--font-mono); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .greeting-main { font-size: 22px; font-weight: 700; line-height: 1.2; }
+  .greeting-main .highlight { background: linear-gradient(90deg, var(--teal), var(--blue)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
-  /* ── GREETING ── */
-  .greeting {
-    padding: 4px 0 8px;
-  }
-
-  .greeting-sub {
-    font-size: 12px; color: var(--text-2);
-    font-family: var(--font-mono);
-    letter-spacing: 0.5px; text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .greeting-main {
-    font-size: 22px; font-weight: 700;
-    line-height: 1.2;
-  }
-
-  .greeting-main .highlight {
-    background: linear-gradient(90deg, var(--teal), var(--blue));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* ── BIG SPENDABLE CARD ── */
-  .spendable-card {
+  /* ── BALANCE CARD ── */
+  .balance-card {
     background: linear-gradient(145deg, #0F1A2E 0%, #0A1420 100%);
     border: 1px solid rgba(79,142,247,0.2);
+    position: relative; overflow: hidden;
   }
-
-  .spendable-card::after {
-    content: '';
-    position: absolute; bottom: -20px; right: -20px;
+  .balance-card::after {
+    content: ''; position: absolute; bottom: -20px; right: -20px;
     width: 160px; height: 160px;
     background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
     pointer-events: none;
   }
-
-  .spendable-inner {
-    padding: 20px;
-    position: relative; z-index: 1;
-  }
-
-  .spendable-amount {
-    font-family: var(--font-mono);
-    font-size: 52px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -2px;
-    margin: 12px 0 6px;
+  .balance-inner { padding: 20px; position: relative; z-index: 1; }
+  .balance-amount {
+    font-family: var(--font-mono); font-size: 44px; font-weight: 500;
+    line-height: 1; letter-spacing: -2px; margin: 12px 0 6px;
     background: linear-gradient(135deg, #fff 0%, var(--teal) 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
+  .balance-amount .dollar { font-size: 24px; opacity: 0.7; vertical-align: super; }
+  .balance-desc { font-size: 13px; color: var(--text-2); margin-bottom: 20px; }
 
-  .spendable-amount .dollar { font-size: 28px; opacity: 0.7; vertical-align: super; }
-
-  .spendable-desc {
-    font-size: 13px; color: var(--text-2);
-    margin-bottom: 20px;
-  }
-
-  .spendable-meta {
+  /* ── FLOW GRID (income/expenses/balance) ── */
+  .flow-grid {
     display: grid; grid-template-columns: 1fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
-    border-radius: 14px;
-    overflow: hidden;
+    gap: 1px; background: var(--border); border-radius: 14px; overflow: hidden;
   }
+  .flow-item { background: rgba(255,255,255,0.03); padding: 14px 10px; text-align: center; }
+  .flow-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; display: block; margin-bottom: 3px; }
+  .flow-val.income { color: var(--teal); }
+  .flow-val.expense { color: var(--red); }
+  .flow-val.net { color: var(--blue); }
+  .flow-key { font-size: 9px; color: var(--text-3); letter-spacing: 0.8px; text-transform: uppercase; font-family: var(--font-mono); }
 
-  .meta-item {
-    background: rgba(255,255,255,0.03);
-    padding: 12px 10px;
-    text-align: center;
-  }
-
-  .meta-val {
-    font-family: var(--font-mono);
-    font-size: 15px; font-weight: 500;
-    color: var(--text-1);
-    display: block; margin-bottom: 3px;
-  }
-
-  .meta-key {
-    font-size: 9px; color: var(--text-3);
-    letter-spacing: 0.8px; text-transform: uppercase;
-    font-family: var(--font-mono);
-  }
-
-  /* ── PROGRESS BAR (dashboard-specific) ── */
-  .progress-wrap {
-    padding: 0 20px 18px;
-  }
-
-  .progress-header {
-    display: flex; justify-content: space-between;
-    font-size: 11px; color: var(--text-2);
-    font-family: var(--font-mono);
-    margin-bottom: 8px;
-  }
-
-  .progress-fill {
-    position: relative;
-  }
-
-  .progress-fill::after {
-    content: '';
-    position: absolute; right: -1px; top: 50%;
-    transform: translateY(-50%);
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: inherit;
-    box-shadow: 0 0 8px currentColor;
-  }
+  /* ── PROGRESS ── */
+  .progress-wrap { padding: 0 20px 18px; }
+  .progress-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); font-family: var(--font-mono); margin-bottom: 8px; }
 
   /* ── RATE CARD ── */
-  .rate-card {
-    padding: 20px;
-  }
-
-  .rate-grid {
-    display: grid; grid-template-columns: 1fr 1px 1fr;
-    gap: 0; margin-top: 16px;
-  }
-
-  .rate-divider {
-    background: var(--border);
-    align-self: stretch; margin: 8px 0;
-  }
-
-  .rate-block {
-    padding: 0 16px;
-    text-align: center;
-  }
-
+  .rate-card { padding: 20px; }
+  .rate-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0; margin-top: 16px; }
+  .rate-divider { background: var(--border); align-self: stretch; margin: 8px 0; }
+  .rate-block { padding: 0 16px; text-align: center; }
   .rate-block:first-child { padding-left: 0; }
   .rate-block:last-child { padding-right: 0; }
+  .rate-label { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 6px; }
+  .rate-value { font-family: var(--font-mono); font-size: 26px; font-weight: 500; line-height: 1; display: block; }
+  .rate-unit { font-size: 11px; color: var(--text-2); margin-top: 3px; font-family: var(--font-mono); }
+  .ventaja-banner { margin-top: 16px; background: linear-gradient(135deg, var(--teal-dim), rgba(79,142,247,0.08)); border: 1px solid var(--safe-border); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .ventaja-pct { font-family: var(--font-mono); font-size: 28px; font-weight: 500; color: var(--teal); line-height: 1; flex-shrink: 0; }
+  .ventaja-info { flex: 1; }
+  .ventaja-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .ventaja-sub { font-size: 11px; color: var(--text-2); font-family: var(--font-mono); line-height: 1.4; }
 
-  .rate-label {
-    font-size: 10px; color: var(--text-2);
-    letter-spacing: 1px; text-transform: uppercase;
-    font-family: var(--font-mono);
-    margin-bottom: 6px;
-  }
-
-  .rate-value {
-    font-family: var(--font-mono);
-    font-size: 26px; font-weight: 500;
-    line-height: 1;
-    display: block;
-  }
-
-  .rate-unit {
-    font-size: 11px; color: var(--text-2);
-    margin-top: 3px;
-    font-family: var(--font-mono);
-  }
-
-  .ventaja-banner {
-    margin-top: 16px;
-    background: linear-gradient(135deg, var(--teal-dim), rgba(79,142,247,0.08));
-    border: 1px solid var(--safe-border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px;
-  }
-
-  .ventaja-pct {
-    font-family: var(--font-mono);
-    font-size: 28px; font-weight: 500;
-    color: var(--teal);
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .ventaja-info {
-    flex: 1;
-  }
-
-  .ventaja-title {
-    font-size: 13px; font-weight: 600;
-    color: var(--text-1); margin-bottom: 2px;
-  }
-
-  .ventaja-sub {
-    font-size: 11px; color: var(--text-2);
-    font-family: var(--font-mono);
-    line-height: 1.4;
-  }
-
-  /* ── MONTHLY SUMMARY ── */
-  .summary-grid {
-    display: grid; grid-template-columns: 1fr;
-    gap: 1px;
-    background: var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin: 16px 20px 20px;
-  }
-
-  .summary-row {
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(255,255,255,0.02);
-    padding: 14px 16px;
-    gap: 12px;
-  }
-
-  .summary-row:hover { background: rgba(255,255,255,0.04); }
-
-  .summary-left {
-    display: flex; align-items: center; gap: 10px;
-    flex: 1;
-  }
-
-  .summary-icon {
-    width: 32px; height: 32px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-  }
-
-  .summary-name {
-    font-size: 13px; font-weight: 600; color: var(--text-1);
-    display: block; margin-bottom: 1px;
-  }
-
-  .summary-sub {
-    font-size: 11px; color: var(--text-2);
-    font-family: var(--font-mono);
-  }
-
-  .summary-val {
-    font-family: var(--font-mono);
-    font-size: 16px; font-weight: 500;
-    color: var(--text-1);
-    text-align: right;
-  }
-
-  .summary-val small {
-    display: block;
-    font-size: 10px; color: var(--text-2);
-    margin-top: 1px;
-  }
+  /* ── SUMMARY GRID ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border-radius: 14px; overflow: hidden; margin: 16px 20px 20px; }
+  .summary-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 14px 16px; gap: 12px; }
+  .summary-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .summary-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .summary-name { font-size: 13px; font-weight: 600; color: var(--text-1); display: block; margin-bottom: 1px; }
+  .summary-sub { font-size: 11px; color: var(--text-2); font-family: var(--font-mono); }
+  .summary-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; color: var(--text-1); text-align: right; }
+  .summary-val small { display: block; font-size: 10px; color: var(--text-2); margin-top: 1px; }
 
   /* ── CHARTS ── */
-  .chart-wrap {
-    padding: 16px 20px 20px;
-  }
-
-  .chart-title {
-    font-size: 14px; font-weight: 700;
-    margin-bottom: 16px; color: var(--text-1);
-  }
-
-  .donut-layout {
-    display: flex; align-items: center; gap: 16px;
-  }
-
-  .donut-canvas-wrap {
-    width: 150px; height: 150px; flex-shrink: 0;
-    position: relative;
-  }
-
-  .donut-center {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    pointer-events: none;
-  }
-
-  .donut-center-val {
-    font-family: var(--font-mono);
-    font-size: 18px; font-weight: 500;
-    color: var(--text-1); line-height: 1;
-  }
-
-  .donut-center-label {
-    font-size: 9px; color: var(--text-2);
-    letter-spacing: 1px; text-transform: uppercase;
-    margin-top: 3px;
-    font-family: var(--font-mono);
-  }
-
-  .legend-list {
-    flex: 1; display: flex; flex-direction: column; gap: 7px;
-    list-style: none;
-  }
-
-  .legend-item {
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  .legend-dot {
-    width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0;
-  }
-
-  .legend-name {
-    font-size: 12px; color: var(--text-2);
-    flex: 1; font-weight: 500;
-  }
-
-  .legend-amount {
-    font-family: var(--font-mono);
-    font-size: 12px; color: var(--text-1);
-  }
-
-  /* ── BAR CHART ── */
+  .chart-wrap { padding: 16px 20px 20px; }
+  .donut-layout { display: flex; align-items: center; gap: 16px; }
+  .donut-canvas-wrap { width: 150px; height: 150px; flex-shrink: 0; position: relative; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .donut-center-val { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--text-1); line-height: 1; }
+  .donut-center-label { font-size: 9px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; font-family: var(--font-mono); }
+  .legend-list { flex: 1; display: flex; flex-direction: column; gap: 7px; list-style: none; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+  .legend-name { font-size: 12px; color: var(--text-2); flex: 1; font-weight: 500; }
+  .legend-amount { font-family: var(--font-mono); font-size: 12px; color: var(--text-1); }
   .bar-canvas-wrap { width: 100%; height: 180px; }
 
-  /* ── MAIN SCROLL ── */
-  main {
-    position: relative; z-index: 1;
-    padding: 20px 0;
-    display: flex; flex-direction: column; gap: 16px;
-  }
+  main { position: relative; z-index: 1; padding: 20px 0; display: flex; flex-direction: column; gap: 16px; }
 
-  /* ═══════════════════════════════════════
-     RESPONSIVE — Dashboard page
-  ═══════════════════════════════════════ */
   @media (min-width: 640px) {
-    .spendable-amount {
-      font-size: 60px;
-    }
-    .donut-canvas-wrap {
-      width: 180px; height: 180px;
-    }
-    .donut-center-val {
-      font-size: 22px;
-    }
-    .rate-value {
-      font-size: 30px;
-    }
-    .ventaja-pct {
-      font-size: 32px;
-    }
-    .bar-canvas-wrap {
-      height: 220px;
-    }
+    .balance-amount { font-size: 52px; }
+    .donut-canvas-wrap { width: 180px; height: 180px; }
+    .rate-value { font-size: 30px; }
+    .bar-canvas-wrap { height: 220px; }
   }
-
   @media (min-width: 1024px) {
-    .donut-layout {
-      gap: 24px;
-    }
-    .donut-canvas-wrap {
-      width: 200px; height: 200px;
-    }
-    .bar-canvas-wrap {
-      height: 260px;
-    }
-    .spendable-meta {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    .meta-item {
-      padding: 16px 12px;
-    }
-    .meta-val {
-      font-size: 17px;
-    }
+    .donut-canvas-wrap { width: 200px; height: 200px; }
+    .bar-canvas-wrap { height: 260px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
 <header class="app-header">
   <div class="app-header-inner">
     <div class="logo">
@@ -397,45 +124,43 @@
       <span class="logo-text">VenFinance</span>
     </div>
     <div class="header-actions">
-      <div class="month-badge" id="monthBadge">MAR 2025</div>
-      <div class="avatar" id="userAvatar" onclick="VF.Auth.logout()" title="Cerrar sesión" style="cursor:pointer;">C</div>
+      <div class="month-badge" id="monthBadge">MAR 2026</div>
+      <div class="avatar" id="userAvatar" onclick="VF.Auth.logout()" title="Cerrar sesión" style="cursor:pointer;">U</div>
     </div>
   </div>
 </header>
 
-<!-- ── MAIN ── -->
 <main class="app-container">
 
-  <!-- Greeting -->
   <div class="greeting animate-in">
     <div class="greeting-sub">Bienvenido de vuelta</div>
-    <div class="greeting-main">Hola, <span class="highlight" id="userName">Carlos</span> 👋</div>
+    <div class="greeting-main">Hola, <span class="highlight" id="userName">Usuario</span> 👋</div>
   </div>
 
-  <!-- ① BIG SPENDABLE CARD -->
-  <div class="card spendable-card animate-in delay-1">
+  <!-- BALANCE CARD: Income - Expenses -->
+  <div class="card balance-card animate-in delay-1">
     <div class="card-header">
-      <span class="card-label">Puedes gastar hoy</span>
-      <span class="card-badge badge-teal" id="daysLeftBadge">12 días restantes</span>
+      <span class="card-label">Balance del mes</span>
+      <span class="card-badge badge-teal" id="daysLeftBadge">-- días</span>
     </div>
-    <div class="spendable-inner">
-      <div class="spendable-amount">
-        <span class="dollar">$</span><span id="spendableAmount">26.45</span>
+    <div class="balance-inner">
+      <div class="balance-amount">
+        <span class="dollar">$</span><span id="balanceAmount">0.00</span>
       </div>
-      <div class="spendable-desc">Presupuesto diario disponible (tasa BCV)</div>
+      <div class="balance-desc">Ingresos menos gastos este mes</div>
 
-      <div class="spendable-meta">
-        <div class="meta-item">
-          <span class="meta-val" id="metaBudget">$800</span>
-          <span class="meta-key">Presupuesto</span>
+      <div class="flow-grid">
+        <div class="flow-item">
+          <span class="flow-val income" id="flowIncome">$0</span>
+          <span class="flow-key">Ingresos</span>
         </div>
-        <div class="meta-item">
-          <span class="meta-val" id="metaSpent">$482</span>
-          <span class="meta-key">Gastado</span>
+        <div class="flow-item">
+          <span class="flow-val expense" id="flowExpense">$0</span>
+          <span class="flow-key">Gastos</span>
         </div>
-        <div class="meta-item">
-          <span class="meta-val" id="metaLeft">$318</span>
-          <span class="meta-key">Disponible</span>
+        <div class="flow-item">
+          <span class="flow-val net" id="flowNet">$0</span>
+          <span class="flow-key">Neto</span>
         </div>
       </div>
     </div>
@@ -443,7 +168,7 @@
     <div class="progress-wrap">
       <div class="progress-header">
         <span>Presupuesto del mes</span>
-        <span id="progressPct">60.3%</span>
+        <span id="progressPct">0%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill fill-safe" id="budgetBar" style="width:0%"></div>
@@ -451,120 +176,99 @@
     </div>
   </div>
 
-  <!-- ④ TASA DEL DÍA -->
-  <div class="section-label animate-in delay-2">
-    <div class="live-dot"></div>
-    Tasa del día
-  </div>
+  <!-- TASA DEL DÍA -->
+  <div class="section-label animate-in delay-2"><div class="live-dot"></div>Tasa del día</div>
 
   <div class="card card-glow-gold animate-in delay-2">
     <div class="rate-card">
-      <div class="card-header" style="padding:0 0 0 0;">
+      <div class="card-header" style="padding:0;">
         <span class="card-label">Tasas de cambio</span>
-        <span class="card-badge badge-gold" id="rateDate">02 mar 2025</span>
+        <span class="card-badge badge-gold" id="rateDate">sin datos</span>
       </div>
-
       <div class="rate-grid">
-        <div class="rate-block" style="text-align:center;">
+        <div class="rate-block">
           <div class="rate-label">Tasa BCV</div>
-          <span class="rate-value" id="rateBcv" style="color: var(--text-1);">411.00</span>
+          <span class="rate-value" id="rateBcv">--</span>
           <div class="rate-unit">Bs / $</div>
         </div>
         <div class="rate-divider"></div>
-        <div class="rate-block" style="text-align:center;">
+        <div class="rate-block">
           <div class="rate-label">Mi tasa real</div>
-          <span class="rate-value" id="rateMine" style="color: var(--gold);">605.00</span>
+          <span class="rate-value" id="rateMine" style="color: var(--gold);">--</span>
           <div class="rate-unit">Bs / $</div>
         </div>
       </div>
-
       <div class="ventaja-banner">
-        <div class="ventaja-pct" id="ventajaPct">+47.2%</div>
+        <div class="ventaja-pct" id="ventajaPct">--%</div>
         <div class="ventaja-info">
           <div class="ventaja-title">Ventaja cambiaria</div>
-          <div class="ventaja-sub" id="ventajaDesc">Tu $1 equivale a $1.47 a tasa BCV<br>Diferencia: 194 Bs por dólar</div>
+          <div class="ventaja-sub" id="ventajaDesc">Configura tus tasas para ver la ventaja</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ⑤ RESUMEN MENSUAL -->
+  <!-- RESUMEN MENSUAL: INGRESOS vs GASTOS -->
   <div class="section-label animate-in delay-3">Resumen mensual</div>
 
   <div class="card animate-in delay-3">
     <div class="card-header">
-      <span class="card-label">Total gastado</span>
-      <span class="card-badge badge-coral" id="txCount">3 transacciones</span>
+      <span class="card-label">Flujo financiero</span>
+      <span class="card-badge badge-coral" id="txCount">0 movimientos</span>
     </div>
     <div class="summary-grid">
       <div class="summary-row">
         <div class="summary-left">
-          <div class="summary-icon" style="background:rgba(212,168,67,0.1);">🇻🇪</div>
+          <div class="summary-icon" style="background:rgba(0,212,170,0.1);">💰</div>
           <div>
-            <span class="summary-name">Total en Bolívares</span>
-            <span class="summary-sub">Monto real pagado</span>
+            <span class="summary-name" style="color:var(--teal)">Total Ingresos</span>
+            <span class="summary-sub">Entradas del mes</span>
           </div>
         </div>
-        <div class="summary-val" id="totalBs">
-          Bs 18,450
-          <small>moneda local</small>
-        </div>
+        <div class="summary-val" id="sumIncome" style="color:var(--teal)">$0.00<small>este mes</small></div>
       </div>
-
       <div class="summary-row">
         <div class="summary-left">
-          <div class="summary-icon" style="background:rgba(79,142,247,0.1);">🏛️</div>
+          <div class="summary-icon" style="background:rgba(224,82,82,0.1);">💸</div>
           <div>
-            <span class="summary-name">Equiv. $ (tasa BCV)</span>
-            <span class="summary-sub">A tasa oficial del comercio</span>
+            <span class="summary-name" style="color:var(--red)">Total Gastos</span>
+            <span class="summary-sub">Salidas del mes</span>
           </div>
         </div>
-        <div class="summary-val" id="totalUsdOficial">
-          $45.00
-          <small>tasa BCV ~411</small>
-        </div>
+        <div class="summary-val" id="sumExpense" style="color:var(--red)">$0.00<small>este mes</small></div>
       </div>
-
       <div class="summary-row">
         <div class="summary-left">
-          <div class="summary-icon" style="background:rgba(0,212,170,0.1);">💡</div>
+          <div class="summary-icon" style="background:rgba(79,142,247,0.1);">📈</div>
           <div>
-            <span class="summary-name">Equiv. $ (mi tasa real)</span>
-            <span class="summary-sub">Lo que realmente costó</span>
+            <span class="summary-name">Inversiones</span>
+            <span class="summary-sub">Capital invertido</span>
           </div>
         </div>
-        <div class="summary-val" id="totalUsdReal" style="color:var(--teal)">
-          $30.50
-          <small>tasa real ~605</small>
-        </div>
+        <div class="summary-val" id="sumInvestment">$0.00<small>este mes</small></div>
       </div>
-
       <div class="summary-row" style="background:rgba(0,212,170,0.04); border-top: 1px solid var(--safe-border);">
         <div class="summary-left">
           <div class="summary-icon" style="background:rgba(0,212,170,0.15);">⚡</div>
           <div>
-            <span class="summary-name" style="color:var(--teal)">Ventaja acumulada</span>
-            <span class="summary-sub">Poder adquisitivo extra</span>
+            <span class="summary-name" style="color:var(--teal)">Balance neto</span>
+            <span class="summary-sub">Ingresos - Gastos</span>
           </div>
         </div>
-        <div class="summary-val" id="ventajaTotal" style="color:var(--teal)">
-          +$14.50
-          <small>este mes</small>
-        </div>
+        <div class="summary-val" id="sumNet" style="color:var(--teal)">$0.00<small>este mes</small></div>
       </div>
     </div>
   </div>
 
-  <!-- ① DONUT: GASTOS POR CATEGORÍA -->
+  <!-- DONUT: GASTOS POR CATEGORÍA -->
   <div class="section-label animate-in delay-4">Gastos por categoría</div>
-
   <div class="card animate-in delay-4">
     <div class="chart-wrap">
       <div class="donut-layout">
         <div class="donut-canvas-wrap">
           <canvas id="donutChart"></canvas>
           <div class="donut-center">
-            <span class="donut-center-val" id="donutTotal">$45</span>
+            <span class="donut-center-val" id="donutTotal">$0</span>
             <span class="donut-center-label">este mes</span>
           </div>
         </div>
@@ -573,9 +277,8 @@
     </div>
   </div>
 
-  <!-- ② BAR CHART: GASTO DIARIO -->
+  <!-- BAR CHART: GASTO DIARIO -->
   <div class="section-label animate-in delay-5">Gasto diario vs presupuesto</div>
-
   <div class="card animate-in delay-5">
     <div class="chart-wrap">
       <div class="bar-canvas-wrap">
@@ -586,16 +289,19 @@
 
 </main>
 
-<!-- ── BOTTOM NAV ── -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <a href="index.html">
       <span class="nav-icon">💸</span>
       <span class="nav-label">Gastos</span>
     </a>
+    <a href="ingresos.html">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Ingresos</span>
+    </a>
     <a href="dashboard.html" class="active">
       <span class="nav-icon">📊</span>
-      <span class="nav-label">Dashboard</span>
+      <span class="nav-label">Resumen</span>
     </a>
     <a href="rates.html">
       <span class="nav-icon">💱</span>
@@ -604,352 +310,212 @@
   </div>
 </nav>
 
-<script>
-/* ════════════════════════════════════════════════════════════════
-   VenFinance Dashboard — Data Layer + Charts
-   Reads real data from localStorage (shared with index.html & rates.html)
-   Falls back to Google Sheets API if configured
-   ════════════════════════════════════════════════════════════════ */
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+<script src="auth.js"></script>
 
-// ─── CATEGORY MAP (aligned with index.html labels) ────────────
+<script>
 const CATEGORY_MAP = {
-  'Comida':     { icono: '🍽️', color: '#EF4444' },
-  'Transporte': { icono: '🚌', color: '#F59E0B' },
-  'Mercado':    { icono: '🛒', color: '#F97316' },
-  'Salud':      { icono: '💊', color: '#10B981' },
-  'Hogar':      { icono: '🏠', color: '#3B82F6' },
-  'Personal':   { icono: '👤', color: '#8B5CF6' },
-  'Tech':       { icono: '💻', color: '#6366F1' },
-  'Ocio':       { icono: '🎬', color: '#8B5CF6' },
-  'Ropa':       { icono: '👕', color: '#EC4899' },
-  'Otro':       { icono: '📦', color: '#6B7280' },
-  'Servicios':  { icono: '📱', color: '#06B6D4' },
-  'Educación':  { icono: '🎓', color: '#6366F1' },
-  'Mascotas':   { icono: '🐕', color: '#84CC16' },
+  food: { label: 'Comida', icon: '🍽️', color: '#EF4444' },
+  transport: { label: 'Transporte', icon: '🚌', color: '#F59E0B' },
+  market: { label: 'Mercado', icon: '🛒', color: '#F97316' },
+  health: { label: 'Salud', icon: '💊', color: '#10B981' },
+  home: { label: 'Hogar', icon: '🏠', color: '#3B82F6' },
+  personal: { label: 'Personal', icon: '👤', color: '#8B5CF6' },
+  tech: { label: 'Tech', icon: '💻', color: '#6366F1' },
+  entertain: { label: 'Ocio', icon: '🎬', color: '#8B5CF6' },
+  clothes: { label: 'Ropa', icon: '👕', color: '#EC4899' },
+  other: { label: 'Otro', icon: '📦', color: '#6B7280' },
 };
 
-// ─── LOAD REAL DATA FROM SHARED STORAGE ──────────────────────
-function loadDashboardData() {
-  let config = { presupuesto_mensual_usd: 0, nombre_usuario: 'Usuario', alerta_presupuesto_pct: 80 };
-  let tasas = [];
-  let gastos = [];
-
-  try {
-    // Config from index.html shared storage
-    const cfgStr = localStorage.getItem('vf_config');
-    if (cfgStr) {
-      const cfg = JSON.parse(cfgStr);
-      config.presupuesto_mensual_usd = cfg.budgetUSD || 0;
-    }
-
-    // Rates from rates.html shared storage
-    const tasasStr = localStorage.getItem('vf_tasas');
-    if (tasasStr) {
-      tasas = JSON.parse(tasasStr);
-    }
-
-    // Expenses from index.html shared storage
-    const expStr = localStorage.getItem('vf_expenses');
-    if (expStr) {
-      const rawExpenses = JSON.parse(expStr);
-      // Convert index.html format to dashboard format
-      gastos = rawExpenses.map(e => {
-        const catLabel = getCategoryLabel(e.category);
-        return {
-          id: e.id,
-          fecha: e.date,
-          descripcion: e.description || '',
-          categoria: catLabel,
-          moneda_pago: e.currency,
-          monto_original: e.amountRaw,
-          tasa_comercio: e.rateOfficial,
-          tasa_mi_compra: e.rateParallel,
-          monto_bs: e.amountBs,
-          monto_usd_oficial: e.amountUSD,
-          monto_usd_real: e.amountUSD_real,
-          ventaja_usd: e.amountUSD - e.amountUSD_real,
-        };
-      });
-    }
-  } catch (e) {
-    console.warn('Could not read localStorage:', e);
-  }
-
-  // Get latest rates for config
-  if (tasas.length > 0) {
-    const latest = tasas[tasas.length - 1];
-    config.tasa_bcv = latest.tasa_bcv;
-    config.tasa_mi_compra = latest.tasa_mi_compra;
-  }
-
-  return { config, tasas, gastos };
-}
-
-// Map index.html category IDs to Spanish labels
-function getCategoryLabel(catId) {
-  const map = {
-    food: 'Comida', transport: 'Transporte', market: 'Mercado',
-    health: 'Salud', home: 'Hogar', personal: 'Personal',
-    tech: 'Tech', entertain: 'Ocio', clothes: 'Ropa', other: 'Otro'
-  };
-  return map[catId] || catId;
-}
-
-// ─── HELPERS ─────────────────────────────────────────────────
 const fmt = (n, d=2) => n.toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
-const fmtBs = n => 'Bs ' + n.toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-const fmtUsd = (n, prefix='$') => prefix + fmt(n);
-const today = () => new Date().toISOString().split('T')[0];
+const fmtUsd = (n) => '$' + fmt(n);
 const daysInMonth = (y,m) => new Date(y,m,0).getDate();
-const getMonth = () => { const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()+1}; };
 
-// ─── CHART.JS GLOBAL DEFAULTS ────────────────────────────────
 Chart.defaults.color = '#9B98A8';
 Chart.defaults.font.family = "'JetBrains Mono', monospace";
 Chart.defaults.font.size = 10;
 
-// ─── MAIN RENDER FUNCTION ────────────────────────────────────
-function renderDashboard() {
-  const data = loadDashboardData();
-  const { config, tasas, gastos } = data;
-
-  // Current rates (handle empty state)
-  const latestRate = tasas.length > 0 ? tasas[tasas.length - 1] : null;
-  const tasa_bcv = latestRate ? latestRate.tasa_bcv : (config.tasa_bcv || 0);
-  const tasa_mi_compra = latestRate ? latestRate.tasa_mi_compra : (config.tasa_mi_compra || 0);
-  const spread_bcv = tasa_mi_compra - tasa_bcv;
-  const ventajaPct = tasa_bcv > 0 ? ((tasa_mi_compra - tasa_bcv) / tasa_bcv * 100).toFixed(1) : '0.0';
-
-  // Greeting
-  const userName = config.nombre_usuario || 'Usuario';
-  document.getElementById('userName').textContent = userName;
-  document.getElementById('userAvatar').textContent = userName[0];
-
-  // Month badge
+async function renderDashboard() {
   const now = new Date();
-  document.getElementById('monthBadge').textContent =
-    now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + now.getFullYear();
+  const {y, m} = { y: now.getFullYear(), m: now.getMonth()+1 };
+  const ym = `${y}-${String(m).padStart(2,'0')}`;
 
-  // ── ④ TASA DEL DÍA ──────────────────────────────────────────
-  document.getElementById('rateBcv').textContent = tasa_bcv ? fmt(tasa_bcv) : '--';
-  document.getElementById('rateMine').textContent = tasa_mi_compra ? fmt(tasa_mi_compra) : '--';
-  document.getElementById('ventajaPct').textContent = '+' + ventajaPct + '%';
-  document.getElementById('ventajaDesc').innerHTML =
-    `Tu $1 vale <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> a tasa BCV<br>` +
-    `Diferencia: <strong>${fmt(spread_bcv,0)} Bs</strong> por dólar`;
+  // Load data from Firestore
+  const [expenses, incomes, rates, budgetDoc] = await Promise.all([
+    VF.DB.getExpenses(),
+    VF.DB.getIncomes(),
+    VF.DB.getRates(),
+    VF.DB.getBudget(ym),
+  ]);
 
-  if (latestRate && latestRate.fecha) {
-    const rateD = new Date(latestRate.fecha + 'T12:00:00');
-    document.getElementById('rateDate').textContent =
-      rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
-  } else {
-    document.getElementById('rateDate').textContent = 'sin datos';
-  }
+  const budget = budgetDoc ? budgetDoc.budgetUSD : 0;
 
-  // ── ⑤ RESUMEN MENSUAL ───────────────────────────────────────
-  const {y, m} = getMonth();
-  const monthStr = `${y}-${String(m).padStart(2,'0')}`;
-  const monthGastos = gastos.filter(g => g.fecha.startsWith(monthStr));
+  // Filter this month
+  const monthExpenses = expenses.filter(e => e.date && e.date.startsWith(ym));
+  const monthIncomes  = incomes.filter(i => i.date && i.date.startsWith(ym));
 
-  const totalBs     = monthGastos.reduce((s,g) => s + g.monto_bs, 0);
-  const totalOficial= monthGastos.reduce((s,g) => s + g.monto_usd_oficial, 0);
-  const totalReal   = monthGastos.reduce((s,g) => s + g.monto_usd_real, 0);
-  const totalVent   = monthGastos.reduce((s,g) => s + g.ventaja_usd, 0);
+  // Rates
+  const latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+  const tasa_bcv = latestRate?.tasa_bcv || 0;
+  const tasa_mine = latestRate?.tasa_mi_compra || 0;
+  const ventajaPct = tasa_bcv > 0 ? ((tasa_mine - tasa_bcv) / tasa_bcv * 100).toFixed(1) : '0.0';
 
-  document.getElementById('totalBs').innerHTML =
-    fmtBs(totalBs) + `<small>moneda local</small>`;
-  document.getElementById('totalUsdOficial').innerHTML =
-    fmtUsd(totalOficial) + `<small>tasa BCV ~${fmt(tasa_bcv,0)}</small>`;
-  document.getElementById('totalUsdReal').innerHTML =
-    fmtUsd(totalReal) + `<small>tasa real ~${fmt(tasa_mi_compra,0)}</small>`;
-  document.getElementById('ventajaTotal').innerHTML =
-    `+${fmtUsd(totalVent)}<small>este mes</small>`;
-  document.getElementById('txCount').textContent = `${monthGastos.length} transacciones`;
+  // Totals
+  const totalIncome  = monthIncomes.reduce((s,i) => s + (i.amountUSD || 0), 0);
+  const totalExpense = monthExpenses.reduce((s,e) => s + (e.amountUSD || 0), 0);
+  const totalInvestment = monthIncomes
+    .filter(i => i.source === 'investment')
+    .reduce((s,i) => s + (i.amountUSD || 0), 0);
+  const netBalance = totalIncome - totalExpense;
 
-  // ── ① SPENDABLE TODAY ───────────────────────────────────────
-  const budget = config.presupuesto_mensual_usd;
   const dTotal = daysInMonth(y, m);
   const dToday = now.getDate();
   const dLeft  = dTotal - dToday + 1;
-  const spentUsd = totalOficial;
-  const leftUsd  = Math.max(0, budget - spentUsd);
-  const spendableToday = leftUsd / dLeft;
-  const pct = Math.min(100, (spentUsd / budget * 100));
+  const leftUsd = Math.max(0, budget - totalExpense);
+  const pct = budget > 0 ? Math.min(100, (totalExpense / budget * 100)) : 0;
 
-  document.getElementById('spendableAmount').textContent = fmt(spendableToday);
+  // ── Greeting ──
+  document.getElementById('monthBadge').textContent =
+    now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + y;
+
+  // ── Balance Card ──
+  document.getElementById('balanceAmount').textContent = fmt(Math.abs(netBalance));
   document.getElementById('daysLeftBadge').textContent = `${dLeft} días restantes`;
-  document.getElementById('metaBudget').textContent = fmtUsd(budget, '$');
-  document.getElementById('metaSpent').textContent = fmtUsd(spentUsd, '$');
-  document.getElementById('metaLeft').textContent = fmtUsd(leftUsd, '$');
+  document.getElementById('flowIncome').textContent = fmtUsd(totalIncome);
+  document.getElementById('flowExpense').textContent = fmtUsd(totalExpense);
+  document.getElementById('flowNet').textContent = (netBalance >= 0 ? '+' : '-') + fmtUsd(Math.abs(netBalance));
   document.getElementById('progressPct').textContent = pct.toFixed(1) + '%';
 
   const bar = document.getElementById('budgetBar');
-  const fillClass = pct < config.alerta_presupuesto_pct ? 'fill-safe'
-    : pct < 95 ? 'fill-warn' : 'fill-danger';
+  const fillClass = pct < 80 ? 'fill-safe' : pct < 95 ? 'fill-warn' : 'fill-danger';
   bar.className = `progress-fill ${fillClass}`;
   setTimeout(() => bar.style.width = pct + '%', 200);
 
-  // ── ① DONUT: GASTOS POR CATEGORÍA ──────────────────────────
+  // ── Rates ──
+  document.getElementById('rateBcv').textContent = tasa_bcv ? fmt(tasa_bcv) : '--';
+  document.getElementById('rateMine').textContent = tasa_mine ? fmt(tasa_mine) : '--';
+  document.getElementById('ventajaPct').textContent = '+' + ventajaPct + '%';
+
+  if (tasa_bcv && tasa_mine) {
+    document.getElementById('ventajaDesc').innerHTML =
+      `Tu $1 vale <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> a tasa BCV<br>` +
+      `Diferencia: <strong>${fmt(tasa_mine - tasa_bcv, 0)} Bs</strong> por dólar`;
+  }
+
+  if (latestRate?.fecha) {
+    const rateD = new Date(latestRate.fecha + 'T12:00:00');
+    document.getElementById('rateDate').textContent =
+      rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
+  }
+
+  // ── Summary ──
+  const totalMovements = monthExpenses.length + monthIncomes.length;
+  document.getElementById('txCount').textContent = `${totalMovements} movimientos`;
+  document.getElementById('sumIncome').innerHTML = `+${fmtUsd(totalIncome)}<small>este mes</small>`;
+  document.getElementById('sumExpense').innerHTML = `-${fmtUsd(totalExpense)}<small>este mes</small>`;
+  document.getElementById('sumInvestment').innerHTML = `${fmtUsd(totalInvestment)}<small>este mes</small>`;
+  document.getElementById('sumNet').innerHTML = `${netBalance >= 0 ? '+' : ''}${fmtUsd(netBalance)}<small>este mes</small>`;
+
+  // ── Donut Chart ──
   const catMap = {};
-  monthGastos.forEach(g => {
-    const cat = g.categoria || 'Otro';
-    if (!catMap[cat]) {
-      const info = CATEGORY_MAP[cat] || { icono: '📦', color: '#6B7280' };
-      catMap[cat] = { nombre: cat, icono: info.icono, color: info.color, total: 0 };
-    }
-    catMap[cat].total += g.monto_usd_oficial;
+  monthExpenses.forEach(e => {
+    const catId = e.category || 'other';
+    const info = CATEGORY_MAP[catId] || CATEGORY_MAP.other;
+    if (!catMap[catId]) catMap[catId] = { label: info.label, icon: info.icon, color: info.color, total: 0 };
+    catMap[catId].total += e.amountUSD || 0;
   });
 
-  const activeCats = Object.values(catMap).filter(c => c.total > 0);
-  activeCats.sort((a,b) => b.total - a.total);
+  const activeCats = Object.values(catMap).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  document.getElementById('donutTotal').textContent = fmtUsd(totalExpense);
 
-  document.getElementById('donutTotal').textContent = fmtUsd(totalOficial, '$');
+  if (activeCats.length > 0) {
+    new Chart(document.getElementById('donutChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: activeCats.map(c => c.label),
+        datasets: [{ data: activeCats.map(c => c.total), backgroundColor: activeCats.map(c => c.color), borderColor: '#13131F', borderWidth: 3 }]
+      },
+      options: {
+        cutout: '72%',
+        plugins: { legend: { display: false }, tooltip: {
+          backgroundColor: '#13131F', titleColor: '#F0EDE8', bodyColor: '#9B98A8',
+          borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
+          callbacks: { label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalExpense*100).toFixed(1)}%)` }
+        }},
+        animation: { animateRotate: true, duration: 900 }
+      }
+    });
 
-  const donutCtx = document.getElementById('donutChart').getContext('2d');
-  new Chart(donutCtx, {
-    type: 'doughnut',
-    data: {
-      labels: activeCats.map(c => c.nombre),
-      datasets: [{
-        data: activeCats.map(c => c.total),
-        backgroundColor: activeCats.map(c => c.color),
-        borderColor: '#13131F',
-        borderWidth: 3,
-        hoverBorderWidth: 3,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      cutout: '72%',
-      plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: '#13131F',
-        titleColor: '#F0EDE8',
-        bodyColor: '#9B98A8',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 12,
-        callbacks: {
-          label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalOficial*100).toFixed(1)}%)`
-        }
-      }},
-      animation: { animateRotate: true, duration: 900 }
-    }
-  });
+    document.getElementById('donutLegend').innerHTML = activeCats.map(c => `
+      <li class="legend-item">
+        <span class="legend-dot" style="background:${c.color}"></span>
+        <span class="legend-name">${c.icon} ${c.label}</span>
+        <span class="legend-amount">$${fmt(c.total)}</span>
+      </li>
+    `).join('');
+  }
 
-  // Donut legend
-  const legend = document.getElementById('donutLegend');
-  legend.innerHTML = activeCats.map(c => `
-    <li class="legend-item">
-      <span class="legend-dot" style="background:${c.color}"></span>
-      <span class="legend-name">${c.icono} ${c.nombre}</span>
-      <span class="legend-amount">$${fmt(c.total)}</span>
-    </li>
-  `).join('');
-
-  // ── ② BAR CHART: GASTO DIARIO vs IDEAL ──────────────────────
+  // ── Bar Chart ──
   const dailyIdeal = budget / dTotal;
   const dailyTotals = {};
-  monthGastos.forEach(g => {
-    const day = parseInt(g.fecha.split('-')[2]);
-    dailyTotals[day] = (dailyTotals[day] || 0) + g.monto_usd_oficial;
+  monthExpenses.forEach(e => {
+    const day = parseInt(e.date.split('-')[2]);
+    dailyTotals[day] = (dailyTotals[day] || 0) + (e.amountUSD || 0);
   });
 
   const days = Array.from({length: dToday}, (_,i) => i+1);
   const actualData = days.map(d => dailyTotals[d] || 0);
-  const idealData  = days.map(() => dailyIdeal);
 
-  const barCtx = document.getElementById('barChart').getContext('2d');
-  new Chart(barCtx, {
+  new Chart(document.getElementById('barChart').getContext('2d'), {
     type: 'bar',
     data: {
       labels: days.map(d => d + '/' + m),
       datasets: [
         {
-          label: 'Gastado',
-          data: actualData,
+          label: 'Gastado', data: actualData,
           backgroundColor: actualData.map(v =>
             v <= dailyIdeal ? 'rgba(0,212,170,0.75)' :
             v <= dailyIdeal * 1.3 ? 'rgba(212,168,67,0.75)' : 'rgba(255,107,107,0.75)'
           ),
-          borderColor: actualData.map(v =>
-            v <= dailyIdeal ? 'rgba(0,212,170,1)' :
-            v <= dailyIdeal * 1.3 ? 'rgba(212,168,67,1)' : 'rgba(255,107,107,1)'
-          ),
-          borderWidth: 1,
-          borderRadius: 6,
-          borderSkipped: false,
+          borderRadius: 6, borderSkipped: false,
         },
         {
-          label: 'Ideal',
-          data: idealData,
-          type: 'line',
-          borderColor: 'rgba(79,142,247,0.6)',
-          borderWidth: 2,
-          borderDash: [4, 4],
-          pointRadius: 0,
-          tension: 0,
-          fill: false,
-          order: 0
+          label: 'Ideal', data: days.map(() => dailyIdeal),
+          type: 'line', borderColor: 'rgba(79,142,247,0.6)', borderWidth: 2,
+          borderDash: [4, 4], pointRadius: 0, tension: 0, fill: false, order: 0
         }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#13131F',
-          titleColor: '#F0EDE8',
-          bodyColor: '#9B98A8',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          padding: 12,
-          cornerRadius: 12,
-          callbacks: {
-            title: items => `Día ${items[0].label}`,
-            label: ctx => ctx.dataset.label === 'Gastado'
-              ? ` Gastado: $${fmt(ctx.parsed.y)}`
-              : ` Ideal: $${fmt(ctx.parsed.y)}`
-          }
-        }
-      },
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#13131F', titleColor: '#F0EDE8', bodyColor: '#9B98A8',
+        borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
+      }},
       scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
-          border: { display: false },
-          ticks: { maxRotation: 0, color: '#5C596A', font: { size: 9 },
-            maxTicksLimit: 10 }
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
-          border: { display: false },
-          ticks: { color: '#5C596A', font: { size: 9 },
-            callback: v => '$' + v.toFixed(0) }
-        }
+        x: { grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { maxRotation: 0, color: '#5C596A', font: { size: 9 }, maxTicksLimit: 10 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { color: '#5C596A', font: { size: 9 }, callback: v => '$' + v.toFixed(0) } }
       }
     }
   });
 }
 
-// ─── SERVICE WORKER ──────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-// ─── BOOT (with auth guard) ─────────────────────────────────
 async function boot() {
-  await VF.DB.open();
   const session = await VF.Auth.requireAuth();
   if (!session) return;
 
-  // Set user name from session
-  const userName = session.name || session.email.split('@')[0];
-  document.getElementById('userName').textContent = userName;
-  document.getElementById('userAvatar').textContent = userName[0].toUpperCase();
+  document.getElementById('userName').textContent = session.name || 'Usuario';
+  document.getElementById('userAvatar').textContent = (session.name || 'U')[0].toUpperCase();
 
-  renderDashboard();
+  await renderDashboard();
 }
 boot();
 </script>

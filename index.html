@@ -628,19 +628,6 @@
       <label class="config-label">Presupuesto Mensual (en $)</label>
       <input class="config-input" id="cfg-budget" type="number" placeholder="Ej: 300" inputmode="decimal" />
     </div>
-    <div class="config-field">
-      <label class="config-label">Google Sheets ID (opcional — se crea automáticamente)</label>
-      <input class="config-input" id="cfg-sheet-id" type="text" placeholder="ID de tu hoja existente" />
-    </div>
-    <div class="config-field" style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 4px;">
-      <label class="config-label">Sincronización con Google</label>
-      <button class="submit-btn" id="btn-google-login" onclick="googleLogin()"
-              style="margin-top:8px; background: linear-gradient(135deg,#4285F4 0%,#34A853 100%);">
-        Conectar con Google
-      </button>
-      <div id="auth-status" style="margin-top:8px; font-size:12px; color: var(--teal); font-family: var(--font-mono);"></div>
-    </div>
-
     <button class="submit-btn" onclick="saveConfig()" style="margin-top:8px">Guardar Configuración</button>
   </div>
 </div>
@@ -657,16 +644,9 @@
       <div class="logo-text" id="greeting-text">VenFinance</div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="sync-btn" onclick="syncPending()" title="Sincronizar">↑</button>
       <button class="icon-btn" onclick="openConfig()">⚙</button>
       <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión">⏻</button>
     </div>
-  </div>
-
-  <!-- OFFLINE BANNER -->
-  <div class="offline-banner" id="offline-banner">
-    <span>📡</span>
-    <span id="offline-msg">Sin conexión · <strong id="pending-count">0</strong> gastos pendientes de sincronizar</span>
   </div>
 
   <!-- RATES BAR -->
@@ -823,9 +803,13 @@
       <span class="nav-icon">💸</span>
       <span class="nav-label">Gastos</span>
     </a>
+    <a href="ingresos.html">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Ingresos</span>
+    </a>
     <a href="dashboard.html">
       <span class="nav-icon">📊</span>
-      <span class="nav-label">Dashboard</span>
+      <span class="nav-label">Resumen</span>
     </a>
     <a href="rates.html">
       <span class="nav-icon">💱</span>
@@ -835,13 +819,14 @@
 </nav>
 
 
-<!-- VF Modules must load before the inline app script -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Firebase SDK + VF Modules -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="db.js"></script>
 <script src="auth.js"></script>
-<script src="sheets.js"></script>
 <script src="calc.js"></script>
-<script src="sync.js"></script>
 
 <script>
 /* ═══════════════════════════════════════
@@ -861,90 +846,67 @@ const CATEGORIES = [
 ];
 
 /* ═══════════════════════════════════════
-   STATE  (all persistence via VF.DB)
+   STATE
 ═══════════════════════════════════════ */
 let state = {
-  currency:     'Bs',       // 'Bs' | '$'
+  currency:     'Bs',
   selectedCat:  null,
-  rateParallel: 0,          // Bs/$ tasa de compra (mi tasa)
-  rateOfficial: 0,          // Bs/$ tasa BCV
-  rateType:     'paralelo', // 'paralelo' | 'bcv' | 'custom'
-  budgetUSD:    0,          // presupuesto mensual en $
-  expenses:     [],         // loaded from IndexedDB
-  pendingCount: 0,          // # of pending sync operations
+  rateParallel: 0,
+  rateOfficial: 0,
+  rateType:     'paralelo',
+  budgetUSD:    0,
+  expenses:     [],
 };
 
 /* ═══════════════════════════════════════
-   INIT  (async — opens DB, handles OAuth)
+   INIT  (Firebase Auth + Firestore)
 ═══════════════════════════════════════ */
 async function init() {
-  // 1. Open IndexedDB first (all other modules depend on it)
-  await VF.DB.open();
-
-  // 2. Auth guard — redirect to login if no session
   const session = await VF.Auth.requireAuth();
-  if (!session) return; // redirect happening
+  if (!session) return;
 
-  // 3. Personalized greeting
+  // Personalized greeting
   const greetEl = document.getElementById('greeting-text');
   if (greetEl && session.name) {
     const h = new Date().getHours();
     const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
-    const firstName = session.name.split(' ')[0];
-    greetEl.textContent = `${saludo}, ${firstName}`;
+    greetEl.textContent = `${saludo}, ${session.name.split(' ')[0]}`;
   }
 
-  // 4. Load persisted data into state
   await loadConfig();
-
-  // 4. Render UI
   renderCategories();
   setToday();
   renderBudget();
   renderTransactions();
   updateChips();
-  updateOfflineBanner();
-  await updateAuthStatus();
-
-  // 5. If Google user, ensure Sheets setup
-  if (session.authType === 'google') {
-    VF.Sheets.setup().then(ssId => {
-      if (ssId) showToast('success', '✓', 'Hoja de Google lista.');
-    }).catch(e => console.warn('Sheets setup:', e));
-  }
-
-  // 6. Network listeners
-  window.addEventListener('online',  () => { checkOnlineStatus(); syncPending(); });
-  window.addEventListener('offline', () => checkOnlineStatus());
 }
 
 /* ═══════════════════════════════════════
-   CONFIG  (IndexedDB — no localStorage)
+   CONFIG  (Firestore)
 ═══════════════════════════════════════ */
 async function loadConfig() {
   try {
     state.rateParallel = parseFloat(await VF.DB.getConfig('rateParallel')) || 0;
     state.rateOfficial = parseFloat(await VF.DB.getConfig('rateOfficial')) || 0;
-    state.budgetUSD    = parseFloat(await VF.DB.getConfig('budgetUSD'))    || 0;
 
-    // Load expenses from IndexedDB, newest first
-    const allExpenses  = await VF.DB.getAll('gastos');
-    state.expenses     = allExpenses.sort((a, b) => b.id - a.id);
+    // Load monthly budget
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const budget = await VF.DB.getBudget(ym);
+    state.budgetUSD = budget ? budget.budgetUSD : (parseFloat(await VF.DB.getConfig('budgetUSD')) || 0);
+
+    // Load expenses from Firestore
+    state.expenses = await VF.DB.getExpenses();
 
     // Use latest saved rate if user hasn't set manual ones
-    const allTasas = await VF.DB.getAll('tasas');
+    const allTasas = await VF.DB.getRates();
     if (allTasas.length > 0) {
-      const latest = allTasas.sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
-      if (!state.rateOfficial && latest.tasa_bcv)    state.rateOfficial = latest.tasa_bcv;
+      const latest = allTasas[allTasas.length - 1];
+      if (!state.rateOfficial && latest.tasa_bcv) state.rateOfficial = latest.tasa_bcv;
       if (!state.rateParallel && latest.tasa_mi_compra) state.rateParallel = latest.tasa_mi_compra;
     }
-
-    // Count pending sync operations
-    const queue       = await VF.DB.getAll('pendingQueue');
-    state.pendingCount = queue.filter(op => op.status === 'pending').length;
-
   } catch (e) {
-    console.warn('Error loading from IndexedDB:', e);
+    console.warn('Error loading config:', e);
   }
 }
 
@@ -952,23 +914,22 @@ async function openConfig() {
   document.getElementById('cfg-rate-parallel').value = state.rateParallel || '';
   document.getElementById('cfg-rate-official').value = state.rateOfficial || '';
   document.getElementById('cfg-budget').value        = state.budgetUSD    || '';
-  const savedSheetId = await VF.DB.getConfig('spreadsheet_id') || '';
-  document.getElementById('cfg-sheet-id').value      = savedSheetId;
   document.getElementById('config-overlay').classList.add('visible');
-  await updateAuthStatus();
 }
 
 async function saveConfig() {
   state.rateParallel = parseFloat(document.getElementById('cfg-rate-parallel').value) || 0;
   state.rateOfficial = parseFloat(document.getElementById('cfg-rate-official').value) || 0;
   state.budgetUSD    = parseFloat(document.getElementById('cfg-budget').value) || 0;
-  const manualSheetId = document.getElementById('cfg-sheet-id').value.trim();
 
-  // Persist to IndexedDB — single source of truth
+  // Save to Firestore
   await VF.DB.setConfig('rateParallel', state.rateParallel);
   await VF.DB.setConfig('rateOfficial', state.rateOfficial);
-  await VF.DB.setConfig('budgetUSD',    state.budgetUSD);
-  if (manualSheetId) await VF.DB.setConfig('spreadsheet_id', manualSheetId);
+
+  // Save budget for current month
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  await VF.DB.setBudget(ym, state.budgetUSD);
 
   document.getElementById('config-overlay').classList.remove('visible');
   updateChips();
@@ -977,51 +938,9 @@ async function saveConfig() {
   showToast('success', '✓', 'Configuración guardada');
 }
 
-// Close overlay clicking outside the sheet
 document.getElementById('config-overlay').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('visible');
 });
-
-/* ═══════════════════════════════════════
-   GOOGLE AUTH  (GIS popup flow)
-═══════════════════════════════════════ */
-async function googleLogin() {
-  const isAuth = await VF.Auth.isAuthenticated();
-  if (isAuth) {
-    // Already logged in — offer to logout
-    if (confirm('Ya tienes una sesión Google activa. ¿Desconectar?')) {
-      await VF.Auth.logout();
-      await updateAuthStatus();
-      showToast('success', '↩', 'Sesión cerrada');
-    }
-    return;
-  }
-  try {
-    await VF.Auth.login();
-    showToast('success', '✓', 'Conectado con Google');
-    await updateAuthStatus();
-  } catch (err) {
-    console.error('Google login error:', err);
-    showToast('error', '✗', err.message || 'Error al conectar con Google');
-  }
-}
-
-async function updateAuthStatus() {
-  const statusEl = document.getElementById('auth-status');
-  const loginBtn = document.getElementById('btn-google-login');
-  if (!statusEl || !loginBtn) return;
-
-  const isAuth = await VF.Auth.isAuthenticated();
-  if (isAuth) {
-    statusEl.textContent  = '✓ Conectado con Google';
-    loginBtn.textContent  = 'Desconectar de Google';
-    loginBtn.style.background = 'linear-gradient(135deg,#E53935,#B71C1C)';
-  } else {
-    statusEl.textContent  = '';
-    loginBtn.textContent  = 'Conectar con Google';
-    loginBtn.style.background = 'linear-gradient(135deg,#4285F4,#34A853)';
-  }
-}
 
 /* ═══════════════════════════════════════
    CURRENCY CHIPS / RATES
@@ -1055,7 +974,6 @@ function renderBudget() {
   document.getElementById('budget-total').textContent = `$${budget.toFixed(0)}`;
 
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  // Use rounding to avoid floating-point accumulation errors
   const spent = Math.round(
     state.expenses
       .filter(e => e.date && e.date.startsWith(thisMonth))
@@ -1107,7 +1025,7 @@ function setRateType(type) {
 function getActiveRate() {
   if (state.rateType === 'bcv') return state.rateOfficial;
   if (state.rateType === 'custom') return parseFloat(document.getElementById('rate-custom-value').value) || 0;
-  return state.rateParallel; // paralelo (default)
+  return state.rateParallel;
 }
 
 function getRateLabel() {
@@ -1116,9 +1034,7 @@ function getRateLabel() {
   return 'Paralelo';
 }
 
-function onRateTypeChange() {
-  onAmountChange();
-}
+function onRateTypeChange() { onAmountChange(); }
 
 /* ═══════════════════════════════════════
    CURRENCY TOGGLE
@@ -1131,7 +1047,7 @@ function setCurrency(cur) {
 }
 
 /* ═══════════════════════════════════════
-   AMOUNT + CONVERSION  (rounded math)
+   AMOUNT + CONVERSION
 ═══════════════════════════════════════ */
 function onAmountChange() {
   const raw   = parseFloat(document.getElementById('amount-input').value);
@@ -1159,28 +1075,19 @@ function onAmountChange() {
   const diff = Math.round((amountUSD_official - amountUSD_real) * 10000) / 10000;
 
   document.getElementById('conv-official').textContent =
-    state.currency === 'Bs'
-      ? `$${amountUSD_official.toFixed(2)}`
-      : `${fmtBs(amountBs)} Bs`;
-
+    state.currency === 'Bs' ? `$${amountUSD_official.toFixed(2)}` : `${fmtBs(amountBs)} Bs`;
   document.getElementById('conv-parallel').textContent =
-    state.currency === 'Bs'
-      ? `$${amountUSD_real.toFixed(2)}`
-      : `$${amountUSD_real.toFixed(2)}`;
-
+    state.currency === 'Bs' ? `$${amountUSD_real.toFixed(2)}` : `$${amountUSD_real.toFixed(2)}`;
   document.getElementById('conv-diff').textContent =
     diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
 }
 
-/* ═══════════════════════════════════════
-   DATE DEFAULT
-═══════════════════════════════════════ */
 function setToday() {
   document.getElementById('date-input').value = new Date().toISOString().split('T')[0];
 }
 
 /* ═══════════════════════════════════════
-   SUBMIT EXPENSE  (offline-first + sync)
+   SUBMIT EXPENSE  (Firestore — auto-syncs)
 ═══════════════════════════════════════ */
 async function submitExpense() {
   const raw  = parseFloat(document.getElementById('amount-input').value);
@@ -1198,12 +1105,8 @@ async function submitExpense() {
   }
 
   const activeRate = getActiveRate();
-  if (!activeRate) {
-    showToast('error', '⚠', 'Ingresa una tasa válida');
-    return;
-  }
+  if (!activeRate) { showToast('error', '⚠', 'Ingresa una tasa válida'); return; }
 
-  // Rounded arithmetic to avoid floating-point drift
   let amountBs, amountUSD_official, amountUSD_real;
   if (state.currency === 'Bs') {
     amountBs           = raw;
@@ -1230,33 +1133,18 @@ async function submitExpense() {
     rateType:       state.rateType,
     rateUsed:       activeRate,
     rateLabel:      getRateLabel(),
-    synced:         false,
   };
-
-  // 1. Persist to IndexedDB immediately (offline-first)
-  await VF.DB.put('gastos', expense);
-  state.expenses.unshift(expense);
 
   const btn = document.getElementById('submit-btn');
   btn.classList.add('loading');
 
-  // 2. Attempt online sync to Google Sheets
-  const synced = await saveToSheets(expense);
-
-  if (synced) {
-    expense.synced = true;
-    await VF.DB.put('gastos', expense);   // update the synced flag
-    showToast('success', '✓', 'Gasto guardado y sincronizado');
-  } else {
-    // Queue for background sync when connectivity returns
-    await VF.DB.queueOperation({
-      type:      'append',
-      sheet:     'Gastos',
-      data:      buildSheetsRow(expense),
-      expenseId: expense.id,
-    });
-    state.pendingCount++;
-    showToast('warning', '📡', 'Guardado offline. Se sincronizará cuando haya red.');
+  try {
+    await VF.DB.putExpense(expense);
+    state.expenses.unshift(expense);
+    showToast('success', '✓', 'Gasto guardado');
+  } catch (e) {
+    console.error('Save error:', e);
+    showToast('error', '✗', 'Error al guardar');
   }
 
   btn.classList.remove('loading');
@@ -1271,78 +1159,6 @@ async function submitExpense() {
 
   renderBudget();
   renderTransactions();
-  updateOfflineBanner();
-}
-
-/* ═══════════════════════════════════════
-   GOOGLE SHEETS HELPERS  (via VF modules)
-═══════════════════════════════════════ */
-function buildSheetsRow(expense) {
-  const catObj = CATEGORIES.find(c => c.id === expense.category);
-  return [
-    expense.date,
-    catObj ? catObj.label : expense.category,
-    expense.description,
-    expense.currency,
-    expense.amountRaw.toFixed(2),
-    expense.amountBs.toFixed(2),
-    expense.amountUSD.toFixed(2),
-    expense.amountUSD_real.toFixed(4),
-    expense.rateOfficial,
-    expense.rateParallel,
-    new Date(expense.id).toISOString(),
-  ];
-}
-
-async function saveToSheets(expense) {
-  if (!navigator.onLine) return false;
-
-  try {
-    // VF.Auth handles token retrieval + transparent refresh
-    const token = await VF.Auth.getValidToken();
-    if (!token) return false;
-
-    const ssId = await VF.DB.getConfig('spreadsheet_id');
-    if (!ssId) return false;
-
-    await VF.Sheets.append('Gastos', buildSheetsRow(expense));
-    return true;
-  } catch (e) {
-    console.warn('saveToSheets failed:', e);
-    return false;
-  }
-}
-
-/* ═══════════════════════════════════════
-   SYNC PENDING  (delegates to VF.Sync)
-═══════════════════════════════════════ */
-async function syncPending() {
-  if (!navigator.onLine) return;
-
-  const btn = document.getElementById('sync-btn');
-  btn.textContent      = '↻';
-  btn.style.animation  = 'spin 0.7s linear infinite';
-
-  try {
-    await VF.Sync.processPending();
-
-    // Reload state from IndexedDB after sync
-    const all  = await VF.DB.getAll('gastos');
-    state.expenses = all.sort((a, b) => b.id - a.id);
-
-    const queue        = await VF.DB.getAll('pendingQueue');
-    state.pendingCount = queue.filter(op => op.status === 'pending').length;
-
-    renderTransactions();
-    updateOfflineBanner();
-
-    if (state.pendingCount === 0) showToast('success', '↑', 'Todo sincronizado');
-  } catch (e) {
-    console.warn('syncPending error:', e);
-  }
-
-  btn.style.animation = '';
-  btn.textContent     = '↑';
 }
 
 /* ═══════════════════════════════════════
@@ -1377,32 +1193,9 @@ function renderTransactions() {
           ? '$' + exp.amountUSD.toFixed(2)
           : fmtBs(exp.amountBs) + ' Bs'}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
       </div>
-      ${!exp.synced ? '<div class="sync-pending" title="Pendiente de sincronizar"></div>' : ''}
     `;
     list.appendChild(item);
   });
-}
-
-/* ═══════════════════════════════════════
-   ONLINE STATUS
-═══════════════════════════════════════ */
-function checkOnlineStatus() {
-  updateOfflineBanner();
-}
-
-function updateOfflineBanner() {
-  const banner       = document.getElementById('offline-banner');
-  const pendingCount = state.pendingCount;
-  document.getElementById('pending-count').textContent = pendingCount;
-
-  if (!navigator.onLine || pendingCount > 0) {
-    banner.classList.add('show');
-    document.getElementById('offline-msg').innerHTML = !navigator.onLine
-      ? `📡 Sin conexión · <strong>${pendingCount}</strong> gasto(s) pendiente(s)`
-      : `🔄 <strong>${pendingCount}</strong> gasto(s) pendiente(s) de sincronizar → presiona ↑`;
-  } else {
-    banner.classList.remove('show');
-  }
 }
 
 /* ═══════════════════════════════════════
@@ -1420,16 +1213,10 @@ function showToast(type, icon, msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-/* ═══════════════════════════════════════
-   SERVICE WORKER
-═══════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-/* ═══════════════════════════════════════
-   BOOT
-═══════════════════════════════════════ */
 init().catch(err => {
   console.error('VenFinance init failed:', err);
 });
