@@ -366,8 +366,15 @@ async function renderDashboard() {
 
   // Totals
   const totalIncome  = monthIncomes.reduce((s,i) => s + (i.amountUSD || 0), 0);
-  const totalExpense = monthExpenses.reduce((s,e) => s + (e.amountUSD || 0), 0);
-  const totalInvestment = monthIncomes
+  // Only count actual gastos (not investments) as expenses
+  const totalExpense = monthExpenses
+    .filter(e => e.type !== 'inversion')
+    .reduce((s,e) => s + (e.amountUSD || 0), 0);
+  // Investments: from gastos with type='inversion' + income entries with source='investment'
+  const totalInvestment = monthExpenses
+    .filter(e => e.type === 'inversion')
+    .reduce((s,e) => s + (e.amountUSD || 0), 0)
+    + monthIncomes
     .filter(i => i.source === 'investment')
     .reduce((s,i) => s + (i.amountUSD || 0), 0);
   const netBalance = totalIncome - totalExpense;
@@ -420,9 +427,9 @@ async function renderDashboard() {
   document.getElementById('sumInvestment').innerHTML = `${fmtUsd(totalInvestment)}<small>este mes</small>`;
   document.getElementById('sumNet').innerHTML = `${netBalance >= 0 ? '+' : ''}${fmtUsd(netBalance)}<small>este mes</small>`;
 
-  // ── Donut Chart ──
+  // ── Donut Chart (only actual gastos, not investments) ──
   const catMap = {};
-  monthExpenses.forEach(e => {
+  monthExpenses.filter(e => e.type !== 'inversion').forEach(e => {
     const catId = e.category || 'other';
     const info = CATEGORY_MAP[catId] || CATEGORY_MAP.other;
     if (!catMap[catId]) catMap[catId] = { label: info.label, icon: info.icon, color: info.color, total: 0 };
@@ -459,10 +466,10 @@ async function renderDashboard() {
     `).join('');
   }
 
-  // ── Bar Chart ──
+  // ── Bar Chart (only gastos, not investments) ──
   const dailyIdeal = budget / dTotal;
   const dailyTotals = {};
-  monthExpenses.forEach(e => {
+  monthExpenses.filter(e => e.type !== 'inversion').forEach(e => {
     const day = parseInt(e.date.split('-')[2]);
     dailyTotals[day] = (dailyTotals[day] || 0) + (e.amountUSD || 0);
   });
