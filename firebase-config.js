@@ -17,12 +17,12 @@
 // 6. Project Settings → General → Your apps → Add web app → Copy config below
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyDnSZXOjHqb3fpDYY-_gbYulApomeAXRVo",
+  authDomain:        "venfinance-62592.firebaseapp.com",
+  projectId:         "venfinance-62592",
+  storageBucket:     "venfinance-62592.firebasestorage.app",
+  messagingSenderId: "954306771476",
+  appId:             "1:954306771476:web:886c506175d5d0c4590501"
 };
 
 firebase.initializeApp(firebaseConfig);
