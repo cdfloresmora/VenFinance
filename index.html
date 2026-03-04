@@ -30,13 +30,7 @@
      (Shared styles in style.css)
   ═══════════════════════════════════════ */
 
-  /* ── TOP BAR ── */
-  .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 0 12px;
-  }
+  /* top-bar replaced by shared .app-header */
 
   /* ═══════════════════════════════════════
      RATES BAR
@@ -708,27 +702,70 @@
   <span id="toast-msg">Gasto guardado</span>
 </div>
 
-<!-- ═══════════════════════════════════════
-     CONFIG SHEET (bottom sheet modal)
-═══════════════════════════════════════ -->
-<div class="overlay" id="config-overlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">⚙️ Configuración</div>
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="logo">
+      <div class="logo-icon">₿</div>
+      <span class="logo-text" id="greeting-text">VenFinance</span>
+    </div>
+    <div class="header-actions">
+      <div class="month-badge" id="monthBadge">--</div>
+      <div class="user-menu-wrap">
+        <button class="user-avatar-btn" id="userAvatarBtn" onclick="toggleUserMenu()">U</button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-name" id="menuUserName">Usuario</div>
+            <div class="user-dropdown-email" id="menuUserEmail">--</div>
+          </div>
+          <button class="user-dropdown-item" onclick="openPrefs()">
+            <span class="item-icon">⚙️</span> Preferencias
+          </button>
+          <div class="user-dropdown-divider"></div>
+          <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
+            <span class="item-icon">⏻</span> Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
 
-    <div class="config-field">
-      <label class="config-label">Tasa Paralela (Bs/$) — tu tasa de compra</label>
-      <input class="config-input" id="cfg-rate-parallel" type="number" placeholder="Ej: 600" inputmode="decimal" />
+<!-- PREFERENCES MODAL -->
+<div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
+  <div class="prefs-sheet">
+    <div class="prefs-handle"></div>
+    <div class="prefs-title">⚙️ Preferencias</div>
+
+    <div class="prefs-section">
+      <div class="prefs-section-label">Presupuesto</div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Presupuesto mensual</div>
+          <div class="pref-desc">Tu límite de gastos en USD por mes</div>
+        </div>
+        <input class="pref-input" id="pref-budget" type="number" placeholder="300" inputmode="decimal">
+      </div>
     </div>
-    <div class="config-field">
-      <label class="config-label">Tasa Oficial BCV (Bs/$)</label>
-      <input class="config-input" id="cfg-rate-official" type="number" placeholder="Ej: 410" inputmode="decimal" />
+
+    <div class="prefs-section">
+      <div class="prefs-section-label">Moneda por defecto</div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Moneda principal</div>
+          <div class="pref-desc">Para registrar gastos e inversiones</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
+          <button class="chart-tab" id="pref-cur-usd" onclick="setPrefCurrency('$')" style="padding:8px 14px;">USD</button>
+        </div>
+      </div>
     </div>
-    <div class="config-field">
-      <label class="config-label">Presupuesto Mensual (en $)</label>
-      <input class="config-input" id="cfg-budget" type="number" placeholder="Ej: 300" inputmode="decimal" />
-    </div>
-    <button class="submit-btn" onclick="saveConfig()" style="margin-top:8px">Guardar Configuración</button>
+
+    <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
+      Guardar Preferencias
+    </button>
   </div>
 </div>
 
@@ -737,26 +774,14 @@
 ═══════════════════════════════════════ -->
 <div id="app" class="app-container">
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <div class="logo">
-      <div class="logo-icon">₿</div>
-      <div class="logo-text" id="greeting-text">VenFinance</div>
-    </div>
-    <div class="header-actions">
-      <button class="icon-btn" onclick="openConfig()">⚙</button>
-      <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión">⏻</button>
-    </div>
-  </div>
-
   <!-- RATES BAR -->
   <div class="rates-bar">
-    <div class="rate-chip" onclick="openConfig()">
+    <div class="rate-chip" onclick="openPrefs()">
       <span class="rate-dot gold"></span>
       <span class="rate-label">Paralelo</span>
       <span class="rate-value" id="chip-parallel">—</span>
     </div>
-    <div class="rate-chip" onclick="openConfig()">
+    <div class="rate-chip" onclick="openPrefs()">
       <span class="rate-dot teal"></span>
       <span class="rate-label">BCV</span>
       <span class="rate-value" id="chip-official">—</span>
@@ -1001,9 +1026,68 @@ let state = {
 /* ═══════════════════════════════════════
    INIT  (Firebase Auth + Firestore)
 ═══════════════════════════════════════ */
+// ── USER MENU ──────────────────────────────────────────────────
+function toggleUserMenu() {
+  const dd = document.getElementById('userDropdown');
+  const bd = document.getElementById('userBackdrop');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  bd.classList.toggle('open', !isOpen);
+}
+function closeUserMenu() {
+  document.getElementById('userDropdown').classList.remove('open');
+  document.getElementById('userBackdrop').classList.remove('open');
+}
+
+// ── PREFERENCES ────────────────────────────────────────────────
+let prefCurrency = 'Bs';
+
+function getCurrentYM() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+}
+
+function openPrefs() {
+  closeUserMenu();
+  document.getElementById('prefsOverlay').classList.add('visible');
+  VF.DB.getBudget(getCurrentYM()).then(b => {
+    document.getElementById('pref-budget').value = b ? b.budgetUSD : '';
+  });
+  VF.DB.getConfig('defaultCurrency').then(c => {
+    prefCurrency = c || 'Bs';
+    document.getElementById('pref-cur-bs').classList.toggle('active', prefCurrency === 'Bs');
+    document.getElementById('pref-cur-usd').classList.toggle('active', prefCurrency === '$');
+  });
+}
+function closePrefs() {
+  document.getElementById('prefsOverlay').classList.remove('visible');
+}
+function setPrefCurrency(cur) {
+  prefCurrency = cur;
+  document.getElementById('pref-cur-bs').classList.toggle('active', cur === 'Bs');
+  document.getElementById('pref-cur-usd').classList.toggle('active', cur === '$');
+}
+async function savePrefs() {
+  const budget = parseFloat(document.getElementById('pref-budget').value) || 0;
+  state.budgetUSD = budget;
+  await VF.DB.setBudget(getCurrentYM(), budget);
+  await VF.DB.setConfig('defaultCurrency', prefCurrency);
+  closePrefs();
+  renderBudget();
+  updateChips();
+  showToast('success', '✓', 'Preferencias guardadas');
+}
+
 async function init() {
   const session = await VF.Auth.requireAuth();
   if (!session) return;
+
+  // Header
+  const now = new Date();
+  document.getElementById('monthBadge').textContent = now.toLocaleString('es',{month:'short'}).toUpperCase()+' '+now.getFullYear();
+  document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
+  document.getElementById('menuUserName').textContent = session.name || 'Usuario';
+  document.getElementById('menuUserEmail').textContent = session.email || '';
 
   // Personalized greeting
   const greetEl = document.getElementById('greeting-text');
@@ -1056,37 +1140,7 @@ async function loadConfig() {
   }
 }
 
-async function openConfig() {
-  document.getElementById('cfg-rate-parallel').value = state.rateParallel || '';
-  document.getElementById('cfg-rate-official').value = state.rateOfficial || '';
-  document.getElementById('cfg-budget').value        = state.budgetUSD    || '';
-  document.getElementById('config-overlay').classList.add('visible');
-}
-
-async function saveConfig() {
-  state.rateParallel = parseFloat(document.getElementById('cfg-rate-parallel').value) || 0;
-  state.rateOfficial = parseFloat(document.getElementById('cfg-rate-official').value) || 0;
-  state.budgetUSD    = parseFloat(document.getElementById('cfg-budget').value) || 0;
-
-  // Save to Firestore
-  await VF.DB.setConfig('rateParallel', state.rateParallel);
-  await VF.DB.setConfig('rateOfficial', state.rateOfficial);
-
-  // Save budget for current month
-  const now = new Date();
-  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  await VF.DB.setBudget(ym, state.budgetUSD);
-
-  document.getElementById('config-overlay').classList.remove('visible');
-  updateChips();
-  renderBudget();
-  onAmountChange();
-  showToast('success', '✓', 'Configuración guardada');
-}
-
-document.getElementById('config-overlay').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('visible');
-});
+/* openConfig/saveConfig removed — now handled via Preferencias modal */
 
 /* ═══════════════════════════════════════
    CURRENCY CHIPS / RATES
@@ -1347,7 +1401,7 @@ async function submitExpense() {
     // Bs — need rates for conversion
     if (!state.rateOfficial || !state.rateParallel) {
       showToast('warning', '⚙', 'Configura las tasas primero');
-      openConfig();
+      openPrefs();
       return;
     }
     activeRate = getActiveRate();
