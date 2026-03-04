@@ -73,6 +73,22 @@ VF.DB = (() => {
     return snap.docs.map(d => d.data());
   }
 
+  // ── Cambios (currency exchanges) ───────────────────────────
+
+  async function putCambio(cambio) {
+    await userRef().collection('cambios').doc(String(cambio.id)).set(cambio);
+  }
+
+  async function getCambios() {
+    const snap = await userRef().collection('cambios')
+      .orderBy('id', 'desc').get();
+    return snap.docs.map(d => d.data());
+  }
+
+  async function deleteCambio(id) {
+    await userRef().collection('cambios').doc(String(id)).delete();
+  }
+
   // ── Rates (tasas) ──────────────────────────────────────────
 
   async function putRate(rate) {
@@ -106,6 +122,7 @@ VF.DB = (() => {
     setConfig, getConfig,
     putExpense, getExpenses, deleteExpense,
     putIncome, getIncomes, deleteIncome,
+    putCambio, getCambios, deleteCambio,
     setBudget, getBudget, getAllBudgets,
     putRate, getRates,
     saveProfile, getProfile,
