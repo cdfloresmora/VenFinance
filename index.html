@@ -569,6 +569,25 @@
   .invest-btn.selected .cat-label { color: var(--teal); }
 
   /* ═══════════════════════════════════════
+     SALDO COMPARISON STRIP
+  ═══════════════════════════════════════ */
+  .saldo-comparison {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    background: rgba(212,168,67,0.06);
+    border: 1px solid rgba(212,168,67,0.15);
+    border-radius: var(--r-sm);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--gold);
+    line-height: 1.4;
+  }
+  .saldo-comparison.hidden { display: none; }
+
+  /* ═══════════════════════════════════════
      GREYED OUT STATE (for USD currency)
   ═══════════════════════════════════════ */
   .rate-section-disabled {
@@ -744,8 +763,8 @@
     </div>
     <div class="rate-chip">
       <span class="rate-dot green"></span>
-      <span class="rate-label">Ventaja</span>
-      <span class="rate-value" id="chip-advantage">—</span>
+      <span class="rate-label">Saldo Bs</span>
+      <span class="rate-value" id="chip-saldo-bs">—</span>
     </div>
   </div>
 
@@ -799,6 +818,12 @@
         autocomplete="off"
         oninput="onAmountChange()"
       />
+    </div>
+
+    <!-- Saldo comparison (shown when Bs currency) -->
+    <div class="saldo-comparison hidden" id="saldo-comparison">
+      <span style="font-size:12px;">💱</span>
+      <span id="saldo-comparison-text">—</span>
     </div>
 
     <!-- Rate type selector (greyed out when USD) -->
@@ -970,6 +995,7 @@ let state = {
   rateType:       'paralelo',
   budgetUSD:      0,
   expenses:       [],
+  cambios:        [],
 };
 
 /* ═══════════════════════════════════════
@@ -1010,8 +1036,13 @@ async function loadConfig() {
     const budget = await VF.DB.getBudget(ym);
     state.budgetUSD = budget ? budget.budgetUSD : (parseFloat(await VF.DB.getConfig('budgetUSD')) || 0);
 
-    // Load expenses from Firestore
-    state.expenses = await VF.DB.getExpenses();
+    // Load expenses and cambios from Firestore
+    const [expenses, cambios] = await Promise.all([
+      VF.DB.getExpenses(),
+      VF.DB.getCambios(),
+    ]);
+    state.expenses = expenses;
+    state.cambios = cambios || [];
 
     // Use latest saved rate if user hasn't set manual ones
     const allTasas = await VF.DB.getRates();
@@ -1066,12 +1097,19 @@ function updateChips() {
   document.getElementById('chip-parallel').textContent = p ? `${p} Bs` : '—';
   document.getElementById('chip-official').textContent = o ? `${o} Bs` : '—';
 
+  // Compute Bs saldo from cambios - expenses
+  const totalBsIn = state.cambios.reduce((s, c) => s + (c.amountBs || 0), 0);
+  const totalBsOut = state.expenses
+    .filter(e => e.currency === 'Bs')
+    .reduce((s, e) => s + (e.amountBs || 0), 0);
+  const saldoBs = totalBsIn - totalBsOut;
+  document.getElementById('chip-saldo-bs').textContent =
+    saldoBs > 0 ? `${fmtBs(saldoBs)}` : '0';
+
   if (p && o) {
     const pct = (((p - o) / o) * 100).toFixed(1);
-    document.getElementById('chip-advantage').textContent = `+${pct}%`;
     document.getElementById('advantage-pct').textContent  = `${pct}%`;
   } else {
-    document.getElementById('chip-advantage').textContent = '—';
     document.getElementById('advantage-pct').textContent  = '—';
   }
 }
@@ -1224,16 +1262,19 @@ function setCurrency(cur) {
 function onAmountChange() {
   const raw   = parseFloat(document.getElementById('amount-input').value);
   const strip = document.getElementById('conv-strip');
+  const saldoComp = document.getElementById('saldo-comparison');
   const activeRate = getActiveRate();
 
-  // When USD is selected, hide conversion strip — no conversion needed
+  // When USD is selected, hide conversion strip and saldo comparison
   if (state.currency === '$') {
     strip.classList.add('hidden');
+    saldoComp.classList.add('hidden');
     return;
   }
 
   if (!raw || raw <= 0 || !state.rateOfficial || !activeRate) {
     strip.classList.add('hidden');
+    saldoComp.classList.add('hidden');
     return;
   }
   strip.classList.remove('hidden');
@@ -1250,6 +1291,23 @@ function onAmountChange() {
   document.getElementById('conv-parallel').textContent = `$${amountUSD_real.toFixed(2)}`;
   document.getElementById('conv-diff').textContent =
     diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
+
+  // Show saldo comparison if user has cambios
+  const totalBsIn = state.cambios.reduce((s, c) => s + (c.amountBs || 0), 0);
+  const totalBsOut = state.expenses
+    .filter(e => e.currency === 'Bs')
+    .reduce((s, e) => s + (e.amountBs || 0), 0);
+  const saldoBs = totalBsIn - totalBsOut;
+
+  if (saldoBs > 0) {
+    saldoComp.classList.remove('hidden');
+    const pctOfSaldo = ((amountBs / saldoBs) * 100).toFixed(1);
+    const remaining = saldoBs - amountBs;
+    document.getElementById('saldo-comparison-text').innerHTML =
+      `Saldo: <strong>${fmtBs(saldoBs)} Bs</strong> → Quedan <strong>${fmtBs(Math.max(0, remaining))} Bs</strong> (${pctOfSaldo}% del saldo)`;
+  } else {
+    saldoComp.classList.add('hidden');
+  }
 }
 
 function setToday() {

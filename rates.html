@@ -33,22 +33,6 @@
      (Shared styles in style.css)
   ═══════════════════════════════════════ */
 
-  .header {
-    padding: calc(var(--safe-top) + 16px) 16px 12px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    position: relative;
-    z-index: 2;
-  }
-
-  .header h1 {
-    font-size: 22px; font-weight: 800;
-    letter-spacing: -.02em; line-height: 1;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-
   /* ── ALERT BANNER ── */
   .alert-banner {
     margin: 0 16px 16px;
@@ -355,13 +339,13 @@
 <!-- HEADER -->
 <header class="app-header">
   <div class="app-header-inner">
-    <div>
-      <span class="app-eyebrow">VenFinance · v1.0</span>
-      <h1 style="font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1;background:linear-gradient(90deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Tasas</h1>
+    <div class="logo">
+      <div class="logo-icon" style="background: linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);">💱</div>
+      <span class="logo-text">Tasas</span>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="header-date" id="headerDate">--</div>
-      <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión" style="width:30px;height:30px;font-size:13px;">⏻</button>
+    <div class="header-actions">
+      <div class="month-badge" id="headerDate">--</div>
+      <button class="icon-btn" onclick="VF.Auth.logout()" title="Cerrar sesión">⏻</button>
     </div>
   </div>
 </header>
@@ -424,12 +408,19 @@
   <div class="card fade-in" style="padding:18px;">
     <div class="card-label">Actualizar Tasas</div>
 
-    <!-- Source selector -->
+    <!-- BCV auto-fetch status -->
     <div style="margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:600;color:var(--text-2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Fuente BCV</div>
-      <div class="source-row">
-        <button class="source-btn active" id="srcManual" onclick="setSource('manual')">✏️ Manual</button>
-        <button class="source-btn" id="srcAuto" onclick="setSource('auto')">🌐 Auto BCV</button>
+      <div style="font-size:10px;font-weight:600;color:var(--text-2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Tasa BCV (automática)</div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+        <span style="font-size:18px;">🌐</span>
+        <div style="flex:1;">
+          <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:#3b9eff;" id="autoBcvValue">--</div>
+          <div style="font-size:10px;color:var(--text-2);font-family:var(--font-mono);" id="autoBcvStatus">Cargando...</div>
+        </div>
+        <button class="btn btn-fetch" id="btnFetch" onclick="fetchBCVRate()" style="flex:none;padding:8px 14px;font-size:11px;">
+          <span class="label">⟳ Actualizar</span>
+          <span class="spin">⟳</span>
+        </button>
       </div>
     </div>
 
@@ -440,29 +431,14 @@
           <input type="date" id="inFecha">
         </div>
         <div class="input-group">
-          <label>Tasa BCV (Bs/$)</label>
-          <input type="number" id="inBCV" placeholder="410.50" step="0.01" min="0">
-        </div>
-      </div>
-      <div class="input-row-inline">
-        <div class="input-group">
-          <label>Paralelo (Bs/$)</label>
-          <input type="number" id="inPara" placeholder="600.00" step="0.01" min="0">
-        </div>
-        <div class="input-group">
-          <label>Mi Tasa Compra</label>
-          <input type="number" id="inMine" placeholder="600.00" step="0.01" min="0">
+          <label>Tu Tasa Paralela (Bs/$)</label>
+          <input type="number" id="inPara" placeholder="Ej: 90.00" step="0.01" min="0">
         </div>
       </div>
     </div>
 
-    <!-- Auto-fetch row -->
-    <div id="autoFetchRow" style="display:none;margin-top:10px;">
-      <button class="btn btn-fetch" id="btnFetch" onclick="fetchBCVRate()">
-        <span class="label">🌐 Obtener Tasa BCV Automáticamente</span>
-        <span class="spin">⟳</span>
-      </button>
-    </div>
+    <!-- Hidden BCV input (populated by auto-fetch) -->
+    <input type="hidden" id="inBCV" value="">
 
     <div class="btn-row" style="margin-top:12px;">
       <button class="btn btn-secondary" onclick="clearForm()">Limpiar</button>
@@ -470,6 +446,54 @@
         <span class="label">Guardar Tasa</span>
         <span class="spin">⟳</span>
       </button>
+    </div>
+  </div>
+
+  <!-- REGISTRAR CAMBIO (Exchange $→Bs) -->
+  <div class="card fade-in" style="padding:18px;">
+    <div class="card-label">Registrar Cambio</div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:14px;">
+      Registra cuando cambias dólares a bolívares para rastrear tu saldo en Bs.
+    </div>
+
+    <div class="input-row">
+      <div class="input-row-inline">
+        <div class="input-group">
+          <label>Monto en USD</label>
+          <input type="number" id="cambioUSD" placeholder="200.00" step="0.01" min="0" oninput="updateCambioPreview()">
+        </div>
+        <div class="input-group">
+          <label>Tasa del cambio (Bs/$)</label>
+          <input type="number" id="cambioRate" placeholder="90.00" step="0.01" min="0" oninput="updateCambioPreview()">
+        </div>
+      </div>
+      <div class="input-row-inline">
+        <div class="input-group">
+          <label>Fecha</label>
+          <input type="date" id="cambioFecha">
+        </div>
+        <div class="input-group">
+          <label>Recibes en Bs</label>
+          <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--gold);padding:10px 0;" id="cambioPreview">0 Bs</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveCambio()" style="width:100%;">
+      <span class="label">💱 Registrar Cambio</span>
+      <span class="spin">⟳</span>
+    </button>
+
+    <!-- Saldo Bs actual -->
+    <div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,rgba(212,168,67,.08),rgba(212,168,67,.02));border:1px solid rgba(212,168,67,.2);border-radius:12px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:9px;font-weight:600;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;">Saldo en Bolívares</div>
+        <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--gold);" id="saldoBs">0 Bs</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:9px;color:var(--text-2);font-family:var(--font-mono);">Equivale a</div>
+        <div style="font-family:var(--font-mono);font-size:14px;color:var(--teal);" id="saldoBsUsd">$0.00 (BCV)</div>
+      </div>
     </div>
   </div>
 
@@ -580,18 +604,20 @@
 let state = {
   tasas: [],         // Array de { fecha, tasa_bcv, tasa_paralelo, tasa_mi_compra, spread_bcv, spread_pct, fuente }
   gastos: [],
-  source: 'manual',  // 'manual' | 'auto'
+  cambios: [],       // Array de { id, date, amountUSD, rate, amountBs, createdAt }
   chartRange: '7d',
   chart: null,
+  autoBcv: 0,        // Auto-fetched BCV rate
 };
 
 
 // ── CARGAR DATOS DESDE FIRESTORE ─────────────────────────────────
 async function loadData() {
   try {
-    const [rates, expenses] = await Promise.all([
+    const [rates, expenses, cambios] = await Promise.all([
       VF.DB.getRates(),
       VF.DB.getExpenses(),
+      VF.DB.getCambios(),
     ]);
 
     // Map Firestore rate docs to state format
@@ -607,47 +633,54 @@ async function loadData() {
 
     // Map expenses for advantage calculation
     state.gastos = expenses.map(g => ({
-      fecha:       g.fecha || '',
+      fecha:       g.date || g.fecha || '',
+      amountBs:    g.amountBs || 0,
+      currency:    g.currency || 'Bs',
       ventaja_usd: g.ventaja_usd || 0,
       ventaja_bs:  g.ventaja_bs || 0,
     }));
+
+    // Cambios (dollar exchanges)
+    state.cambios = cambios || [];
   } catch (e) {
     console.warn('Error cargando datos:', e.message);
   }
   renderAll();
+
+  // Auto-fetch BCV rate on load
+  fetchBCVRate();
 }
 
 
 // ── AUTO-FETCH TASA BCV ──────────────────────────────────────────
 async function fetchBCVRate() {
   const btn = document.getElementById('btnFetch');
+  const statusEl = document.getElementById('autoBcvStatus');
+  const valueEl  = document.getElementById('autoBcvValue');
   btn.classList.add('loading');
+  statusEl.textContent = 'Consultando API...';
 
   try {
-    // Fuente 1: ve.dolarapi.com (API venezolana gratuita)
-    let bcv = null, paralelo = null;
+    let bcv = null;
 
+    // Fuente 1: ve.dolarapi.com (API venezolana gratuita)
     try {
       const res1 = await fetch('https://ve.dolarapi.com/v1/dolares', {
         signal: AbortSignal.timeout(5000)
       });
       if (res1.ok) {
         const data = await res1.json();
-        // Buscar tasa oficial (BCV) y paralelo
-        const oficial  = data.find(d => d.fuente === 'oficial' || d.nombre?.toLowerCase().includes('oficial'));
-        const par      = data.find(d => d.fuente === 'paralelo' || d.nombre?.toLowerCase().includes('paralelo'));
+        const oficial = data.find(d => d.fuente === 'oficial' || d.nombre?.toLowerCase().includes('oficial'));
         if (oficial) bcv = oficial.promedio || oficial.venta;
-        if (par)     paralelo = par.promedio || par.venta;
       }
     } catch (_) {}
 
-    // Fuente 2: monitordolarvenezuela (CORS proxy)
+    // Fuente 2: exchangerate-api fallback
     if (!bcv) {
       try {
         const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
           signal: AbortSignal.timeout(5000)
         });
-        // ExchangeRate-API no tiene VES actualizado, solo como fallback
         if (res2.ok) {
           const data2 = await res2.json();
           if (data2.rates?.VES) bcv = data2.rates.VES;
@@ -656,14 +689,20 @@ async function fetchBCVRate() {
     }
 
     if (bcv) {
+      state.autoBcv = bcv;
       document.getElementById('inBCV').value = bcv.toFixed(2);
-      if (paralelo) document.getElementById('inPara').value = paralelo.toFixed(2);
-      showToast(`✅ BCV: ${bcv.toFixed(2)} Bs/$`, 'success');
+      valueEl.textContent = `${fmt(bcv)} Bs/$`;
+      statusEl.textContent = `Actualizado · ${new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' })}`;
+      statusEl.style.color = 'var(--teal)';
     } else {
-      showToast('⚠️ No se pudo obtener la tasa automáticamente', 'error');
+      valueEl.textContent = '--';
+      statusEl.textContent = 'No disponible — ingresa manualmente';
+      statusEl.style.color = 'var(--red)';
     }
   } catch (e) {
-    showToast('❌ Error de conexión', 'error');
+    valueEl.textContent = '--';
+    statusEl.textContent = 'Error de conexión';
+    statusEl.style.color = 'var(--red)';
   } finally {
     btn.classList.remove('loading');
   }
@@ -673,32 +712,43 @@ async function fetchBCVRate() {
 // ── GUARDAR TASA ─────────────────────────────────────────────────
 async function saveRate() {
   const fecha = document.getElementById('inFecha').value;
-  const bcv   = parseFloat(document.getElementById('inBCV').value);
+  const bcv   = parseFloat(document.getElementById('inBCV').value) || state.autoBcv;
   const para  = parseFloat(document.getElementById('inPara').value);
-  const mine  = parseFloat(document.getElementById('inMine').value);
 
-  if (!fecha || !bcv || !mine) {
-    showToast('⚠️ Completa fecha, BCV y Tu Tasa', 'error');
+  if (!fecha) {
+    showToast('⚠️ Selecciona una fecha', 'error');
+    return;
+  }
+  if (!bcv) {
+    showToast('⚠️ No hay tasa BCV disponible', 'error');
+    return;
+  }
+  if (!para) {
+    showToast('⚠️ Ingresa tu tasa paralela', 'error');
     return;
   }
 
-  const spreadBs  = mine - bcv;
+  const spreadBs  = para - bcv;
   const spreadPct = (spreadBs / bcv) * 100;
 
   const nuevaTasa = {
     fecha,
     tasa_bcv:       Math.round(bcv * 100) / 100,
-    tasa_paralelo:  para || mine,
-    tasa_mi_compra: Math.round(mine * 100) / 100,
+    tasa_paralelo:  Math.round(para * 100) / 100,
+    tasa_mi_compra: Math.round(para * 100) / 100,
     spread_bcv:     Math.round(spreadBs * 100) / 100,
     spread_pct:     Math.round(spreadPct * 10000) / 10000,
-    fuente:         state.source === 'auto' ? 'Auto BCV + Manual' : 'Manual',
+    fuente:         state.autoBcv ? 'Auto BCV + Manual' : 'Manual',
   };
 
   // Update local state
   state.tasas = state.tasas.filter(t => t.fecha !== fecha);
   state.tasas.push(nuevaTasa);
   state.tasas.sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  // Also update config rates for index.html to use
+  await VF.DB.setConfig('rateParallel', nuevaTasa.tasa_mi_compra);
+  await VF.DB.setConfig('rateOfficial', nuevaTasa.tasa_bcv);
 
   // Save to Firestore
   try {
@@ -713,6 +763,67 @@ async function saveRate() {
   renderAll();
 }
 
+// ── CAMBIO (Exchange $→Bs) ───────────────────────────────────────
+function updateCambioPreview() {
+  const usd  = parseFloat(document.getElementById('cambioUSD').value) || 0;
+  const rate = parseFloat(document.getElementById('cambioRate').value) || 0;
+  const bs   = usd * rate;
+  document.getElementById('cambioPreview').textContent = `${fmtBs(bs)} Bs`;
+}
+
+async function saveCambio() {
+  const usd  = parseFloat(document.getElementById('cambioUSD').value);
+  const rate = parseFloat(document.getElementById('cambioRate').value);
+  const fecha = document.getElementById('cambioFecha').value;
+
+  if (!usd || usd <= 0) { showToast('⚠️ Ingresa un monto en USD', 'error'); return; }
+  if (!rate || rate <= 0) { showToast('⚠️ Ingresa la tasa del cambio', 'error'); return; }
+  if (!fecha) { showToast('⚠️ Selecciona una fecha', 'error'); return; }
+
+  const cambio = {
+    id:        Date.now(),
+    date:      fecha,
+    amountUSD: usd,
+    rate:      rate,
+    amountBs:  Math.round(usd * rate * 100) / 100,
+    createdAt: Date.now(),
+  };
+
+  try {
+    await VF.DB.putCambio(cambio);
+    state.cambios.push(cambio);
+    showToast('✅ Cambio registrado', 'success');
+  } catch (e) {
+    showToast('⚠️ Error al guardar cambio', 'error');
+    console.error(e);
+  }
+
+  // Reset form
+  document.getElementById('cambioUSD').value  = '';
+  document.getElementById('cambioRate').value = '';
+  document.getElementById('cambioPreview').textContent = '0 Bs';
+  document.getElementById('cambioFecha').value = getTodayStr();
+
+  renderSaldoBs();
+}
+
+function renderSaldoBs() {
+  // Saldo Bs = sum of all exchanges - sum of all Bs expenses
+  const totalBsIn = state.cambios.reduce((s, c) => s + (c.amountBs || 0), 0);
+  const totalBsOut = state.gastos
+    .filter(g => g.currency === 'Bs')
+    .reduce((s, g) => s + (g.amountBs || 0), 0);
+  const saldo = totalBsIn - totalBsOut;
+
+  document.getElementById('saldoBs').textContent = `${fmtBs(Math.max(0, saldo))} Bs`;
+
+  // Show equivalent in USD at BCV
+  const lastBcv = state.tasas.length > 0 ? state.tasas[state.tasas.length - 1].tasa_bcv : state.autoBcv;
+  if (lastBcv > 0) {
+    document.getElementById('saldoBsUsd').textContent = `$${(saldo / lastBcv).toFixed(2)} (BCV)`;
+  }
+}
+
 
 // ── RENDER PRINCIPAL ─────────────────────────────────────────────
 function renderAll() {
@@ -721,6 +832,7 @@ function renderAll() {
   renderChart();
   renderHistory();
   renderTicker();
+  renderSaldoBs();
   checkTodayAlert();
 }
 
@@ -902,14 +1014,6 @@ function checkTodayAlert() {
 
 
 // ── UI HELPERS ───────────────────────────────────────────────────
-function setSource(src) {
-  state.source = src;
-  document.getElementById('srcManual').classList.toggle('active', src === 'manual');
-  document.getElementById('srcAuto').classList.toggle('active', src === 'auto');
-  document.getElementById('autoFetchRow').style.display = src === 'auto' ? 'block' : 'none';
-  if (src === 'auto') fetchBCVRate();
-}
-
 function setChartRange(range, el) {
   state.chartRange = range;
   document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
@@ -925,9 +1029,7 @@ function getFilteredTasas() {
 }
 
 function clearForm() {
-  document.getElementById('inBCV').value  = '';
   document.getElementById('inPara').value = '';
-  document.getElementById('inMine').value = '';
 }
 
 // ── TOAST ────────────────────────────────────────────────────────
@@ -969,12 +1071,12 @@ if ('serviceWorker' in navigator) {
 
   // Fecha de hoy en los inputs
   document.getElementById('inFecha').value = getTodayStr();
+  document.getElementById('cambioFecha').value = getTodayStr();
 
-  // Header date
-  document.getElementById('headerDate').innerHTML =
-    new Date().toLocaleDateString('es-VE', { weekday:'short', day:'numeric', month:'short' }).toUpperCase() +
-    `<br><span style="font-size:9px;color:var(--gold)">` +
-    new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' }) + `</span>`;
+  // Header date (matching app-header month-badge style)
+  const now = new Date();
+  document.getElementById('headerDate').textContent =
+    now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + now.getFullYear();
 
   // Cargar datos
   loadData();
