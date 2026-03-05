@@ -140,7 +140,14 @@
   .legend-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
   .legend-name { font-size: 12px; color: var(--text-2); flex: 1; font-weight: 500; }
   .legend-amount { font-family: var(--font-mono); font-size: 12px; color: var(--text-1); }
-  .bar-canvas-wrap { width: 100%; height: 180px; }
+    .bar-canvas-wrap { width: 100%; height: 220px; }
+  .chart-legend {
+    display: flex; gap: 16px; justify-content: center; margin-top: 12px;
+    font-size: 11px; font-family: var(--font-mono); color: var(--text-2);
+  }
+  .chart-legend-item { display: flex; align-items: center; gap: 5px; }
+  .chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .chart-legend-line { width: 16px; height: 0; border-top: 2px dashed rgba(79,142,247,0.6); }
 
   main { position: relative; z-index: 1; padding: 20px 0; display: flex; flex-direction: column; gap: 16px; }
 
@@ -492,6 +499,12 @@
       <div class="bar-canvas-wrap">
         <canvas id="barChart"></canvas>
       </div>
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:rgba(0,212,170,0.75)"></span> Bajo</span>
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:rgba(212,168,67,0.75)"></span> Medio</span>
+        <span class="chart-legend-item"><span class="chart-legend-dot" style="background:rgba(255,107,107,0.75)"></span> Alto</span>
+        <span class="chart-legend-item"><span class="chart-legend-line"></span> <span data-i18n="dash.ideal">Ideal</span></span>
+      </div>
     </div>
   </div>
 
@@ -662,16 +675,36 @@ async function renderDashboard() {
       type: 'doughnut',
       data: {
         labels: activeCats.map(c => c.label),
-        datasets: [{ data: activeCats.map(c => c.total), backgroundColor: activeCats.map(c => c.color), borderColor: isLight() ? '#FFFFFF' : '#13131F', borderWidth: 3 }]
+        datasets: [{
+          data: activeCats.map(c => c.total),
+          backgroundColor: activeCats.map(c => c.color),
+          borderColor: isLight() ? '#FFFFFF' : '#13131F',
+          borderWidth: 3,
+          hoverBorderColor: isLight() ? '#FFFFFF' : '#13131F',
+          hoverBorderWidth: 4,
+          hoverOffset: 6,
+          spacing: 2,
+          borderRadius: 4
+        }]
       },
       options: {
         cutout: '72%',
         plugins: { legend: { display: false }, tooltip: {
-          backgroundColor: isLight() ? '#FFFFFF' : '#13131F', titleColor: isLight() ? '#1A1A2E' : '#F0EDE8', bodyColor: isLight() ? '#55536A' : '#9B98A8',
-          borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
-          callbacks: { label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalExpense*100).toFixed(1)}%)` }
+          backgroundColor: isLight() ? '#FFFFFF' : 'rgba(19,19,31,0.95)',
+          titleColor: isLight() ? '#1A1A2E' : '#F0EDE8',
+          bodyColor: isLight() ? '#55536A' : '#9B98A8',
+          borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)',
+          borderWidth: 1, padding: 14, cornerRadius: 12,
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 11 },
+          displayColors: true,
+          boxWidth: 8, boxHeight: 8, boxPadding: 4,
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalExpense*100).toFixed(1)}%)`
+          }
         }},
-        animation: { animateRotate: true, duration: 900 }
+        animation: { animateRotate: true, duration: 900, easing: 'easeOutQuart' }
       }
     });
 
@@ -695,36 +728,84 @@ async function renderDashboard() {
   const days = Array.from({length: dToday}, (_,i) => i+1);
   const actualData = days.map(d => dailyTotals[d] || 0);
 
-  new Chart(document.getElementById('barChart').getContext('2d'), {
+  const barCtx = document.getElementById('barChart').getContext('2d');
+
+  // Create gradient fills for bars
+  function barGradient(color1, color2) {
+    const g = barCtx.createLinearGradient(0, 0, 0, barCtx.canvas.clientHeight);
+    g.addColorStop(0, color1);
+    g.addColorStop(1, color2);
+    return g;
+  }
+
+  const gradientGreen  = barGradient('rgba(0,212,170,0.85)', 'rgba(0,212,170,0.15)');
+  const gradientYellow = barGradient('rgba(212,168,67,0.85)', 'rgba(212,168,67,0.15)');
+  const gradientRed    = barGradient('rgba(255,107,107,0.85)', 'rgba(255,107,107,0.15)');
+
+  const barColors = actualData.map(v =>
+    v <= dailyIdeal ? gradientGreen :
+    v <= dailyIdeal * 1.3 ? gradientYellow : gradientRed
+  );
+
+  new Chart(barCtx, {
     type: 'bar',
     data: {
       labels: days.map(d => d + '/' + m),
       datasets: [
         {
           label: VFSettings.t('dash.spent'), data: actualData,
-          backgroundColor: actualData.map(v =>
-            v <= dailyIdeal ? 'rgba(0,212,170,0.75)' :
-            v <= dailyIdeal * 1.3 ? 'rgba(212,168,67,0.75)' : 'rgba(255,107,107,0.75)'
+          backgroundColor: barColors,
+          borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
+          borderSkipped: false,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8,
+          hoverBackgroundColor: actualData.map(v =>
+            v <= dailyIdeal ? 'rgba(0,212,170,0.95)' :
+            v <= dailyIdeal * 1.3 ? 'rgba(212,168,67,0.95)' : 'rgba(255,107,107,0.95)'
           ),
-          borderRadius: 6, borderSkipped: false,
         },
         {
           label: VFSettings.t('dash.ideal'), data: days.map(() => dailyIdeal),
           type: 'line', borderColor: 'rgba(79,142,247,0.6)', borderWidth: 2,
-          borderDash: [4, 4], pointRadius: 0, tension: 0, fill: false, order: 0
+          borderDash: [6, 4], pointRadius: 0, tension: 0.1, fill: false, order: 0
         }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
       plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: isLight() ? '#FFFFFF' : '#13131F', titleColor: isLight() ? '#1A1A2E' : '#F0EDE8', bodyColor: isLight() ? '#55536A' : '#9B98A8',
-        borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
+        backgroundColor: isLight() ? '#FFFFFF' : 'rgba(19,19,31,0.95)',
+        titleColor: isLight() ? '#1A1A2E' : '#F0EDE8',
+        bodyColor: isLight() ? '#55536A' : '#9B98A8',
+        borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)',
+        borderWidth: 1, padding: 14, cornerRadius: 12,
+        titleFont: { size: 12, weight: '600' },
+        bodyFont: { size: 11 },
+        displayColors: true,
+        boxWidth: 8, boxHeight: 8, boxPadding: 4,
+        callbacks: {
+          title: ctx => ctx[0].label,
+          label: ctx => {
+            if (ctx.datasetIndex === 0) return ' $' + fmt(ctx.parsed.y);
+            return ' ' + VFSettings.t('dash.ideal') + ': $' + fmt(ctx.parsed.y);
+          }
+        }
       }},
       scales: {
-        x: { grid: { color: isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { maxRotation: 0, color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 9 }, maxTicksLimit: 10 } },
-        y: { grid: { color: isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 9 }, callback: v => '$' + v.toFixed(0) } }
-      }
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { maxRotation: 0, color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 10, family: 'var(--font-mono)' }, maxTicksLimit: 8, padding: 4 }
+        },
+        y: {
+          grid: { color: isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', drawTicks: false },
+          border: { display: false },
+          ticks: { color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 10, family: 'var(--font-mono)' }, callback: v => '$' + v.toFixed(0), padding: 8 },
+          beginAtZero: true
+        }
+      },
+      animation: { duration: 800, easing: 'easeOutQuart' }
     }
   });
 }
