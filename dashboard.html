@@ -7,6 +7,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VenFinance">
 <meta name="theme-color" content="#080810">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: https:;
+  connect-src 'self' https://firestore.googleapis.com https://www.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://ve.dolarapi.com;
+  frame-src https://accounts.google.com https://*.firebaseapp.com;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self'
+">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <title>VenFinance — Dashboard</title>

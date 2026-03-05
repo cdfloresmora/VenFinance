@@ -25,8 +25,13 @@
     try { localStorage.setItem(key, val); } catch (e) { /* noop */ }
   }
 
+  /* ── Validation ────────────────────────────────────────────── */
+  var VALID_FONTS = ['sans', 'serif', 'mono'];
+  var VALID_THEMES = ['dark', 'light'];
+
   /* ── Apply font class ──────────────────────────────────────── */
   function applyFont(font) {
+    if (VALID_FONTS.indexOf(font) === -1) font = DEFAULTS.font;
     var html = document.documentElement;
     html.classList.remove('font-sans', 'font-serif', 'font-mono');
     html.classList.add('font-' + font);
@@ -38,6 +43,7 @@
 
   /* ── Apply theme ───────────────────────────────────────────── */
   function applyTheme(theme) {
+    if (VALID_THEMES.indexOf(theme) === -1) theme = DEFAULTS.theme;
     var html = document.documentElement;
     if (theme === 'light') {
       html.classList.add('theme-light');
@@ -806,6 +812,8 @@
   (function earlyApply() {
     var font  = get(KEYS.font)  || DEFAULTS.font;
     var theme = get(KEYS.theme) || DEFAULTS.theme;
+    if (VALID_FONTS.indexOf(font) === -1) font = DEFAULTS.font;
+    if (VALID_THEMES.indexOf(theme) === -1) theme = DEFAULTS.theme;
     var html  = document.documentElement;
     html.classList.add('font-' + font);
     if (theme === 'light') html.classList.add('theme-light');
