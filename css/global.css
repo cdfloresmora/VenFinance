@@ -20,28 +20,43 @@
 
 /* ── Light theme overrides ── */
 .theme-light {
-  --bg-color: #F5F5F7;
+  --bg-color: #F7F7FA;
   --text-color: #1A1A2E;
-  --accent-color: #B8952E;
+  --accent-color: #A07D1C;
 
-  --bg-void:       #F5F5F7;
-  --bg-deep:       #EEEEF2;
+  --bg-void:       #F7F7FA;
+  --bg-deep:       #EDEDF2;
   --bg-card:       #FFFFFF;
-  --bg-elevated:   #F0F0F4;
+  --bg-elevated:   #F2F2F6;
   --bg-glass:      rgba(0,0,0,0.03);
   --bg-glass-h:    rgba(0,0,0,0.06);
 
-  --border:        rgba(0,0,0,0.08);
-  --border-bright: rgba(0,0,0,0.14);
+  --border:        rgba(0,0,0,0.07);
+  --border-bright: rgba(0,0,0,0.13);
 
   --text-1: #1A1A2E;
-  --text-2: #5C596A;
-  --text-3: #9B98A8;
+  --text-2: #55536A;
+  --text-3: #8E8BA0;
 
-  --gold:       #B8952E;
-  --gold-light: #D4A843;
-  --gold-dim:   rgba(184,149,46,0.12);
-  --gold-glow:  rgba(184,149,46,0.2);
+  --gold:       #A07D1C;
+  --gold-light: #C49930;
+  --gold-dim:   rgba(160,125,28,0.08);
+  --gold-glow:  rgba(160,125,28,0.15);
+
+  --teal:       #008F72;
+  --teal-dim:   rgba(0,143,114,0.07);
+  --teal-glow:  rgba(0,143,114,0.12);
+
+  --red:        #C93030;
+  --red-dim:    rgba(201,48,48,0.07);
+  --green:      #1A9458;
+  --green-dim:  rgba(26,148,88,0.07);
+  --coral:      #D44545;
+  --coral-dim:  rgba(212,69,69,0.07);
+  --blue:       #3565C4;
+
+  --safe-bg:     #E5F5F0;
+  --safe-border: rgba(0,143,114,0.15);
 }
 
 /* Override body/html backgrounds from theme */
@@ -52,29 +67,29 @@
 }
 
 .theme-light body::before {
-  opacity: 0.01;
+  opacity: 0;
 }
 .theme-light body::after {
   opacity: 0;
 }
 
 .theme-light .app-header {
-  background: rgba(245,245,247,0.88) !important;
+  background: rgba(247,247,250,0.92) !important;
 }
 
 .theme-light .bottom-nav {
-  background: rgba(245,245,247,0.92) !important;
+  background: rgba(247,247,250,0.95) !important;
 }
 
 .theme-light .logo-text {
-  background: linear-gradient(135deg, var(--gold), #8B6914);
+  background: linear-gradient(135deg, var(--gold), #7A6015);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .theme-light .toast {
-  background: var(--bg-card);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 
 .theme-light .all-expenses-overlay {

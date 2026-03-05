@@ -85,7 +85,7 @@
     background: var(--bg-elevated); border: 1px solid var(--border);
     border-radius: var(--r-sm); padding: 12px 10px; font-family: var(--font-mono);
     font-size: 11px; color: var(--text-2); outline: none; -webkit-appearance: none;
-    color-scheme: dark; width: 100%;
+    width: 100%;
   }
   .submit-btn {
     width: 100%; padding: 16px;
@@ -108,6 +108,17 @@
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0,212,170,0.3), transparent);
   }
+
+  /* ── Light mode overrides ── */
+  .theme-light .income-summary {
+    background: linear-gradient(145deg, #E8F8F5 0%, #F0FDF9 100%);
+    border-color: rgba(0,143,114,0.12);
+  }
+  .theme-light .income-summary::before {
+    background: linear-gradient(90deg, transparent, rgba(0,143,114,0.15), transparent);
+  }
+  .theme-light .form-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .tx-item { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .income-total-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); }
   .income-total-amount {
     font-family: var(--font-mono); font-size: 32px; font-weight: 600;
@@ -158,7 +169,7 @@
 <div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
 <div class="user-dropdown" id="userDropdown">
   <div class="user-dropdown-header">
-    <div class="user-dropdown-name" id="menuUserName">Usuario</div>
+    <div class="user-dropdown-name" id="menuUserName" data-i18n="misc.user">Usuario</div>
     <div class="user-dropdown-email" id="menuUserEmail">--</div>
   </div>
   <button class="user-dropdown-item" onclick="openPrefs()">
@@ -295,7 +306,7 @@
     <span class="section-title" data-i18n="income.recent">Ingresos recientes</span>
   </div>
   <div class="tx-list" id="income-list">
-    <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
+    <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;" data-i18n="income.empty">
       Aún no hay ingresos registrados.
     </div>
   </div>
@@ -452,7 +463,7 @@ async function init() {
   const now = new Date();
   document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
-  document.getElementById('menuUserName').textContent = session.name || 'Usuario';
+  document.getElementById('menuUserName').textContent = session.name || VFSettings.t('misc.user');
   document.getElementById('menuUserEmail').textContent = session.email || '';
 
   // Greeting

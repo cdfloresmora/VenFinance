@@ -141,6 +141,27 @@
     .donut-canvas-wrap { width: 200px; height: 200px; }
     .bar-canvas-wrap { height: 260px; }
   }
+
+  /* ── Light mode overrides ── */
+  .theme-light .balance-card {
+    background: linear-gradient(145deg, #EBF3FF 0%, #F0F5FF 100%);
+    border-color: rgba(79,142,247,0.15);
+  }
+  .theme-light .balance-card::after {
+    background: radial-gradient(circle, rgba(79,142,247,0.06) 0%, transparent 70%);
+  }
+  .theme-light .balance-amount {
+    background: linear-gradient(135deg, #1A1A2E 0%, #2563EB 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .theme-light .flow-item { background: rgba(0,0,0,0.02); }
+  .theme-light .saldo-usd-block { background: rgba(0,0,0,0.015); }
+  .theme-light .saldo-gap-row { background: rgba(0,0,0,0.015); border-color: rgba(0,0,0,0.06); }
+  .theme-light .summary-row { background: rgba(0,0,0,0.01); }
+  .theme-light .ventaja-banner {
+    background: linear-gradient(135deg, rgba(0,143,114,0.05), rgba(53,101,196,0.04));
+    border-color: rgba(0,143,114,0.12);
+  }
 </style>
 </head>
 <body>
@@ -162,7 +183,7 @@
 <div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
 <div class="user-dropdown" id="userDropdown">
   <div class="user-dropdown-header">
-    <div class="user-dropdown-name" id="menuUserName">Usuario</div>
+    <div class="user-dropdown-name" id="menuUserName" data-i18n="misc.user">Usuario</div>
     <div class="user-dropdown-email" id="menuUserEmail">--</div>
   </div>
   <button class="user-dropdown-item" onclick="openPrefs()">
@@ -510,7 +531,8 @@ const fmt = (n, d=2) => n.toLocaleString('es-VE', { minimumFractionDigits: d, ma
 const fmtUsd = (n) => '$' + fmt(n);
 const daysInMonth = (y,m) => new Date(y,m,0).getDate();
 
-Chart.defaults.color = '#9B98A8';
+const isLight = () => document.documentElement.classList.contains('theme-light');
+Chart.defaults.color = isLight() ? '#55536A' : '#9B98A8';
 Chart.defaults.font.family = "'JetBrains Mono', monospace";
 Chart.defaults.font.size = 10;
 
@@ -627,13 +649,13 @@ async function renderDashboard() {
       type: 'doughnut',
       data: {
         labels: activeCats.map(c => c.label),
-        datasets: [{ data: activeCats.map(c => c.total), backgroundColor: activeCats.map(c => c.color), borderColor: '#13131F', borderWidth: 3 }]
+        datasets: [{ data: activeCats.map(c => c.total), backgroundColor: activeCats.map(c => c.color), borderColor: isLight() ? '#FFFFFF' : '#13131F', borderWidth: 3 }]
       },
       options: {
         cutout: '72%',
         plugins: { legend: { display: false }, tooltip: {
-          backgroundColor: '#13131F', titleColor: '#F0EDE8', bodyColor: '#9B98A8',
-          borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
+          backgroundColor: isLight() ? '#FFFFFF' : '#13131F', titleColor: isLight() ? '#1A1A2E' : '#F0EDE8', bodyColor: isLight() ? '#55536A' : '#9B98A8',
+          borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
           callbacks: { label: ctx => ` $${fmt(ctx.parsed)} (${(ctx.parsed/totalExpense*100).toFixed(1)}%)` }
         }},
         animation: { animateRotate: true, duration: 900 }
@@ -683,12 +705,12 @@ async function renderDashboard() {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: '#13131F', titleColor: '#F0EDE8', bodyColor: '#9B98A8',
-        borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
+        backgroundColor: isLight() ? '#FFFFFF' : '#13131F', titleColor: isLight() ? '#1A1A2E' : '#F0EDE8', bodyColor: isLight() ? '#55536A' : '#9B98A8',
+        borderColor: isLight() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 12,
       }},
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { maxRotation: 0, color: '#5C596A', font: { size: 9 }, maxTicksLimit: 10 } },
-        y: { grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { color: '#5C596A', font: { size: 9 }, callback: v => '$' + v.toFixed(0) } }
+        x: { grid: { color: isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { maxRotation: 0, color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 9 }, maxTicksLimit: 10 } },
+        y: { grid: { color: isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', drawTicks: false }, border: { display: false }, ticks: { color: isLight() ? '#8E8BA0' : '#5C596A', font: { size: 9 }, callback: v => '$' + v.toFixed(0) } }
       }
     }
   });
