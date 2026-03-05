@@ -1,5 +1,5 @@
 // sw.js — VenFinance Service Worker
-const CACHE_VERSION = 'vf-v7.1.0';
+const CACHE_VERSION = 'vf-v7.3.0';
 const STATIC_ASSETS = [
   './',
   './login.html',
@@ -38,7 +38,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// FETCH: Cache-First for static assets, Network-First for API
+// FETCH: Network-First for own assets, Network-Only for APIs
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -53,23 +53,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Everything else: Cache-First with network fallback
+  // Own assets: Network-First — always fetch latest, fall back to cache offline
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        // Dynamically cache new responses (fonts, CDN scripts, etc.)
-        if (response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_VERSION)
-            .then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    }).catch(() => {
-      // Offline fallback: return login.html for navigation requests
-      if (event.request.mode === 'navigate') {
-        return caches.match('./login.html');
+    fetch(event.request).then(response => {
+      if (response.status === 200) {
+        const clone = response.clone();
+        caches.open(CACHE_VERSION)
+          .then(cache => cache.put(event.request, clone));
       }
+      return response;
+    }).catch(() => {
+      return caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        if (event.request.mode === 'navigate') {
+          return caches.match('./login.html');
+        }
+      });
     })
   );
 });

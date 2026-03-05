@@ -127,7 +127,7 @@ body::after {
   width: 100%;
   max-width: 430px;
   margin: 0 auto;
-  padding: 0 16px calc(80px + var(--safe-bottom));
+  padding: 16px 16px calc(80px + var(--safe-bottom));
 }
 
 /* ═══════════════════════════════════════
