@@ -167,6 +167,25 @@
     .balance-cur-val { font-size:34px; }
     .chart-container { height:220px; }
   }
+
+  /* ── Light mode overrides ── */
+  .theme-light .balance-hero {
+    background: linear-gradient(145deg, #EBF3FF 0%, #F0F5FF 100%);
+    border-color: rgba(79,142,247,0.15);
+  }
+  .theme-light .balance-hero::after {
+    background: radial-gradient(circle, rgba(160,125,28,0.05) 0%, transparent 70%);
+  }
+  .theme-light .btn-fetch {
+    background: linear-gradient(135deg, #EBF3FF, #DBEAFE);
+    color: #2563EB; border-color: rgba(37,99,235,0.2);
+  }
+  .theme-light .history-table tbody tr { border-bottom-color: rgba(0,0,0,0.04); }
+  .theme-light .info-notice { background: rgba(160,125,28,0.04); border-color: rgba(160,125,28,0.1); }
+  .theme-light .rate-cell { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .chart-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .history-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .cambio-item { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 </style>
 </head>
 <body>
@@ -820,8 +839,8 @@ function renderCambios() {
     <div class="cambio-item">
       <div class="cambio-icon">💱</div>
       <div class="cambio-info">
-        <div class="cambio-title">Compra $${c.amountUSD.toFixed(2)}</div>
-        <div class="cambio-sub">${formatDate(c.date)} · Tasa ${c.rate ? fmt(c.rate) : '--'}</div>
+        <div class="cambio-title">${VFSettings.t('rates.cambioTitle')} $${c.amountUSD.toFixed(2)}</div>
+        <div class="cambio-sub">${formatDate(c.date)} · ${VFSettings.t('rates.cambioRate')} ${c.rate ? fmt(c.rate) : '--'}</div>
       </div>
       <div class="cambio-amounts">
         <div class="cambio-bs">${fmtBs(c.amountBs)} Bs</div>
@@ -837,7 +856,8 @@ function renderChart() {
   const labels = filtered.map(t => { const d = new Date(t.fecha+'T00:00:00'); return `${d.getDate()}/${d.getMonth()+1}`; });
   const ctx = document.getElementById('rateChart').getContext('2d');
   if (state.chart) state.chart.destroy();
-  Chart.defaults.color = '#9B98A8';
+  var _lt = document.documentElement.classList.contains('theme-light');
+  Chart.defaults.color = _lt ? '#55536A' : '#9B98A8';
   Chart.defaults.font.family = "'JetBrains Mono', monospace";
   Chart.defaults.font.size = 10;
   state.chart = new Chart(ctx, {
@@ -846,20 +866,20 @@ function renderChart() {
       labels,
       datasets: [
         { label:'BCV', data:filtered.map(t=>t.tasa_bcv), borderColor:'#3b9eff', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:'#3b9eff', tension:0.3, fill:false },
-        { label:VFSettings.t('rates.yourRate'), data:filtered.map(t=>t.tasa_mi_compra), borderColor:'#D4A843', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:'#D4A843', tension:0.3, fill:false },
+        { label:VFSettings.t('rates.yourRate'), data:filtered.map(t=>t.tasa_mi_compra), borderColor:_lt?'#A07D1C':'#D4A843', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:_lt?'#A07D1C':'#D4A843', tension:0.3, fill:false },
       ],
     },
     options: {
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{ legend:{display:false}, tooltip:{
-        backgroundColor:'#13131F', borderColor:'rgba(255,255,255,0.07)', borderWidth:1,
-        titleColor:'#9B98A8', bodyColor:'#F0EDE8', padding:10,
+        backgroundColor:_lt?'#FFFFFF':'#13131F', borderColor:_lt?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.07)', borderWidth:1,
+        titleColor:_lt?'#55536A':'#9B98A8', bodyColor:_lt?'#1A1A2E':'#F0EDE8', padding:10,
         callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} Bs/$` }
       }},
       scales:{
-        x:{ grid:{color:'rgba(255,255,255,.04)',drawTicks:false}, border:{display:false}, ticks:{color:'#5C596A',maxRotation:0}},
-        y:{ grid:{color:'rgba(255,255,255,.04)',drawTicks:false}, border:{display:false}, ticks:{color:'#5C596A',callback:v=>v.toFixed(0)}, position:'right'},
+        x:{ grid:{color:_lt?'rgba(0,0,0,.04)':'rgba(255,255,255,.04)',drawTicks:false}, border:{display:false}, ticks:{color:_lt?'#8E8BA0':'#5C596A',maxRotation:0}},
+        y:{ grid:{color:_lt?'rgba(0,0,0,.04)':'rgba(255,255,255,.04)',drawTicks:false}, border:{display:false}, ticks:{color:_lt?'#8E8BA0':'#5C596A',callback:v=>v.toFixed(0)}, position:'right'},
       },
     },
   });
@@ -933,7 +953,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
   const now = new Date();
   document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase()+' '+now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
-  document.getElementById('menuUserName').textContent = session.name || 'Usuario';
+  document.getElementById('menuUserName').textContent = session.name || VFSettings.t('misc.user');
   document.getElementById('menuUserEmail').textContent = session.email || '';
 
   // Date defaults

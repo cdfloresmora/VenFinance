@@ -344,6 +344,8 @@
       'rates.enterRate': 'Ingresa tu tasa de compra',
       'rates.purchaseRegistered': 'Compra registrada',
       'rates.at': 'a',
+      'rates.cambioTitle': 'Compra',
+      'rates.cambioRate': 'Tasa',
 
       /* ── Login Page ── */
       'login.subtitle': 'Controla tus finanzas con tasas de cambio en tiempo real',
@@ -686,6 +688,8 @@
       'rates.enterRate': 'Enter your buy rate',
       'rates.purchaseRegistered': 'Purchase registered',
       'rates.at': 'at',
+      'rates.cambioTitle': 'Purchase',
+      'rates.cambioRate': 'Rate',
 
       /* ── Login Page ── */
       'login.subtitle': 'Control your finances with real-time exchange rates',

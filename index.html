@@ -319,7 +319,6 @@
     color: var(--text-2);
     outline: none;
     -webkit-appearance: none;
-    color-scheme: dark;
     width: 100%;
   }
   .date-input:focus { border-color: var(--border-bright); }
@@ -965,6 +964,21 @@
       padding: 14px 18px;
     }
   }
+
+  /* ── Light mode overrides ── */
+  .theme-light .form-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .budget-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .budget-card::before {
+    background: linear-gradient(90deg, transparent, rgba(160,125,28,0.12), transparent);
+  }
+  .theme-light .recurring-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .tx-item { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .theme-light .conversion-strip { background: rgba(160,125,28,0.05); border-color: rgba(160,125,28,0.1); }
+  .theme-light .overlay { background: rgba(0,0,0,0.4); }
+  .theme-light .advantage-badge { border-color: rgba(0,143,114,0.1); }
+  .theme-light .submit-btn::before {
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent);
+  }
 </style>
 </head>
 <body>
@@ -1533,7 +1547,7 @@ async function init() {
   const now = new Date();
   document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
-  document.getElementById('menuUserName').textContent = session.name || 'Usuario';
+  document.getElementById('menuUserName').textContent = session.name || VFSettings.t('misc.user');
   document.getElementById('menuUserEmail').textContent = session.email || '';
 
   // Personalized greeting

@@ -80,45 +80,45 @@
    ═══════════════════════════════════════ */
 .theme-light {
   /* Backgrounds */
-  --bg-void:       #F5F5F7;
-  --bg-deep:       #EEEEF0;
+  --bg-void:       #F7F7FA;
+  --bg-deep:       #EDEDF2;
   --bg-card:       #FFFFFF;
-  --bg-elevated:   #F0F0F4;
+  --bg-elevated:   #F2F2F6;
   --bg-glass:      rgba(0,0,0,0.03);
   --bg-glass-h:    rgba(0,0,0,0.06);
 
   /* Borders */
-  --border:        rgba(0,0,0,0.08);
-  --border-bright: rgba(0,0,0,0.14);
+  --border:        rgba(0,0,0,0.07);
+  --border-bright: rgba(0,0,0,0.13);
 
-  /* Primary — Gold (slightly deeper for contrast) */
-  --gold:          #B8901D;
-  --gold-light:    #D4A843;
-  --gold-dim:      rgba(184,144,29,0.1);
-  --gold-glow:     rgba(184,144,29,0.2);
+  /* Primary — Gold (deeper for contrast on white) */
+  --gold:          #A07D1C;
+  --gold-light:    #C49930;
+  --gold-dim:      rgba(160,125,28,0.08);
+  --gold-glow:     rgba(160,125,28,0.15);
 
   /* Secondary — Teal (deeper for legibility) */
-  --teal:          #009E7E;
-  --teal-dim:      rgba(0,158,126,0.08);
-  --teal-glow:     rgba(0,158,126,0.15);
+  --teal:          #008F72;
+  --teal-dim:      rgba(0,143,114,0.07);
+  --teal-glow:     rgba(0,143,114,0.12);
 
   /* Semantic */
-  --red:           #D43B3B;
-  --red-dim:       rgba(212,59,59,0.08);
-  --green:         #1FA866;
-  --green-dim:     rgba(31,168,102,0.08);
-  --coral:         #E65454;
-  --coral-dim:     rgba(230,84,84,0.08);
-  --blue:          #3A72D6;
+  --red:           #C93030;
+  --red-dim:       rgba(201,48,48,0.07);
+  --green:         #1A9458;
+  --green-dim:     rgba(26,148,88,0.07);
+  --coral:         #D44545;
+  --coral-dim:     rgba(212,69,69,0.07);
+  --blue:          #3565C4;
 
   /* Text hierarchy */
   --text-1:        #1A1A2E;
-  --text-2:        #5A5A72;
-  --text-3:        #9A9AAF;
+  --text-2:        #55536A;
+  --text-3:        #8E8BA0;
 
   /* Advantage/safe state */
-  --safe-bg:       #E8F5F0;
-  --safe-border:   rgba(0,158,126,0.2);
+  --safe-bg:       #E5F5F0;
+  --safe-border:   rgba(0,143,114,0.15);
 
   color-scheme: light;
 }
@@ -132,7 +132,7 @@
 
 /* Remove dark noise texture and atmospheric glow in light mode */
 .theme-light body::before {
-  opacity: 0.015;
+  opacity: 0;
 }
 .theme-light body::after {
   background:
@@ -142,10 +142,12 @@
 
 /* Header & Nav glass effect */
 .theme-light .app-header {
-  background: rgba(245,245,247,0.88);
+  background: rgba(245,245,247,0.92);
+  border-bottom-color: rgba(0,0,0,0.06);
 }
 .theme-light .bottom-nav {
-  background: rgba(245,245,247,0.92);
+  background: rgba(245,245,247,0.95);
+  border-top-color: rgba(0,0,0,0.06);
 }
 
 /* Logo text — ensure readable in light */
@@ -167,6 +169,7 @@
 
 /* Toast shadow */
 .theme-light .toast {
+  background: #fff;
   box-shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
@@ -178,7 +181,7 @@
 
 /* Card subtle shadow for depth */
 .theme-light .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
 }
 
 /* Prefs overlay */
@@ -192,6 +195,189 @@
 }
 .theme-light .date-input {
   color-scheme: light;
+}
+
+/* ── Dashboard: Balance Card (dark gradient → light) ── */
+.theme-light .balance-card {
+  background: linear-gradient(145deg, #EBF3FF 0%, #F0F5FF 100%);
+  border-color: rgba(79,142,247,0.15);
+}
+.theme-light .balance-card::after {
+  background: radial-gradient(circle, rgba(79,142,247,0.08) 0%, transparent 70%);
+}
+.theme-light .balance-amount {
+  background: linear-gradient(135deg, #1A1A2E 0%, #2563EB 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Dashboard: Flow grid items ── */
+.theme-light .flow-item {
+  background: rgba(0,0,0,0.02);
+}
+
+/* ── Dashboard: Saldo rows ── */
+.theme-light .saldo-usd-block {
+  background: rgba(0,0,0,0.02);
+}
+.theme-light .saldo-gap-row {
+  background: rgba(0,0,0,0.02);
+  border-color: rgba(0,0,0,0.06);
+}
+
+/* ── Dashboard: Summary rows ── */
+.theme-light .summary-row {
+  background: rgba(0,0,0,0.01);
+}
+
+/* ── Dashboard: Ventaja banner ── */
+.theme-light .ventaja-banner {
+  background: linear-gradient(135deg, rgba(0,158,126,0.06), rgba(79,142,247,0.04));
+  border-color: rgba(0,158,126,0.15);
+}
+
+/* ── Rates: Balance hero (dark gradient → light) ── */
+.theme-light .balance-hero {
+  background: linear-gradient(145deg, #EBF3FF 0%, #F0F5FF 100%);
+  border-color: rgba(79,142,247,0.15);
+}
+.theme-light .balance-hero::after {
+  background: radial-gradient(circle, rgba(184,144,29,0.06) 0%, transparent 70%);
+}
+
+/* ── Rates: Fetch button ── */
+.theme-light .btn-fetch {
+  background: linear-gradient(135deg, #EBF3FF, #DBEAFE);
+  color: #2563EB;
+  border-color: rgba(37,99,235,0.2);
+}
+
+/* ── Rates: History table rows ── */
+.theme-light .history-table tbody tr {
+  border-bottom-color: rgba(0,0,0,0.04);
+}
+
+/* ── Income: Summary card (dark gradient → light) ── */
+.theme-light .income-summary {
+  background: linear-gradient(145deg, #E8F8F5 0%, #F0FDF9 100%);
+  border-color: rgba(0,212,170,0.15);
+}
+.theme-light .income-summary::before {
+  background: linear-gradient(90deg, transparent, rgba(0,212,170,0.2), transparent);
+}
+
+/* ── Login: Card glow ── */
+.theme-light .login-card::before {
+  background: radial-gradient(circle, rgba(184,144,29,0.05) 0%, transparent 70%);
+}
+
+/* ── Submit button highlight ── */
+.theme-light .submit-btn::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent);
+}
+
+/* ── Conversion strip ── */
+.theme-light .conversion-strip {
+  background: rgba(184,144,29,0.06);
+  border-color: rgba(184,144,29,0.12);
+}
+
+/* ── Info notice ── */
+.theme-light .info-notice {
+  background: rgba(184,144,29,0.05);
+  border-color: rgba(184,144,29,0.12);
+}
+
+/* ── Advantage badge ── */
+.theme-light .advantage-badge {
+  border-color: rgba(0,158,126,0.12);
+}
+
+/* ── Category buttons selected state ── */
+.theme-light .cat-btn.selected {
+  box-shadow: 0 0 12px rgba(184,144,29,0.08);
+}
+
+/* ── Logo icon glow ── */
+.theme-light .logo-icon {
+  box-shadow: 0 0 12px rgba(184,144,29,0.15);
+}
+
+/* ── Login logo glow ── */
+.theme-light .login-logo-icon {
+  box-shadow: 0 0 24px rgba(184,144,29,0.15);
+}
+
+/* ── Card glow pseudo-elements ── */
+.theme-light .card-glow-teal::before {
+  background: radial-gradient(circle, rgba(0,158,126,0.06) 0%, transparent 70%);
+}
+.theme-light .card-glow-gold::before {
+  background: radial-gradient(circle, rgba(184,144,29,0.06) 0%, transparent 70%);
+}
+
+/* ── Rate dot glows ── */
+.theme-light .rate-dot.gold { box-shadow: 0 0 4px rgba(184,144,29,0.3); }
+.theme-light .rate-dot.teal { box-shadow: 0 0 4px rgba(0,158,126,0.3); }
+.theme-light .rate-dot.green { box-shadow: 0 0 4px rgba(31,168,102,0.3); }
+
+/* ── Cambio item ── */
+.theme-light .cambio-item {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Chart card ── */
+.theme-light .chart-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── History card ── */
+.theme-light .history-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── TX item ── */
+.theme-light .tx-item {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Recurring item ── */
+.theme-light .recurring-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Form card ── */
+.theme-light .form-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Budget card ── */
+.theme-light .budget-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.theme-light .budget-card::before {
+  background: linear-gradient(90deg, transparent, rgba(184,144,29,0.15), transparent);
+}
+
+/* ── Google button (login page) ── */
+.theme-light .btn-google {
+  background: #fff;
+  border-color: rgba(0,0,0,0.12);
+}
+.theme-light .btn-google:hover {
+  background: #F8F8FA;
+  border-color: rgba(0,0,0,0.18);
+}
+
+/* ── Prefs sheet ── */
+.theme-light .prefs-sheet {
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.1);
+}
+
+/* ── Nav label active ── */
+.theme-light .bottom-nav a.active .nav-label {
+  color: var(--gold);
 }
 
 /* ── RESET ── */
