@@ -1,5 +1,5 @@
 // sw.js — VenFinance Service Worker
-const CACHE_VERSION = 'vf-v5.0.0';
+const CACHE_VERSION = 'vf-v6.0.0';
 const STATIC_ASSETS = [
   './',
   './login.html',
@@ -8,6 +8,8 @@ const STATIC_ASSETS = [
   './dashboard.html',
   './rates.html',
   './style.css',
+  './css/global.css',
+  './js/settings.js',
   './db.js',
   './auth.js',
   './firebase-config.js',
