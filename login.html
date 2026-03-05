@@ -438,17 +438,17 @@
       <div class="rate-tile loading" id="tile-bcv">
         <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--teal);box-shadow:0 0 6px var(--teal);"></span>BCV</div>
         <div class="rate-tile-value" id="login-rate-bcv">--<small>Bs/$</small></div>
-        <div class="rate-tile-date" id="login-date-bcv">Cargando...</div>
+        <div class="rate-tile-date" id="login-date-bcv" data-i18n="rates.loading">Cargando...</div>
       </div>
       <div class="rate-tile loading" id="tile-parallel">
-        <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold);"></span>Paralelo</div>
+        <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold);"></span><span data-i18n="chip.parallel">Paralelo</span></div>
         <div class="rate-tile-value" id="login-rate-parallel">--<small>Bs/$</small></div>
-        <div class="rate-tile-date" id="login-date-parallel">Cargando...</div>
+        <div class="rate-tile-date" id="login-date-parallel" data-i18n="rates.loading">Cargando...</div>
       </div>
       <div class="rate-tile loading" id="tile-eur">
         <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></span>EUR</div>
         <div class="rate-tile-value" id="login-rate-eur">--<small>Bs/&euro;</small></div>
-        <div class="rate-tile-date" id="login-date-eur">Cargando...</div>
+        <div class="rate-tile-date" id="login-date-eur" data-i18n="rates.loading">Cargando...</div>
       </div>
     </div>
 
@@ -645,18 +645,18 @@ async function handleLocalAuth(e) {
 function firebaseErrorMsg(err) {
   const code = err.code || '';
   const map = {
-    'auth/user-not-found':            'No existe una cuenta con este correo',
-    'auth/wrong-password':            'Contraseña incorrecta',
-    'auth/invalid-credential':        'Credenciales incorrectas',
-    'auth/email-already-in-use':      'Ya existe una cuenta con este correo',
-    'auth/weak-password':             'La contraseña debe tener al menos 6 caracteres',
-    'auth/invalid-email':             'Correo electrónico inválido',
-    'auth/too-many-requests':         'Demasiados intentos. Intenta más tarde',
-    'auth/popup-closed-by-user':      'Ventana de Google cerrada',
-    'auth/cancelled-popup-request':   'Solicitud cancelada',
-    'auth/network-request-failed':    'Error de conexión. Verifica tu internet',
+    'auth/user-not-found':            VFSettings.t('err.userNotFound'),
+    'auth/wrong-password':            VFSettings.t('err.wrongPassword'),
+    'auth/invalid-credential':        VFSettings.t('err.invalidCredential'),
+    'auth/email-already-in-use':      VFSettings.t('err.emailInUse'),
+    'auth/weak-password':             VFSettings.t('err.weakPassword'),
+    'auth/invalid-email':             VFSettings.t('err.invalidEmail'),
+    'auth/too-many-requests':         VFSettings.t('err.tooManyRequests'),
+    'auth/popup-closed-by-user':      VFSettings.t('err.popupClosed'),
+    'auth/cancelled-popup-request':   VFSettings.t('err.cancelled'),
+    'auth/network-request-failed':    VFSettings.t('err.network'),
   };
-  return map[code] || err.message || 'Error inesperado. Intenta de nuevo.';
+  return map[code] || err.message || VFSettings.t('err.default');
 }
 
 // ── Messages ─────────────────────────────────────────────────
@@ -701,7 +701,8 @@ function fmtRate(n) {
 }
 
 async function fetchLoginRates() {
-  var dateStr = new Date().toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }).replace('.', '');
+  var dateLang = VFSettings.getLang() === 'en' ? 'en-US' : 'es-VE';
+  var dateStr = new Date().toLocaleDateString(dateLang, { day: 'numeric', month: 'short' }).replace('.', '');
 
   // Fetch USD rates (BCV + Paralelo)
   try {
@@ -729,8 +730,8 @@ async function fetchLoginRates() {
       }
     }
   } catch (_) {
-    document.getElementById('login-date-bcv').textContent = 'No disponible';
-    document.getElementById('login-date-parallel').textContent = 'No disponible';
+    document.getElementById('login-date-bcv').textContent = VFSettings.t('rates.unavailable');
+    document.getElementById('login-date-parallel').textContent = VFSettings.t('rates.unavailable');
   }
 
   // Fetch EUR rate
@@ -749,7 +750,7 @@ async function fetchLoginRates() {
       }
     }
   } catch (_) {
-    document.getElementById('login-date-eur').textContent = 'No disponible';
+    document.getElementById('login-date-eur').textContent = VFSettings.t('rates.unavailable');
   }
 }
 

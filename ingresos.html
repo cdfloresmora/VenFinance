@@ -382,7 +382,7 @@ function openAccount() {
     document.getElementById('acctName').textContent  = session.name  || '--';
     document.getElementById('acctEmail').textContent = session.email || '--';
     document.getElementById('acctType').textContent  =
-      session.authType === 'google' ? 'Google Sign-In' : VFSettings.t('account.typeEmail');
+      session.authType === 'google' ? VFSettings.t('account.typeGoogle') : VFSettings.t('account.typeEmail');
   }
   VF.DB.getConfig('notifRates').then(v => {
     const on = v !== 'off';

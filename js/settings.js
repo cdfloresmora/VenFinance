@@ -374,6 +374,19 @@
       'login.weakPassword': 'La contraseña debe tener al menos 6 caracteres',
       'login.passwordMismatch': 'Las contraseñas no coinciden',
 
+      /* ── Firebase Errors ── */
+      'err.userNotFound': 'No existe una cuenta con este correo',
+      'err.wrongPassword': 'Contraseña incorrecta',
+      'err.invalidCredential': 'Credenciales incorrectas',
+      'err.emailInUse': 'Ya existe una cuenta con este correo',
+      'err.weakPassword': 'La contraseña debe tener al menos 6 caracteres',
+      'err.invalidEmail': 'Correo electrónico inválido',
+      'err.tooManyRequests': 'Demasiados intentos. Intenta más tarde',
+      'err.popupClosed': 'Ventana de Google cerrada',
+      'err.cancelled': 'Solicitud cancelada',
+      'err.network': 'Error de conexión. Verifica tu internet',
+      'err.default': 'Error inesperado. Intenta de nuevo.',
+
       /* ── Months ── */
       'month.short.0': 'Ene', 'month.short.1': 'Feb', 'month.short.2': 'Mar',
       'month.short.3': 'Abr', 'month.short.4': 'May', 'month.short.5': 'Jun',
@@ -702,6 +715,19 @@
       'login.enterName': 'Enter your name',
       'login.weakPassword': 'Password must be at least 6 characters',
       'login.passwordMismatch': 'Passwords do not match',
+
+      /* ── Firebase Errors ── */
+      'err.userNotFound': 'No account found with this email',
+      'err.wrongPassword': 'Incorrect password',
+      'err.invalidCredential': 'Invalid credentials',
+      'err.emailInUse': 'An account with this email already exists',
+      'err.weakPassword': 'Password must be at least 6 characters',
+      'err.invalidEmail': 'Invalid email address',
+      'err.tooManyRequests': 'Too many attempts. Try again later',
+      'err.popupClosed': 'Google window was closed',
+      'err.cancelled': 'Request cancelled',
+      'err.network': 'Connection error. Check your internet',
+      'err.default': 'Unexpected error. Try again.',
 
       /* ── Months ── */
       'month.short.0': 'Jan', 'month.short.1': 'Feb', 'month.short.2': 'Mar',
