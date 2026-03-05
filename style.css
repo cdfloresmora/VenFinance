@@ -587,6 +587,7 @@ input[type="date"]:focus {
    ═══════════════════════════════════════ */
 .user-menu-wrap {
   position: relative;
+  z-index: 201;
 }
 
 .user-avatar-btn {
@@ -608,15 +609,15 @@ input[type="date"]:focus {
 .user-avatar-btn:active { transform: scale(0.92); }
 
 .user-dropdown {
-  position: fixed;
-  top: calc(var(--safe-top, 0px) + 60px);
-  right: 16px;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
   width: 260px;
   background: var(--bg-card);
   border: 1px solid var(--border-bright);
   border-radius: var(--r-md);
   box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-  z-index: 201;
+  z-index: 3;
   opacity: 0;
   transform: translateY(-8px) scale(0.95);
   pointer-events: none;
@@ -689,7 +690,7 @@ input[type="date"]:focus {
 .user-dropdown-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 2;
   display: none;
 }
 .user-dropdown-backdrop.open {
@@ -854,6 +855,16 @@ input[type="date"]:focus {
 }
 
 /* ═══════════════════════════════════════
+   RESPONSIVE — Small phones (<400px)
+   ═══════════════════════════════════════ */
+@media (max-width: 399px) {
+  .user-dropdown {
+    width: calc(100vw - 32px);
+    right: -8px;
+  }
+}
+
+/* ═══════════════════════════════════════
    RESPONSIVE — Tablet (640px+)
    ═══════════════════════════════════════ */
 @media (min-width: 640px) {
@@ -873,6 +884,10 @@ input[type="date"]:focus {
 
   .card {
     border-radius: var(--r-xl);
+  }
+
+  .user-dropdown {
+    width: 280px;
   }
 
   body {
