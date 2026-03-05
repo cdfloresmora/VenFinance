@@ -1079,7 +1079,6 @@
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
           <button class="chart-tab" id="pref-cur-usd" onclick="setPrefCurrency('$')" style="padding:8px 14px;">USD</button>
-          <button class="chart-tab" id="pref-cur-eur" onclick="setPrefCurrency('€')" style="padding:8px 14px;">EUR</button>
         </div>
       </div>
     </div>
@@ -1180,7 +1179,6 @@
       <div class="currency-toggle">
         <button class="currency-btn active" id="btn-bs" onclick="setCurrency('Bs')">Bs</button>
         <button class="currency-btn" id="btn-usd" onclick="setCurrency('$')">$</button>
-        <button class="currency-btn" id="btn-eur" onclick="setCurrency('€')">€</button>
       </div>
       <input
         id="amount-input"
@@ -1210,6 +1208,10 @@
           <button class="rate-type-btn" data-type="bcv" onclick="setRateType('bcv')">
             <span class="rate-type-dot" style="background:var(--teal)"></span>
             BCV
+          </button>
+          <button class="rate-type-btn" data-type="eur_bcv" onclick="setRateType('eur_bcv')">
+            <span class="rate-type-dot" style="background:#2ecc71"></span>
+            Euro BCV
           </button>
           <button class="rate-type-btn" data-type="custom" onclick="setRateType('custom')">
             <span class="rate-type-dot" style="background:var(--blue)"></span>
@@ -1442,6 +1444,7 @@ let state = {
   txType:         'gasto',   // 'gasto' or 'inversion'
   rateParallel:   0,
   rateOfficial:   0,
+  rateEurBcv:     0,
   rateType:       'paralelo',
   budgetUSD:      0,
   expenses:       [],
@@ -1495,7 +1498,6 @@ function openPrefs() {
     prefCurrency = c || 'Bs';
     document.getElementById('pref-cur-bs').classList.toggle('active', prefCurrency === 'Bs');
     document.getElementById('pref-cur-usd').classList.toggle('active', prefCurrency === '$');
-    document.getElementById('pref-cur-eur').classList.toggle('active', prefCurrency === '€');
   });
 }
 function closePrefs() {
@@ -1505,7 +1507,6 @@ function setPrefCurrency(cur) {
   prefCurrency = cur;
   document.getElementById('pref-cur-bs').classList.toggle('active', cur === 'Bs');
   document.getElementById('pref-cur-usd').classList.toggle('active', cur === '$');
-  document.getElementById('pref-cur-eur').classList.toggle('active', cur === '€');
 }
 async function savePrefs() {
   const budget = parseFloat(document.getElementById('pref-budget').value) || 0;
@@ -1572,6 +1573,7 @@ async function init() {
   }
 
   await loadConfig();
+  fetchEurBcvRate(); // fetch EUR rate in background
   renderCategories();
   renderInvestmentTypes();
   setToday();
@@ -1624,6 +1626,23 @@ async function loadConfig() {
 }
 
 /* openConfig/saveConfig removed — now handled via Preferencias modal */
+
+/* ═══════════════════════════════════════
+   FETCH EUR BCV RATE
+═══════════════════════════════════════ */
+async function fetchEurBcvRate() {
+  try {
+    var res = await fetch("https://ve.dolarapi.com/v1/euros", { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      var data = await res.json();
+      var oficial = Array.isArray(data)
+        ? data.find(function(d) { return d.fuente === "oficial" || (d.nombre && d.nombre.toLowerCase().includes("oficial")); })
+        : data;
+      var rate = oficial ? (oficial.promedio || oficial.venta) : null;
+      if (rate) { state.rateEurBcv = rate; }
+    }
+  } catch (_) {}
+}
 
 /* ═══════════════════════════════════════
    CURRENCY CHIPS / RATES
@@ -1713,12 +1732,14 @@ function setRateType(type) {
 }
 
 function getActiveRate() {
+  if (state.rateType === 'eur_bcv') return state.rateEurBcv;
   if (state.rateType === 'bcv') return state.rateOfficial;
   if (state.rateType === 'custom') return parseFloat(document.getElementById('rate-custom-value').value) || 0;
   return state.rateParallel;
 }
 
 function getRateLabel() {
+  if (state.rateType === 'eur_bcv') return 'Euro BCV';
   if (state.rateType === 'bcv') return 'BCV';
   if (state.rateType === 'custom') return VFSettings.t('form.rateCustomLabel');
   return VFSettings.t('chip.parallel');
@@ -1781,11 +1802,10 @@ function setCurrency(cur) {
   state.currency = cur;
   document.getElementById('btn-bs').classList.toggle('active',  cur === 'Bs');
   document.getElementById('btn-usd').classList.toggle('active', cur === '$');
-  document.getElementById('btn-eur').classList.toggle('active', cur === '€');
 
-  // Grey out rate section when USD or EUR — no Bs conversion needed
+  // Grey out rate section when USD — no Bs conversion needed
   var rateSection = document.getElementById('rate-section');
-  if (cur === '$' || cur === '€') {
+  if (cur === '$') {
     rateSection.classList.add('rate-section-disabled');
   } else {
     rateSection.classList.remove('rate-section-disabled');
@@ -1803,8 +1823,8 @@ function onAmountChange() {
   const saldoComp = document.getElementById('saldo-comparison');
   const activeRate = getActiveRate();
 
-  // When USD or EUR is selected, hide conversion strip and saldo comparison
-  if (state.currency === '$' || state.currency === '€') {
+  // When USD is selected, hide conversion strip and saldo comparison
+  if (state.currency === '$') {
     strip.classList.add('hidden');
     saldoComp.classList.add('hidden');
     return;
@@ -1881,13 +1901,6 @@ async function submitExpense() {
     amountBs           = state.rateOfficial ? Math.round(raw * state.rateOfficial * 100) / 100 : 0;
     activeRate         = 0;
     rateLabel          = 'USD directo';
-  } else if (state.currency === '€') {
-    // EUR — store as EUR, estimate USD via EUR/USD cross rate
-    amountUSD_official = raw; // treat 1 EUR ~ 1 USD as fallback
-    amountUSD_real     = raw;
-    amountBs           = state.rateOfficial ? Math.round(raw * state.rateOfficial * 100) / 100 : 0;
-    activeRate         = 0;
-    rateLabel          = 'EUR directo';
   } else {
     // Bs — need rates for conversion
     if (!state.rateOfficial || !state.rateParallel) {
@@ -1918,7 +1931,7 @@ async function submitExpense() {
     amountUSD_real: amountUSD_real,
     rateOfficial:   state.rateOfficial,
     rateParallel:   state.rateParallel,
-    rateType:       (state.currency === '$' || state.currency === '€') ? 'direct' : state.rateType,
+    rateType:       state.currency === '$' ? 'direct' : state.rateType,
     rateUsed:       activeRate,
     rateLabel,
   };
