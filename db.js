@@ -119,9 +119,10 @@ VF.DB = (() => {
   }
 
   async function getRecurring() {
-    const snap = await userRef().collection('recurring')
-      .orderBy('id', 'desc').get();
-    return snap.docs.map(d => d.data());
+    const snap = await userRef().collection('recurring').get();
+    const items = snap.docs.map(d => d.data());
+    items.sort((a, b) => (b.id || 0) - (a.id || 0));
+    return items;
   }
 
   async function deleteRecurring(id) {
