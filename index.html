@@ -23,6 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <script src="js/settings.js"></script>
 
 <style>
   /* ═══════════════════════════════════════
@@ -719,14 +721,37 @@
             <div class="user-dropdown-email" id="menuUserEmail">--</div>
           </div>
           <button class="user-dropdown-item" onclick="openPrefs()">
-            <span class="item-icon">⚙️</span> Preferencias
+            <span class="item-icon">⚙️</span> <span data-i18n="menu.preferences">Preferencias</span>
           </button>
           <button class="user-dropdown-item" onclick="openAccount()">
-            <span class="item-icon">👤</span> Configuración de cuenta
+            <span class="item-icon">👤</span> <span data-i18n="menu.account">Configuración de cuenta</span>
           </button>
           <div class="user-dropdown-divider"></div>
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="settings.title">Configuración</div>
+            <div class="settings-row">
+              <span class="settings-row-label"><span class="row-icon">Aa</span> <span data-i18n="settings.font">Fuente</span></span>
+              <select class="settings-select" id="vf-font-select">
+                <option value="sans">Sans</option>
+                <option value="serif">Serif</option>
+                <option value="mono">Mono</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label"><span class="row-icon">🌐</span> <span data-i18n="settings.language">Idioma</span></span>
+              <select class="settings-select" id="vf-lang-select">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="settings-row" onclick="document.getElementById('vf-theme-toggle').click()">
+              <span class="settings-row-label"><span class="row-icon">🌙</span> <span data-i18n="settings.darkmode">Modo Claro</span></span>
+              <button class="settings-toggle" id="vf-theme-toggle" type="button"></button>
+            </div>
+          </div>
+          <div class="user-dropdown-divider"></div>
           <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
-            <span class="item-icon">⏻</span> Cerrar sesión
+            <span class="item-icon">⏻</span> <span data-i18n="menu.logout">Cerrar sesión</span>
           </button>
         </div>
       </div>
@@ -977,19 +1002,19 @@
   <div class="bottom-nav-inner">
     <a href="index.html" class="active">
       <span class="nav-icon">💸</span>
-      <span class="nav-label">Gastos</span>
+      <span class="nav-label" data-i18n="nav.expenses">Gastos</span>
     </a>
     <a href="ingresos.html">
       <span class="nav-icon">💰</span>
-      <span class="nav-label">Ingresos</span>
+      <span class="nav-label" data-i18n="nav.income">Ingresos</span>
     </a>
     <a href="dashboard.html">
       <span class="nav-icon">📊</span>
-      <span class="nav-label">Resumen</span>
+      <span class="nav-label" data-i18n="nav.dashboard">Resumen</span>
     </a>
     <a href="rates.html">
       <span class="nav-icon">💱</span>
-      <span class="nav-label">Tasas</span>
+      <span class="nav-label" data-i18n="nav.rates">Tasas</span>
     </a>
   </div>
 </nav>

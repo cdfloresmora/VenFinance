@@ -43,7 +43,8 @@
   --text-3:        #5C596A;
 
   /* Typography */
-  --font-ui:       'Sora', sans-serif;
+  --main-font:     'Sora', sans-serif;
+  --font-ui:       var(--main-font);
   --font-mono:     'JetBrains Mono', monospace;
 
   /* Border Radius */
@@ -610,7 +611,7 @@ input[type="date"]:focus {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 220px;
+  width: 260px;
   background: var(--bg-card);
   border: 1px solid var(--border-bright);
   border-radius: var(--r-md);
