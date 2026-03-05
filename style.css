@@ -75,6 +75,125 @@
   --safe-border:   rgba(0,212,170,0.25);
 }
 
+/* ═══════════════════════════════════════
+   LIGHT MODE
+   ═══════════════════════════════════════ */
+.theme-light {
+  /* Backgrounds */
+  --bg-void:       #F5F5F7;
+  --bg-deep:       #EEEEF0;
+  --bg-card:       #FFFFFF;
+  --bg-elevated:   #F0F0F4;
+  --bg-glass:      rgba(0,0,0,0.03);
+  --bg-glass-h:    rgba(0,0,0,0.06);
+
+  /* Borders */
+  --border:        rgba(0,0,0,0.08);
+  --border-bright: rgba(0,0,0,0.14);
+
+  /* Primary — Gold (slightly deeper for contrast) */
+  --gold:          #B8901D;
+  --gold-light:    #D4A843;
+  --gold-dim:      rgba(184,144,29,0.1);
+  --gold-glow:     rgba(184,144,29,0.2);
+
+  /* Secondary — Teal (deeper for legibility) */
+  --teal:          #009E7E;
+  --teal-dim:      rgba(0,158,126,0.08);
+  --teal-glow:     rgba(0,158,126,0.15);
+
+  /* Semantic */
+  --red:           #D43B3B;
+  --red-dim:       rgba(212,59,59,0.08);
+  --green:         #1FA866;
+  --green-dim:     rgba(31,168,102,0.08);
+  --coral:         #E65454;
+  --coral-dim:     rgba(230,84,84,0.08);
+  --blue:          #3A72D6;
+
+  /* Text hierarchy */
+  --text-1:        #1A1A2E;
+  --text-2:        #5A5A72;
+  --text-3:        #9A9AAF;
+
+  /* Advantage/safe state */
+  --safe-bg:       #E8F5F0;
+  --safe-border:   rgba(0,158,126,0.2);
+
+  color-scheme: light;
+}
+
+/* Light-mode specific overrides that can't use variables alone */
+.theme-light body,
+.theme-light html {
+  background: var(--bg-void);
+  color: var(--text-1);
+}
+
+/* Remove dark noise texture and atmospheric glow in light mode */
+.theme-light body::before {
+  opacity: 0.015;
+}
+.theme-light body::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(184,144,29,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 10% 90%, rgba(0,158,126,0.03) 0%, transparent 60%);
+}
+
+/* Header & Nav glass effect */
+.theme-light .app-header {
+  background: rgba(245,245,247,0.88);
+}
+.theme-light .bottom-nav {
+  background: rgba(245,245,247,0.92);
+}
+
+/* Logo text — ensure readable in light */
+.theme-light .logo-text {
+  background: linear-gradient(135deg, #8B6914, var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* User avatar */
+.theme-light .user-avatar-btn {
+  color: #fff;
+}
+
+/* Dropdown shadow */
+.theme-light .user-dropdown {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+/* Toast shadow */
+.theme-light .toast {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+/* Skeleton shimmer */
+.theme-light .skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(0,0,0,0.03) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+}
+
+/* Card subtle shadow for depth */
+.theme-light .card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Prefs overlay */
+.theme-light .prefs-overlay {
+  background: rgba(0,0,0,0.3);
+}
+
+/* Date input color scheme */
+.theme-light input[type="date"] {
+  color-scheme: light;
+}
+.theme-light .date-input {
+  color-scheme: light;
+}
+
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

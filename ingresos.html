@@ -145,7 +145,7 @@
   <div class="app-header-inner">
     <div class="logo">
       <div class="logo-icon">₿</div>
-      <span class="logo-text" id="greeting-text">Ingresos</span>
+      <span class="logo-text" id="greeting-text" data-i18n="income.title">Ingresos</span>
     </div>
     <div class="header-actions">
       <div class="month-badge" id="monthBadge">--</div>
@@ -192,25 +192,25 @@
 <div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">⚙️ Preferencias</div>
+    <div class="prefs-title">⚙️ <span data-i18n="prefs.title">Preferencias</span></div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Presupuesto</div>
+      <div class="prefs-section-label" data-i18n="prefs.budget">Presupuesto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Presupuesto mensual</div>
-          <div class="pref-desc">Tu límite de gastos en USD por mes</div>
+          <div class="pref-label" data-i18n="prefs.budgetLabel">Presupuesto mensual</div>
+          <div class="pref-desc" data-i18n="prefs.budgetDesc">Tu límite de gastos en USD por mes</div>
         </div>
         <input class="pref-input" id="pref-budget" type="number" placeholder="300" inputmode="decimal">
       </div>
     </div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Moneda por defecto</div>
+      <div class="prefs-section-label" data-i18n="prefs.currencySection">Moneda por defecto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Moneda principal</div>
-          <div class="pref-desc">Para registrar gastos e ingresos</div>
+          <div class="pref-label" data-i18n="prefs.primaryCurrency">Moneda principal</div>
+          <div class="pref-desc" data-i18n="prefs.currencyDesc">Para registrar gastos e ingresos</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
@@ -219,7 +219,7 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
+    <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;" data-i18n="prefs.save">
       Guardar Preferencias
     </button>
   </div>
@@ -229,21 +229,21 @@
 <div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">👤 Configuración de cuenta</div>
+    <div class="prefs-title">👤 <span data-i18n="account.title">Configuración de cuenta</span></div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Perfil</div>
-      <div class="pref-row"><div><div class="pref-label">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
+      <div class="prefs-section-label" data-i18n="account.profile">Perfil</div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.name">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.email">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.type">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
     </div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Notificaciones</div>
+      <div class="prefs-section-label" data-i18n="account.notifications">Notificaciones</div>
       <div class="pref-row">
-        <div><div class="pref-label">Alerta de tasas</div><div class="pref-desc">Recuerda actualizar tasas diariamente</div></div>
+        <div><div class="pref-label" data-i18n="account.rateAlert">Alerta de tasas</div><div class="pref-desc" data-i18n="account.rateAlertDesc">Recuerda actualizar tasas diariamente</div></div>
         <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref()" style="padding:8px 14px;flex-shrink:0;">ON</button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">Guardar</button>
+    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;" data-i18n="account.save">Guardar</button>
   </div>
 </div>
 
@@ -257,42 +257,42 @@
 
   <!-- INCOME SUMMARY -->
   <div class="income-summary">
-    <div class="income-total-label">Ingresos este mes</div>
+    <div class="income-total-label" data-i18n="income.thisMonth">Ingresos este mes</div>
     <div class="income-total-amount"><span>$</span><span id="income-total">0.00</span></div>
     <div class="income-month" id="income-month">—</div>
   </div>
 
   <!-- INCOME FORM -->
   <div class="form-card">
-    <div class="form-section-label">Registrar ingreso</div>
+    <div class="form-section-label" data-i18n="income.register">Registrar ingreso</div>
 
     <div class="amount-row">
       <div class="amount-prefix">$</div>
       <input id="income-amount" type="number" inputmode="decimal" placeholder="0.00" autocomplete="off" />
     </div>
 
-    <div class="form-section-label">Fuente</div>
+    <div class="form-section-label" data-i18n="income.source">Fuente</div>
     <div class="category-grid" id="source-grid"></div>
 
     <div class="fields-row">
       <div class="input-wrap" style="position: relative;">
-        <span class="field-label">Descripción</span>
-        <input class="text-input" id="income-desc" type="text" placeholder="Opcional..." autocomplete="off" />
+        <span class="field-label" data-i18n="form.description">Descripción</span>
+        <input class="text-input" id="income-desc" type="text" placeholder="Opcional..." data-i18n-placeholder="form.optional" autocomplete="off" />
       </div>
       <div class="input-wrap" style="min-width: 120px; position: relative;">
-        <span class="field-label">Fecha</span>
+        <span class="field-label" data-i18n="form.date">Fecha</span>
         <input class="date-input" id="income-date" type="date" />
       </div>
     </div>
 
     <button class="submit-btn" id="submit-btn" onclick="submitIncome()">
-      + Registrar Ingreso
+      + <span data-i18n="income.submit">Registrar Ingreso</span>
     </button>
   </div>
 
   <!-- RECENT INCOMES -->
   <div class="section-header">
-    <span class="section-title">Ingresos recientes</span>
+    <span class="section-title" data-i18n="income.recent">Ingresos recientes</span>
   </div>
   <div class="tx-list" id="income-list">
     <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
@@ -342,6 +342,8 @@ const INCOME_SOURCES = [
   { id: 'other',      icon: '📦', label: 'Otro'      },
 ];
 
+function srcLabel(src) { return VFSettings.t('src.' + src.id); }
+
 let state = {
   selectedSource: null,
   incomes: [],
@@ -380,7 +382,7 @@ function openAccount() {
     document.getElementById('acctName').textContent  = session.name  || '--';
     document.getElementById('acctEmail').textContent = session.email || '--';
     document.getElementById('acctType').textContent  =
-      session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+      session.authType === 'google' ? 'Google Sign-In' : VFSettings.t('account.typeEmail');
   }
   VF.DB.getConfig('notifRates').then(v => {
     const on = v !== 'off';
@@ -402,7 +404,7 @@ async function saveAccount() {
   const notifOn = document.getElementById('acct-notif-rates').textContent === 'ON';
   await VF.DB.setConfig('notifRates', notifOn ? 'on' : 'off');
   closeAccount();
-  showToast('success', '✓', 'Cuenta actualizada');
+  showToast('success', '✓', VFSettings.t('account.updated'));
 }
 
 // ── PREFERENCES ────────────────────────────────────────────────
@@ -438,7 +440,7 @@ async function savePrefs() {
   await VF.DB.setBudget(getCurrentYM(), budget);
   await VF.DB.setConfig('defaultCurrency', prefCurrency);
   closePrefs();
-  showToast('success', '✓', 'Preferencias guardadas');
+  showToast('success', '✓', VFSettings.t('toast.prefsSaved'));
 }
 
 async function init() {
@@ -448,7 +450,7 @@ async function init() {
 
   // Header
   const now = new Date();
-  document.getElementById('monthBadge').textContent = now.toLocaleString('es',{month:'short'}).toUpperCase()+' '+now.getFullYear();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
   document.getElementById('menuUserName').textContent = session.name || 'Usuario';
   document.getElementById('menuUserEmail').textContent = session.email || '';
@@ -457,7 +459,7 @@ async function init() {
   const greetEl = document.getElementById('greeting-text');
   if (greetEl && session.name) {
     const h = new Date().getHours();
-    const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
+    const saludo = h < 12 ? VFSettings.t('greeting.morning') : h < 18 ? VFSettings.t('greeting.afternoon') : VFSettings.t('greeting.evening');
     greetEl.textContent = `${saludo}, ${session.name.split(' ')[0]}`;
   }
 
@@ -476,7 +478,7 @@ function renderSources() {
     const btn = document.createElement('button');
     btn.className = 'cat-btn';
     btn.dataset.id = src.id;
-    btn.innerHTML = `<span class="cat-icon">${src.icon}</span><span class="cat-label">${src.label}</span>`;
+    btn.innerHTML = `<span class="cat-icon">${src.icon}</span><span class="cat-label">${VFSettings.t('src.' + src.id)}</span>`;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -488,7 +490,6 @@ function renderSources() {
 
 function renderSummary() {
   const now = new Date();
-  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 
   const monthTotal = state.incomes
@@ -496,7 +497,7 @@ function renderSummary() {
     .reduce((acc, i) => acc + (i.amountUSD || 0), 0);
 
   document.getElementById('income-total').textContent = monthTotal.toFixed(2);
-  document.getElementById('income-month').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('income-month').textContent = VFSettings.t('month.short.' + now.getMonth()) + ' ' + now.getFullYear();
 }
 
 async function submitIncome() {
@@ -505,9 +506,9 @@ async function submitIncome() {
   const date   = document.getElementById('income-date').value;
   const source = state.selectedSource;
 
-  if (!amount || amount <= 0) { showToast('error', '⚠', 'Ingresa un monto válido'); return; }
-  if (!source) { showToast('error', '⚠', 'Selecciona una fuente'); return; }
-  if (!date)   { showToast('error', '⚠', 'Selecciona una fecha'); return; }
+  if (!amount || amount <= 0) { showToast('error', '⚠', VFSettings.t('toast.invalidAmount')); return; }
+  if (!source) { showToast('error', '⚠', VFSettings.t('toast.selectSource')); return; }
+  if (!date)   { showToast('error', '⚠', VFSettings.t('toast.selectDate')); return; }
 
   const income = {
     id:          Date.now(),
@@ -524,10 +525,10 @@ async function submitIncome() {
   try {
     await VF.DB.putIncome(income);
     state.incomes.unshift(income);
-    showToast('success', '✓', 'Ingreso registrado');
+    showToast('success', '✓', VFSettings.t('toast.incomeSaved'));
   } catch (e) {
     console.error('Save error:', e);
-    showToast('error', '✗', 'Error al guardar');
+    showToast('error', '✗', VFSettings.t('toast.saveError'));
   }
 
   btn.classList.remove('loading');
@@ -549,7 +550,7 @@ function renderIncomes() {
 
   if (recent.length === 0) {
     list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
-      Aún no hay ingresos registrados.</div>`;
+      ${VFSettings.t('income.empty')}</div>`;
     return;
   }
 
@@ -561,7 +562,7 @@ function renderIncomes() {
     item.innerHTML = `
       <div class="tx-cat-icon">${src ? src.icon : '📦'}</div>
       <div class="tx-info">
-        <div class="tx-cat-name">${src ? src.label : inc.source}</div>
+        <div class="tx-cat-name">${src ? VFSettings.t('src.' + src.id) : inc.source}</div>
         <div class="tx-desc">${inc.description || inc.date}</div>
       </div>
       <div class="tx-amounts">
@@ -580,6 +581,16 @@ function showToast(type, icon, msg) {
   t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ── LANGUAGE CHANGE LISTENER ───────────────────────────────────
+document.addEventListener('vf-lang-changed', function() {
+  renderSources();
+  renderSummary();
+  renderIncomes();
+  // Re-apply month badge
+  var now = new Date();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

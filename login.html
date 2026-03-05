@@ -461,7 +461,7 @@
         <span class="login-logo-text">VenFinance</span>
       </div>
 
-      <div class="login-subtitle" id="loginSubtitle">
+      <div class="login-subtitle" id="loginSubtitle" data-i18n="login.subtitle">
         Controla tus finanzas con tasas de cambio en tiempo real
       </div>
 
@@ -471,7 +471,7 @@
       <!-- Loading state -->
       <div class="login-loading" id="loginLoading">
         <div class="spinner"></div>
-        <span>Verificando sesión...</span>
+        <span data-i18n="login.verifying">Verificando sesión...</span>
       </div>
 
       <!-- Auth content (hidden while checking session) -->
@@ -485,44 +485,44 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continuar con Google
+          <span data-i18n="login.google">Continuar con Google</span>
         </button>
 
-        <div class="login-divider"><span>o</span></div>
+        <div class="login-divider"><span data-i18n="login.or">o</span></div>
 
         <!-- Local Auth Form -->
         <form class="login-form" id="loginForm" onsubmit="handleLocalAuth(event)">
           <div class="form-group hidden" id="nameGroup">
-            <label for="inputName">Nombre</label>
-            <input type="text" id="inputName" placeholder="Tu nombre" autocomplete="name">
+            <label for="inputName" data-i18n="login.name">Nombre</label>
+            <input type="text" id="inputName" placeholder="Tu nombre" data-i18n-placeholder="login.namePlaceholder" autocomplete="name">
           </div>
 
           <div class="form-group">
-            <label for="inputEmail">Correo electrónico</label>
-            <input type="email" id="inputEmail" placeholder="tu@correo.com" autocomplete="email" required>
+            <label for="inputEmail" data-i18n="login.email">Correo electrónico</label>
+            <input type="email" id="inputEmail" placeholder="tu@correo.com" data-i18n-placeholder="login.emailPlaceholder" autocomplete="email" required>
           </div>
 
           <div class="form-group">
-            <label for="inputPassword">Contraseña</label>
-            <input type="password" id="inputPassword" placeholder="Tu contraseña" autocomplete="current-password" required minlength="6">
+            <label for="inputPassword" data-i18n="login.password">Contraseña</label>
+            <input type="password" id="inputPassword" placeholder="Tu contraseña" data-i18n-placeholder="login.passwordPlaceholder" autocomplete="current-password" required minlength="6">
           </div>
 
           <div class="form-group hidden" id="confirmGroup">
-            <label for="inputConfirm">Confirmar contraseña</label>
-            <input type="password" id="inputConfirm" placeholder="Repite tu contraseña" autocomplete="new-password">
+            <label for="inputConfirm" data-i18n="login.confirmPassword">Confirmar contraseña</label>
+            <input type="password" id="inputConfirm" placeholder="Repite tu contraseña" data-i18n-placeholder="login.confirmPlaceholder" autocomplete="new-password">
           </div>
 
-          <button type="submit" class="btn-login" id="btnSubmit">Iniciar Sesión</button>
+          <button type="submit" class="btn-login" id="btnSubmit" data-i18n="login.submit">Iniciar Sesión</button>
         </form>
 
         <div class="login-toggle" id="loginToggle">
-          <span>¿No tienes cuenta? </span>
-          <a onclick="toggleMode()">Crear cuenta</a>
+          <span data-i18n="login.noAccount">¿No tienes cuenta? </span>
+          <a onclick="toggleMode()" data-i18n="login.createAccount">Crear cuenta</a>
         </div>
 
       </div><!-- /authContent -->
 
-      <div class="login-footer">
+      <div class="login-footer" data-i18n="login.footer">
         Tus datos se sincronizan de forma segura en la nube
       </div>
 
@@ -554,15 +554,15 @@ function toggleMode() {
 
   document.getElementById('nameGroup').classList.toggle('hidden', !isRegisterMode);
   document.getElementById('confirmGroup').classList.toggle('hidden', !isRegisterMode);
-  document.getElementById('btnSubmit').textContent = isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión';
+  document.getElementById('btnSubmit').textContent = isRegisterMode ? VFSettings.t('login.submitRegister') : VFSettings.t('login.submit');
   document.getElementById('loginSubtitle').textContent = isRegisterMode
-    ? 'Crea tu cuenta para comenzar a controlar tus finanzas'
-    : 'Controla tus finanzas con tasas de cambio en tiempo real';
+    ? VFSettings.t('login.subtitleRegister')
+    : VFSettings.t('login.subtitle');
 
   const toggle = document.getElementById('loginToggle');
   toggle.innerHTML = isRegisterMode
-    ? '<span>¿Ya tienes cuenta? </span><a onclick="toggleMode()">Iniciar sesión</a>'
-    : '<span>¿No tienes cuenta? </span><a onclick="toggleMode()">Crear cuenta</a>';
+    ? '<span data-i18n="login.hasAccount">' + VFSettings.t('login.hasAccount') + '</span> <a onclick="toggleMode()" data-i18n="login.signIn">' + VFSettings.t('login.signIn') + '</a>'
+    : '<span data-i18n="login.noAccount">' + VFSettings.t('login.noAccount') + '</span> <a onclick="toggleMode()" data-i18n="login.createAccount">' + VFSettings.t('login.createAccount') + '</a>';
 
   clearMsg();
 }
@@ -575,7 +575,7 @@ async function loginWithGoogle() {
 
   try {
     await VF.Auth.login();
-    showMsg('Conectado con Google. Redirigiendo...', 'success');
+    showMsg(VFSettings.t('login.googleSuccess'), 'success');
     setTimeout(() => window.location.href = 'index.html', 600);
   } catch (err) {
     console.error('Google login error:', err);
@@ -594,7 +594,7 @@ async function handleLocalAuth(e) {
   const password = document.getElementById('inputPassword').value;
 
   if (!email || !password) {
-    showMsg('Completa todos los campos', 'error');
+    showMsg(VFSettings.t('login.fillFields'), 'error');
     return;
   }
 
@@ -607,30 +607,30 @@ async function handleLocalAuth(e) {
       const confirm = document.getElementById('inputConfirm').value;
 
       if (!name) {
-        showMsg('Ingresa tu nombre', 'error');
+        showMsg(VFSettings.t('login.enterName'), 'error');
         btn.disabled = false;
         return;
       }
 
       if (password.length < 6) {
-        showMsg('La contraseña debe tener al menos 6 caracteres', 'error');
+        showMsg(VFSettings.t('login.weakPassword'), 'error');
         btn.disabled = false;
         return;
       }
 
       if (password !== confirm) {
-        showMsg('Las contraseñas no coinciden', 'error');
+        showMsg(VFSettings.t('login.passwordMismatch'), 'error');
         btn.disabled = false;
         return;
       }
 
       await VF.Auth.register(email, password, name);
-      showMsg('Cuenta creada. Redirigiendo...', 'success');
+      showMsg(VFSettings.t('login.accountCreated'), 'success');
       setTimeout(() => window.location.href = 'index.html', 800);
 
     } else {
       await VF.Auth.loginWithEmail(email, password);
-      showMsg('Bienvenido de vuelta. Redirigiendo...', 'success');
+      showMsg(VFSettings.t('login.welcomeBack'), 'success');
       setTimeout(() => window.location.href = 'index.html', 800);
     }
   } catch (err) {

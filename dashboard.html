@@ -196,43 +196,43 @@
 <div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">👤 Configuración de cuenta</div>
+    <div class="prefs-title">👤 <span data-i18n="account.title">Configuración de cuenta</span></div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Perfil</div>
+      <div class="prefs-section-label" data-i18n="account.profile">Perfil</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Nombre</div>
+          <div class="pref-label" data-i18n="account.name">Nombre</div>
           <div class="pref-desc" id="acctName">--</div>
         </div>
       </div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Correo electrónico</div>
+          <div class="pref-label" data-i18n="account.email">Correo electrónico</div>
           <div class="pref-desc" id="acctEmail">--</div>
         </div>
       </div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Tipo de cuenta</div>
+          <div class="pref-label" data-i18n="account.type">Tipo de cuenta</div>
           <div class="pref-desc" id="acctType">--</div>
         </div>
       </div>
     </div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Notificaciones</div>
+      <div class="prefs-section-label" data-i18n="account.notifications">Notificaciones</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Alerta de tasas</div>
-          <div class="pref-desc">Recuerda actualizar tasas diariamente</div>
+          <div class="pref-label" data-i18n="account.rateAlert">Alerta de tasas</div>
+          <div class="pref-desc" data-i18n="account.rateAlertDesc">Recuerda actualizar tasas diariamente</div>
         </div>
         <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref('notifRates')" style="padding:8px 14px;flex-shrink:0;">ON</button>
       </div>
     </div>
 
     <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">
-      Guardar
+      <span data-i18n="account.save">Guardar</span>
     </button>
   </div>
 </div>
@@ -241,25 +241,25 @@
 <div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">⚙️ Preferencias</div>
+    <div class="prefs-title">⚙️ <span data-i18n="prefs.title">Preferencias</span></div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Presupuesto</div>
+      <div class="prefs-section-label" data-i18n="prefs.budget">Presupuesto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Presupuesto mensual</div>
-          <div class="pref-desc">Tu límite de gastos en USD por mes</div>
+          <div class="pref-label" data-i18n="prefs.budgetLabel">Presupuesto mensual</div>
+          <div class="pref-desc" data-i18n="prefs.budgetDesc">Tu límite de gastos en USD por mes</div>
         </div>
         <input class="pref-input" id="pref-budget" type="number" placeholder="300" inputmode="decimal">
       </div>
     </div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Moneda por defecto</div>
+      <div class="prefs-section-label" data-i18n="prefs.currencySection">Moneda por defecto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Moneda principal</div>
-          <div class="pref-desc">Para registrar gastos e ingresos</div>
+          <div class="pref-label" data-i18n="prefs.primaryCurrency">Moneda principal</div>
+          <div class="pref-desc" data-i18n="prefs.currencyDesc">Para registrar gastos e ingresos</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
@@ -269,7 +269,7 @@
     </div>
 
     <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
-      Guardar Preferencias
+      <span data-i18n="prefs.save">Guardar Preferencias</span>
     </button>
   </div>
 </div>
@@ -277,41 +277,41 @@
 <main class="app-container">
 
   <div class="greeting animate-in">
-    <div class="greeting-sub">Bienvenido de vuelta</div>
-    <div class="greeting-main">Hola, <span class="highlight" id="userName">Usuario</span> 👋</div>
+    <div class="greeting-sub" data-i18n="dash.welcome">Bienvenido de vuelta</div>
+    <div class="greeting-main"><span data-i18n="dash.hello">Hola</span>, <span class="highlight" id="userName">Usuario</span> 👋</div>
   </div>
 
   <!-- BALANCE CARD: Income - Expenses -->
   <div class="card balance-card animate-in delay-1">
     <div class="card-header">
-      <span class="card-label">Balance del mes</span>
+      <span class="card-label" data-i18n="dash.monthBalance">Balance del mes</span>
       <span class="card-badge badge-teal" id="daysLeftBadge">-- días</span>
     </div>
     <div class="balance-inner">
       <div class="balance-amount">
         <span class="dollar">$</span><span id="balanceAmount">0.00</span>
       </div>
-      <div class="balance-desc">Ingresos menos gastos este mes</div>
+      <div class="balance-desc" data-i18n="dash.incomeMinusExp">Ingresos menos gastos este mes</div>
 
       <div class="flow-grid">
         <div class="flow-item">
           <span class="flow-val income" id="flowIncome">$0</span>
-          <span class="flow-key">Ingresos</span>
+          <span class="flow-key" data-i18n="dash.income">Ingresos</span>
         </div>
         <div class="flow-item">
           <span class="flow-val expense" id="flowExpense">$0</span>
-          <span class="flow-key">Gastos</span>
+          <span class="flow-key" data-i18n="dash.expenses">Gastos</span>
         </div>
         <div class="flow-item">
           <span class="flow-val net" id="flowNet">$0</span>
-          <span class="flow-key">Neto</span>
+          <span class="flow-key" data-i18n="dash.net">Neto</span>
         </div>
       </div>
     </div>
 
     <div class="progress-wrap">
       <div class="progress-header">
-        <span>Presupuesto del mes</span>
+        <span data-i18n="dash.monthBudget">Presupuesto del mes</span>
         <span id="progressPct">0%</span>
       </div>
       <div class="progress-track">
@@ -321,53 +321,53 @@
   </div>
 
   <!-- SALDO BS — Real balance with BCV valuation -->
-  <div class="section-label animate-in delay-2">Saldo en Bolívares</div>
+  <div class="section-label animate-in delay-2" data-i18n="dash.saldoBs">Saldo en Bolívares</div>
 
   <div class="card animate-in delay-2" id="saldoCard">
     <div class="saldo-card">
-      <div class="saldo-label-top">Balance disponible</div>
+      <div class="saldo-label-top" data-i18n="dash.balanceAvailable">Balance disponible</div>
       <div class="saldo-bs-amount" id="saldoBsAmount">0 Bs</div>
-      <div class="saldo-sub" id="saldoBsSub">Registra una compra de dólares en la sección Tasas para comenzar</div>
+      <div class="saldo-sub" id="saldoBsSub" data-i18n="dash.registerCambio">Registra una compra de dólares en la sección Tasas para ver tu balance</div>
 
       <div class="saldo-usd-row" id="saldoUsdRow" style="display:none;">
         <div class="saldo-usd-block">
-          <div class="saldo-usd-tag">A tu tasa promedio</div>
+          <div class="saldo-usd-tag" data-i18n="dash.atYourAvgRate">A tu tasa promedio</div>
           <div class="saldo-usd-val" id="saldoAtMiTasa" style="color:var(--gold);">$0.00</div>
           <div class="saldo-usd-rate" id="saldoMiTasaRate">-- Bs/$</div>
         </div>
         <div style="background:var(--border);"></div>
         <div class="saldo-usd-block">
-          <div class="saldo-usd-tag">A tasa BCV</div>
+          <div class="saldo-usd-tag" data-i18n="dash.atBcvRate">A tasa BCV</div>
           <div class="saldo-usd-val" id="saldoAtBcv" style="color:var(--teal);">$0.00</div>
           <div class="saldo-usd-rate" id="saldoBcvRate">-- Bs/$</div>
         </div>
       </div>
 
       <div class="saldo-gap-row" id="saldoGapRow" style="display:none;">
-        <div class="saldo-gap-label">Diferencia BCV vs tu tasa</div>
+        <div class="saldo-gap-label" data-i18n="dash.diffBcvVsYours">Diferencia BCV vs tu tasa</div>
         <div class="saldo-gap-val" id="saldoGapVal">--</div>
       </div>
     </div>
   </div>
 
   <!-- TASA DEL DÍA -->
-  <div class="section-label animate-in delay-3">Tasa del día</div>
+  <div class="section-label animate-in delay-3" data-i18n="dash.rateOfDay">Tasa del día</div>
 
   <div class="card card-glow-gold animate-in delay-3">
     <div class="rate-card">
       <div class="card-header" style="padding:0;">
-        <span class="card-label">Tasas de cambio</span>
-        <span class="card-badge badge-gold" id="rateDate">sin datos</span>
+        <span class="card-label" data-i18n="dash.exchangeRates">Tasas de cambio</span>
+        <span class="card-badge badge-gold" id="rateDate" data-i18n="dash.noRateData">sin datos</span>
       </div>
       <div class="rate-grid">
         <div class="rate-block">
-          <div class="rate-label">Tasa BCV</div>
+          <div class="rate-label" data-i18n="dash.bcvRate">Tasa BCV</div>
           <span class="rate-value" id="rateBcv">--</span>
           <div class="rate-unit">Bs / $</div>
         </div>
         <div class="rate-divider"></div>
         <div class="rate-block">
-          <div class="rate-label">Mi tasa real</div>
+          <div class="rate-label" data-i18n="dash.myRate">Mi tasa real</div>
           <span class="rate-value" id="rateMine" style="color: var(--gold);">--</span>
           <div class="rate-unit">Bs / $</div>
         </div>
@@ -375,19 +375,19 @@
       <div class="ventaja-banner">
         <div class="ventaja-pct" id="ventajaPct">--%</div>
         <div class="ventaja-info">
-          <div class="ventaja-title">Ventaja cambiaria</div>
-          <div class="ventaja-sub" id="ventajaDesc">Configura tus tasas para ver la ventaja</div>
+          <div class="ventaja-title" data-i18n="dash.exchangeAdvantage">Ventaja cambiaria</div>
+          <div class="ventaja-sub" id="ventajaDesc" data-i18n="dash.configRates">Configura tus tasas para ver la ventaja</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- RESUMEN MENSUAL: INGRESOS vs GASTOS -->
-  <div class="section-label animate-in delay-3">Resumen mensual</div>
+  <div class="section-label animate-in delay-3" data-i18n="dash.monthlySummary">Resumen mensual</div>
 
   <div class="card animate-in delay-3">
     <div class="card-header">
-      <span class="card-label">Flujo financiero</span>
+      <span class="card-label" data-i18n="dash.financialFlow">Flujo financiero</span>
       <span class="card-badge badge-coral" id="txCount">0 movimientos</span>
     </div>
     <div class="summary-grid">
@@ -395,47 +395,47 @@
         <div class="summary-left">
           <div class="summary-icon" style="background:rgba(0,212,170,0.1);">💰</div>
           <div>
-            <span class="summary-name" style="color:var(--teal)">Total Ingresos</span>
-            <span class="summary-sub">Entradas del mes</span>
+            <span class="summary-name" style="color:var(--teal)" data-i18n="dash.totalIncome">Total Ingresos</span>
+            <span class="summary-sub" data-i18n="dash.monthEntries">Entradas del mes</span>
           </div>
         </div>
-        <div class="summary-val" id="sumIncome" style="color:var(--teal)">$0.00<small>este mes</small></div>
+        <div class="summary-val" id="sumIncome" style="color:var(--teal)">$0.00<small data-i18n="dash.thisMonth">este mes</small></div>
       </div>
       <div class="summary-row">
         <div class="summary-left">
           <div class="summary-icon" style="background:rgba(224,82,82,0.1);">💸</div>
           <div>
-            <span class="summary-name" style="color:var(--red)">Total Gastos</span>
-            <span class="summary-sub">Salidas del mes</span>
+            <span class="summary-name" style="color:var(--red)" data-i18n="dash.totalExpenses">Total Gastos</span>
+            <span class="summary-sub" data-i18n="dash.monthExits">Salidas del mes</span>
           </div>
         </div>
-        <div class="summary-val" id="sumExpense" style="color:var(--red)">$0.00<small>este mes</small></div>
+        <div class="summary-val" id="sumExpense" style="color:var(--red)">$0.00<small data-i18n="dash.thisMonth">este mes</small></div>
       </div>
       <div class="summary-row">
         <div class="summary-left">
           <div class="summary-icon" style="background:rgba(79,142,247,0.1);">📈</div>
           <div>
-            <span class="summary-name">Inversiones</span>
-            <span class="summary-sub">Capital invertido</span>
+            <span class="summary-name" data-i18n="dash.investments">Inversiones</span>
+            <span class="summary-sub" data-i18n="dash.capitalInvested">Capital invertido</span>
           </div>
         </div>
-        <div class="summary-val" id="sumInvestment">$0.00<small>este mes</small></div>
+        <div class="summary-val" id="sumInvestment">$0.00<small data-i18n="dash.thisMonth">este mes</small></div>
       </div>
       <div class="summary-row" style="background:rgba(0,212,170,0.04); border-top: 1px solid var(--safe-border);">
         <div class="summary-left">
           <div class="summary-icon" style="background:rgba(0,212,170,0.15);">⚡</div>
           <div>
-            <span class="summary-name" style="color:var(--teal)">Balance neto</span>
-            <span class="summary-sub">Ingresos - Gastos</span>
+            <span class="summary-name" style="color:var(--teal)" data-i18n="dash.netBalance">Balance neto</span>
+            <span class="summary-sub" data-i18n="dash.incomeMinusExpShort">Ingresos - Gastos</span>
           </div>
         </div>
-        <div class="summary-val" id="sumNet" style="color:var(--teal)">$0.00<small>este mes</small></div>
+        <div class="summary-val" id="sumNet" style="color:var(--teal)">$0.00<small data-i18n="dash.thisMonth">este mes</small></div>
       </div>
     </div>
   </div>
 
   <!-- DONUT: GASTOS POR CATEGORÍA -->
-  <div class="section-label animate-in delay-4">Gastos por categoría</div>
+  <div class="section-label animate-in delay-4" data-i18n="dash.expByCategory">Gastos por categoría</div>
   <div class="card animate-in delay-4">
     <div class="chart-wrap">
       <div class="donut-layout">
@@ -443,7 +443,7 @@
           <canvas id="donutChart"></canvas>
           <div class="donut-center">
             <span class="donut-center-val" id="donutTotal">$0</span>
-            <span class="donut-center-label">este mes</span>
+            <span class="donut-center-label" data-i18n="dash.thisMonth">este mes</span>
           </div>
         </div>
         <ul class="legend-list" id="donutLegend"></ul>
@@ -452,7 +452,7 @@
   </div>
 
   <!-- BAR CHART: GASTO DIARIO -->
-  <div class="section-label animate-in delay-5">Gasto diario vs presupuesto</div>
+  <div class="section-label animate-in delay-5" data-i18n="dash.dailyVsBudget">Gasto diario vs presupuesto</div>
   <div class="card animate-in delay-5">
     <div class="chart-wrap">
       <div class="bar-canvas-wrap">
@@ -493,17 +493,18 @@
 
 <script>
 const CATEGORY_MAP = {
-  food: { label: 'Comida', icon: '🍽️', color: '#EF4444' },
-  transport: { label: 'Transporte', icon: '🚌', color: '#F59E0B' },
-  market: { label: 'Mercado', icon: '🛒', color: '#F97316' },
-  health: { label: 'Salud', icon: '💊', color: '#10B981' },
-  home: { label: 'Hogar', icon: '🏠', color: '#3B82F6' },
-  personal: { label: 'Personal', icon: '👤', color: '#8B5CF6' },
-  tech: { label: 'Tech', icon: '💻', color: '#6366F1' },
-  entertain: { label: 'Ocio', icon: '🎬', color: '#8B5CF6' },
-  clothes: { label: 'Ropa', icon: '👕', color: '#EC4899' },
-  other: { label: 'Otro', icon: '📦', color: '#6B7280' },
+  food: { icon: '🍽️', color: '#EF4444' },
+  transport: { icon: '🚌', color: '#F59E0B' },
+  market: { icon: '🛒', color: '#F97316' },
+  health: { icon: '💊', color: '#10B981' },
+  home: { icon: '🏠', color: '#3B82F6' },
+  personal: { icon: '👤', color: '#8B5CF6' },
+  tech: { icon: '💻', color: '#6366F1' },
+  entertain: { icon: '🎬', color: '#8B5CF6' },
+  clothes: { icon: '👕', color: '#EC4899' },
+  other: { icon: '📦', color: '#6B7280' },
 };
+function getCatLabel(id) { return VFSettings.t('cat.' + id); }
 
 const fmt = (n, d=2) => n.toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmtUsd = (n) => '$' + fmt(n);
@@ -565,11 +566,11 @@ async function renderDashboard() {
 
   // ── Greeting ──
   document.getElementById('monthBadge').textContent =
-    now.toLocaleString('es', {month:'short'}).toUpperCase() + ' ' + y;
+    VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + y;
 
   // ── Balance Card ──
   document.getElementById('balanceAmount').textContent = fmt(Math.abs(netBalance));
-  document.getElementById('daysLeftBadge').textContent = `${dLeft} días restantes`;
+  document.getElementById('daysLeftBadge').textContent = `${dLeft} ${VFSettings.t('dash.daysLeft')}`;
   document.getElementById('flowIncome').textContent = fmtUsd(totalIncome);
   document.getElementById('flowExpense').textContent = fmtUsd(totalExpense);
   document.getElementById('flowNet').textContent = (netBalance >= 0 ? '+' : '-') + fmtUsd(Math.abs(netBalance));
@@ -586,31 +587,35 @@ async function renderDashboard() {
   document.getElementById('ventajaPct').textContent = '+' + ventajaPct + '%';
 
   if (tasa_bcv && tasa_mine) {
+    document.getElementById('ventajaDesc').removeAttribute('data-i18n');
     document.getElementById('ventajaDesc').innerHTML =
-      `Tu $1 vale <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> a tasa BCV<br>` +
-      `Diferencia: <strong>${fmt(tasa_mine - tasa_bcv, 0)} Bs</strong> por dólar`;
+      `${VFSettings.t('dash.your1usd')} <strong style="color:var(--teal)">$${fmt(1 + parseFloat(ventajaPct)/100)}</strong> ${VFSettings.t('dash.atBcv')}<br>` +
+      `${VFSettings.t('conv.diff')}: <strong>${fmt(tasa_mine - tasa_bcv, 0)} Bs</strong> ${VFSettings.t('dash.diffPerDollar')}`;
   }
 
   if (latestRate?.fecha) {
     const rateD = new Date(latestRate.fecha + 'T12:00:00');
+    const rateLang = VFSettings.getLang() === 'en' ? 'en-US' : 'es-VE';
     document.getElementById('rateDate').textContent =
-      rateD.toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'numeric'});
+      rateD.toLocaleDateString(rateLang, {day:'2-digit', month:'short', year:'numeric'});
+  } else {
+    document.getElementById('rateDate').textContent = VFSettings.t('dash.noRateData');
   }
 
   // ── Summary ──
   const totalMovements = monthExpenses.length + monthIncomes.length;
-  document.getElementById('txCount').textContent = `${totalMovements} movimientos`;
-  document.getElementById('sumIncome').innerHTML = `+${fmtUsd(totalIncome)}<small>este mes</small>`;
-  document.getElementById('sumExpense').innerHTML = `-${fmtUsd(totalExpense)}<small>este mes</small>`;
-  document.getElementById('sumInvestment').innerHTML = `${fmtUsd(totalInvestment)}<small>este mes</small>`;
-  document.getElementById('sumNet').innerHTML = `${netBalance >= 0 ? '+' : ''}${fmtUsd(netBalance)}<small>este mes</small>`;
+  document.getElementById('txCount').textContent = `${totalMovements} ${VFSettings.t('dash.movements')}`;
+  document.getElementById('sumIncome').innerHTML = `+${fmtUsd(totalIncome)}<small data-i18n="dash.thisMonth">${VFSettings.t('dash.thisMonth')}</small>`;
+  document.getElementById('sumExpense').innerHTML = `-${fmtUsd(totalExpense)}<small data-i18n="dash.thisMonth">${VFSettings.t('dash.thisMonth')}</small>`;
+  document.getElementById('sumInvestment').innerHTML = `${fmtUsd(totalInvestment)}<small data-i18n="dash.thisMonth">${VFSettings.t('dash.thisMonth')}</small>`;
+  document.getElementById('sumNet').innerHTML = `${netBalance >= 0 ? '+' : ''}${fmtUsd(netBalance)}<small data-i18n="dash.thisMonth">${VFSettings.t('dash.thisMonth')}</small>`;
 
   // ── Donut Chart (only actual gastos, not investments) ──
   const catMap = {};
   monthExpenses.filter(e => e.type !== 'inversion').forEach(e => {
     const catId = e.category || 'other';
     const info = CATEGORY_MAP[catId] || CATEGORY_MAP.other;
-    if (!catMap[catId]) catMap[catId] = { label: info.label, icon: info.icon, color: info.color, total: 0 };
+    if (!catMap[catId]) catMap[catId] = { label: getCatLabel(catId), icon: info.icon, color: info.color, total: 0 };
     catMap[catId].total += e.amountUSD || 0;
   });
 
@@ -661,7 +666,7 @@ async function renderDashboard() {
       labels: days.map(d => d + '/' + m),
       datasets: [
         {
-          label: 'Gastado', data: actualData,
+          label: VFSettings.t('dash.spent'), data: actualData,
           backgroundColor: actualData.map(v =>
             v <= dailyIdeal ? 'rgba(0,212,170,0.75)' :
             v <= dailyIdeal * 1.3 ? 'rgba(212,168,67,0.75)' : 'rgba(255,107,107,0.75)'
@@ -669,7 +674,7 @@ async function renderDashboard() {
           borderRadius: 6, borderSkipped: false,
         },
         {
-          label: 'Ideal', data: days.map(() => dailyIdeal),
+          label: VFSettings.t('dash.ideal'), data: days.map(() => dailyIdeal),
           type: 'line', borderColor: 'rgba(79,142,247,0.6)', borderWidth: 2,
           borderDash: [4, 4], pointRadius: 0, tension: 0, fill: false, order: 0
         }
@@ -770,7 +775,7 @@ function renderSaldoBs(cambios, expenses, bcvRate) {
 
   if (cambios.length === 0) {
     document.getElementById('saldoBsSub').textContent =
-      'Registra una compra de dólares en la sección Tasas para ver tu balance';
+      VFSettings.t('dash.registerCambio');
     document.getElementById('saldoUsdRow').style.display = 'none';
     document.getElementById('saldoGapRow').style.display = 'none';
     return;
@@ -785,13 +790,13 @@ function renderSaldoBs(cambios, expenses, bcvRate) {
   const usdAtBcv    = bcvRate    > 0 ? saldoBs / bcvRate    : 0;
 
   document.getElementById('saldoBsSub').textContent =
-    `De $${totalUsd.toFixed(0)} USD comprados · saldo neto`;
+    VFSettings.t('dash.fromUsd').replace('${amount}', totalUsd.toFixed(0));
   document.getElementById('saldoAtMiTasa').textContent = fmtUsd(usdAtMiTasa);
   document.getElementById('saldoMiTasaRate').textContent =
-    weightedRate > 0 ? `Tasa prom. ${fmt(weightedRate)} Bs/$` : 'Sin datos';
+    weightedRate > 0 ? `${VFSettings.t('dash.avgRate')} ${fmt(weightedRate)} Bs/$` : VFSettings.t('dash.noData');
   document.getElementById('saldoAtBcv').textContent = bcvRate > 0 ? fmtUsd(usdAtBcv) : '--';
   document.getElementById('saldoBcvRate').textContent =
-    bcvRate > 0 ? `BCV ${fmt(bcvRate)} Bs/$` : 'Sin tasa BCV';
+    bcvRate > 0 ? `BCV ${fmt(bcvRate)} Bs/$` : VFSettings.t('dash.noData');
 
   document.getElementById('saldoUsdRow').style.display = '';
   document.getElementById('saldoGapRow').style.display = '';
@@ -808,7 +813,7 @@ function renderSaldoBs(cambios, expenses, bcvRate) {
       gapEl.textContent  = `${fmtUsd(gapUsd)} (${gapPct.toFixed(1)}%)`;
       gapEl.style.color  = 'var(--red)';
     } else {
-      gapEl.textContent  = 'Sin diferencia';
+      gapEl.textContent  = VFSettings.t('dash.noDiff');
       gapEl.style.color  = 'var(--text-2)';
     }
   }
@@ -823,7 +828,7 @@ function openAccount() {
     document.getElementById('acctName').textContent  = _session.name  || '--';
     document.getElementById('acctEmail').textContent = _session.email || '--';
     document.getElementById('acctType').textContent  =
-      _session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+      _session.authType === 'google' ? VFSettings.t('account.typeGoogle') : VFSettings.t('account.typeEmail');
   }
   // Load saved notification preference
   VF.DB.getConfig('notifRates').then(v => {
@@ -855,15 +860,17 @@ async function boot() {
 
   // Header
   const now = new Date();
-  document.getElementById('monthBadge').textContent = now.toLocaleString('es',{month:'short'}).toUpperCase()+' '+now.getFullYear();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase()+' '+now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
-  document.getElementById('menuUserName').textContent = session.name || 'Usuario';
+  document.getElementById('menuUserName').textContent = session.name || VFSettings.t('misc.user');
   document.getElementById('menuUserEmail').textContent = session.email || '';
 
-  document.getElementById('userName').textContent = session.name || 'Usuario';
+  document.getElementById('userName').textContent = session.name || VFSettings.t('misc.user');
 
   await renderDashboard();
 }
+
+document.addEventListener('vf-lang-changed', function() { renderDashboard(); });
 boot();
 </script>
 </body>
