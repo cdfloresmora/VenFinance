@@ -112,6 +112,22 @@ VF.DB = (() => {
     return doc.exists ? doc.data() : null;
   }
 
+  // ── Recurring expenses (subscriptions) ─────────────────────
+
+  async function putRecurring(item) {
+    await userRef().collection('recurring').doc(String(item.id)).set(item);
+  }
+
+  async function getRecurring() {
+    const snap = await userRef().collection('recurring')
+      .orderBy('id', 'desc').get();
+    return snap.docs.map(d => d.data());
+  }
+
+  async function deleteRecurring(id) {
+    await userRef().collection('recurring').doc(String(id)).delete();
+  }
+
   // ── Legacy compat (no-op for old code) ─────────────────────
 
   function open()       { return Promise.resolve(); }
@@ -124,6 +140,7 @@ VF.DB = (() => {
     putIncome, getIncomes, deleteIncome,
     putCambio, getCambios, deleteCambio,
     setBudget, getBudget, getAllBudgets,
+    putRecurring, getRecurring, deleteRecurring,
     putRate, getRates,
     saveProfile, getProfile,
     open, saveTokens, getTokens,

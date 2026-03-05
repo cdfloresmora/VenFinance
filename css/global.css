@@ -77,6 +77,19 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
 
+.theme-light .all-expenses-overlay {
+  background: var(--bg-void);
+}
+.theme-light .all-expenses-header {
+  background: var(--bg-void);
+}
+.theme-light .recurring-form-overlay {
+  background: rgba(0,0,0,0.4);
+}
+.theme-light .date-input {
+  color-scheme: light;
+}
+
 /* ── Apply --main-font to all text elements ── */
 body,
 .btn,

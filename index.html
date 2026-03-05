@@ -384,8 +384,281 @@
     font-family: var(--font-mono);
     cursor: pointer;
   }
+  .see-all:active { opacity: 0.6; }
 
   .tx-list { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ═══════════════════════════════════════
+     ALL EXPENSES FULLSCREEN MODAL
+  ═══════════════════════════════════════ */
+  .all-expenses-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-void);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .all-expenses-overlay.visible { opacity: 1; pointer-events: all; }
+  .all-expenses-header {
+    position: sticky;
+    top: 0;
+    background: var(--bg-void);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  .all-expenses-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin: 0;
+  }
+  .all-expenses-close {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--text-2);
+    font-size: 16px;
+    -webkit-appearance: none;
+  }
+  .all-expenses-body {
+    padding: 16px 20px;
+    padding-bottom: calc(80px + var(--safe-bottom, 0px));
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .month-group {
+    margin-bottom: 24px;
+  }
+  .month-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .month-group-total {
+    font-family: var(--font-mono);
+    color: var(--text-2);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ═══════════════════════════════════════
+     RECURRING EXPENSES SECTION
+  ═══════════════════════════════════════ */
+  .recurring-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .recurring-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .recurring-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .recurring-add-btn {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--gold);
+    background: none;
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--r-full);
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all .2s;
+    -webkit-appearance: none;
+  }
+  .recurring-add-btn:active { background: var(--gold-dim); }
+  .recurring-list { display: flex; flex-direction: column; gap: 6px; }
+  .recurring-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-elevated);
+    border-radius: var(--r-sm);
+  }
+  .recurring-item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--bg-deep);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .recurring-item-info { flex: 1; min-width: 0; }
+  .recurring-item-name { font-size: 12px; font-weight: 600; color: var(--text-1); }
+  .recurring-item-freq { font-size: 10px; color: var(--text-3); }
+  .recurring-item-amount {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-1);
+    flex-shrink: 0;
+  }
+  .recurring-item-del {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.5;
+    transition: opacity .2s;
+    -webkit-appearance: none;
+  }
+  .recurring-item-del:hover { opacity: 1; }
+  .recurring-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px 0;
+    font-size: 11px;
+    color: var(--text-3);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  .recurring-total strong {
+    font-family: var(--font-mono);
+    color: var(--gold);
+  }
+  .recurring-empty {
+    text-align: center;
+    padding: 12px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  /* Recurring form overlay */
+  .recurring-form-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 250;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+    backdrop-filter: blur(4px);
+  }
+  .recurring-form-overlay.visible { opacity: 1; pointer-events: all; }
+  .recurring-form {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    width: 90%;
+    max-width: 360px;
+  }
+  .recurring-form h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin: 0 0 16px;
+  }
+  .recurring-form .rf-row {
+    margin-bottom: 12px;
+  }
+  .recurring-form .rf-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .recurring-form .rf-input {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-1);
+    outline: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+  }
+  .recurring-form .rf-input:focus { border-color: var(--gold); }
+  .recurring-form .rf-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .recurring-form .rf-cancel {
+    flex: 1;
+    padding: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .recurring-form .rf-save {
+    flex: 1;
+    padding: 10px;
+    background: var(--gold);
+    border: none;
+    border-radius: var(--r-sm);
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  /* ═══════════════════════════════════════
+     BUDGET GOAL INLINE EDIT
+  ═══════════════════════════════════════ */
+  .budget-goal-btn {
+    background: none;
+    border: 1px dashed var(--border-bright);
+    border-radius: var(--r-sm);
+    padding: 6px 12px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--gold);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all .2s;
+    -webkit-appearance: none;
+  }
+  .budget-goal-btn:active { background: var(--gold-dim); }
 
   .tx-item {
     display: flex;
@@ -728,19 +1001,11 @@
           </button>
           <div class="user-dropdown-divider"></div>
           <div class="settings-section">
-            <div class="settings-section-title" data-i18n="settings.title">Configuración</div>
-            <div class="settings-row">
-              <span class="settings-row-label"><span class="row-icon">Aa</span> <span data-i18n="settings.font">Fuente</span></span>
-              <select class="settings-select" id="vf-font-select">
-                <option value="sans">Sans</option>
-                <option value="serif">Serif</option>
-                <option value="mono">Mono</option>
-              </select>
-            </div>
+            <div class="settings-section-title" data-i18n="settings.title">Configuracion</div>
             <div class="settings-row">
               <span class="settings-row-label"><span class="row-icon">🌐</span> <span data-i18n="settings.language">Idioma</span></span>
               <select class="settings-select" id="vf-lang-select">
-                <option value="es">Español</option>
+                <option value="es">Espanol</option>
                 <option value="en">English</option>
               </select>
             </div>
@@ -863,6 +1128,9 @@
     <div class="advantage-badge">
       ✦ Poder adquisitivo real: <strong id="advantage-pct">—</strong> superior al BCV
     </div>
+    <button class="budget-goal-btn" id="budget-goal-btn" onclick="openBudgetGoal()">
+      ⚙ <span data-i18n="budget.setGoal">Establecer meta</span>: <strong id="budget-goal-display">$0</strong>
+    </button>
   </div>
 
   <!-- ── EXPENSE / INVESTMENT FORM ── -->
@@ -982,10 +1250,21 @@
     </button>
   </div>
 
+  <!-- RECURRING EXPENSES -->
+  <div class="recurring-card" id="recurring-card">
+    <div class="recurring-header">
+      <span class="recurring-title" data-i18n="recurring.title">Gastos recurrentes</span>
+      <button class="recurring-add-btn" onclick="openRecurringForm()">+ <span data-i18n="recurring.add">Agregar</span></button>
+    </div>
+    <div class="recurring-list" id="recurring-list">
+      <div class="recurring-empty" data-i18n="recurring.noItems">No hay gastos recurrentes</div>
+    </div>
+  </div>
+
   <!-- RECENT TRANSACTIONS -->
   <div class="section-header">
-    <span class="section-title">Recientes</span>
-    <span class="see-all">Ver todos →</span>
+    <span class="section-title" data-i18n="recent.title">Recientes</span>
+    <span class="see-all" onclick="openAllExpenses()"><span data-i18n="recent.seeAll">Ver todos</span> →</span>
   </div>
   <div class="tx-list" id="tx-list">
     <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
@@ -994,6 +1273,67 @@
   </div>
 
 </div><!-- /#app -->
+
+<!-- ALL EXPENSES FULLSCREEN MODAL -->
+<div class="all-expenses-overlay" id="allExpensesOverlay">
+  <div class="all-expenses-header">
+    <h2 data-i18n="allExpenses.title">Todos los gastos</h2>
+    <button class="all-expenses-close" onclick="closeAllExpenses()">&times;</button>
+  </div>
+  <div class="all-expenses-body" id="allExpensesBody">
+  </div>
+</div>
+
+<!-- RECURRING FORM MODAL -->
+<div class="recurring-form-overlay" id="recurringFormOverlay" onclick="if(event.target===this)closeRecurringForm()">
+  <div class="recurring-form">
+    <h3>+ Gasto recurrente</h3>
+    <div class="rf-row">
+      <label class="rf-label" data-i18n="recurring.name">Nombre</label>
+      <input class="rf-input" id="rf-name" type="text" placeholder="Netflix, Spotify..." autocomplete="off">
+    </div>
+    <div class="rf-row">
+      <label class="rf-label" data-i18n="recurring.amount">Monto USD</label>
+      <input class="rf-input" id="rf-amount" type="number" inputmode="decimal" placeholder="9.99" step="0.01">
+    </div>
+    <div class="rf-row">
+      <label class="rf-label" data-i18n="recurring.category">Categoria</label>
+      <select class="rf-input" id="rf-category">
+        <option value="entertain">Ocio</option>
+        <option value="tech">Tech</option>
+        <option value="health">Salud</option>
+        <option value="home">Hogar</option>
+        <option value="personal">Personal</option>
+        <option value="food">Comida</option>
+        <option value="transport">Transporte</option>
+        <option value="other">Otro</option>
+      </select>
+    </div>
+    <div class="rf-actions">
+      <button class="rf-cancel" onclick="closeRecurringForm()">Cancelar</button>
+      <button class="rf-save" onclick="saveRecurring()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET GOAL MODAL -->
+<div class="prefs-overlay" id="budgetGoalOverlay" onclick="if(event.target===this)closeBudgetGoal()">
+  <div class="prefs-sheet">
+    <div class="prefs-handle"></div>
+    <div class="prefs-title" data-i18n="budget.goal">Meta mensual</div>
+    <div class="prefs-section">
+      <div class="pref-row">
+        <div>
+          <div class="pref-label" data-i18n="budget.goalDesc">Limite de gastos en USD por mes</div>
+        </div>
+        <input class="pref-input" id="budget-goal-input" type="number" placeholder="300" inputmode="decimal" style="width:100px;">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveBudgetGoal()" style="width:100%;margin-top:8px;">
+      <span data-i18n="prefs.save">Guardar</span>
+    </button>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════
      BOTTOM NAV
@@ -1071,6 +1411,7 @@ let state = {
   budgetUSD:      0,
   expenses:       [],
   cambios:        [],
+  recurring:      [],
 };
 
 /* ═══════════════════════════════════════
@@ -1186,8 +1527,17 @@ async function init() {
   renderInvestmentTypes();
   setToday();
   renderBudget();
+  updateBudgetGoalDisplay();
   renderTransactions();
   updateChips();
+
+  // Load recurring expenses
+  try {
+    state.recurring = await VF.DB.getRecurring();
+  } catch (e) {
+    state.recurring = [];
+  }
+  renderRecurring();
 }
 
 /* ═══════════════════════════════════════
@@ -1279,6 +1629,7 @@ function renderBudget() {
     state.rateOfficial ? `≈ ${fmtBs(remaining * state.rateOfficial)} Bs` : '';
   document.getElementById('budget-spent').textContent = `$${spent.toFixed(2)}`;
   document.getElementById('progress-fill').style.width = `${pct}%`;
+  updateBudgetGoalDisplay();
 }
 
 /* ═══════════════════════════════════════
@@ -1591,6 +1942,205 @@ function renderTransactions() {
     `;
     list.appendChild(item);
   });
+}
+
+/* ═══════════════════════════════════════
+   ALL EXPENSES (Ver Todos)
+═══════════════════════════════════════ */
+function openAllExpenses() {
+  const overlay = document.getElementById('allExpensesOverlay');
+  const body = document.getElementById('allExpensesBody');
+  overlay.classList.add('visible');
+
+  // Group expenses by month
+  const groups = {};
+  state.expenses.forEach(exp => {
+    if (!exp.date) return;
+    const ym = exp.date.substring(0, 7); // "2026-03"
+    if (!groups[ym]) groups[ym] = [];
+    groups[ym].push(exp);
+  });
+
+  const monthNames = {
+    es: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    en: ['January','February','March','April','May','June','July','August','September','October','November','December']
+  };
+  const lang = localStorage.getItem('vf_lang') || 'es';
+  const names = monthNames[lang] || monthNames.es;
+
+  // Sort months descending
+  const sortedMonths = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+  if (sortedMonths.length === 0) {
+    body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-3);font-size:12px;">
+      ${VFSettings.t('allExpenses.noExpenses')}</div>`;
+    return;
+  }
+
+  let html = '';
+  sortedMonths.forEach(ym => {
+    const [year, month] = ym.split('-');
+    const monthName = names[parseInt(month) - 1];
+    const monthExpenses = groups[ym];
+    const monthTotal = monthExpenses.reduce((s, e) => s + (e.amountUSD || 0), 0);
+
+    html += `<div class="month-group">`;
+    html += `<div class="month-group-title">
+      <span>${monthName} ${year}</span>
+      <span class="month-group-total">$${monthTotal.toFixed(2)}</span>
+    </div>`;
+
+    monthExpenses.forEach(exp => {
+      const isInv = exp.type === 'inversion';
+      let icon, label;
+      if (isInv) {
+        const inv = INVESTMENT_TYPES.find(i => i.id === exp.category);
+        icon = inv ? inv.icon : '📈';
+        label = inv ? inv.label : exp.category;
+      } else {
+        const cat = CATEGORIES.find(c => c.id === exp.category);
+        icon = cat ? cat.icon : '📦';
+        label = cat ? cat.label : exp.category;
+      }
+
+      html += `<div class="tx-item">
+        <div class="tx-cat-icon" ${isInv ? 'style="background:rgba(0,212,170,0.1);"' : ''}>${icon}</div>
+        <div class="tx-info">
+          <div class="tx-cat-name">${isInv ? '📈 ' : ''}${label}</div>
+          <div class="tx-desc">${exp.description || exp.date}</div>
+        </div>
+        <div class="tx-amounts">
+          <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${exp.currency === 'Bs'
+            ? fmtBs(exp.amountRaw) + ' Bs'
+            : '$' + exp.amountRaw.toFixed(2)}</div>
+          <div class="tx-secondary">${exp.currency === 'Bs'
+            ? '$' + exp.amountUSD.toFixed(2)
+            : fmtBs(exp.amountBs) + ' Bs'}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
+        </div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  body.innerHTML = html;
+}
+
+function closeAllExpenses() {
+  document.getElementById('allExpensesOverlay').classList.remove('visible');
+}
+
+/* ═══════════════════════════════════════
+   RECURRING EXPENSES
+═══════════════════════════════════════ */
+function renderRecurring() {
+  const list = document.getElementById('recurring-list');
+  if (state.recurring.length === 0) {
+    list.innerHTML = `<div class="recurring-empty">${VFSettings.t('recurring.noItems')}</div>`;
+    return;
+  }
+
+  let html = '';
+  let total = 0;
+  state.recurring.forEach(item => {
+    const cat = CATEGORIES.find(c => c.id === item.category);
+    const icon = cat ? cat.icon : '📦';
+    total += item.amountUSD || 0;
+
+    html += `<div class="recurring-item">
+      <div class="recurring-item-icon">${icon}</div>
+      <div class="recurring-item-info">
+        <div class="recurring-item-name">${item.name}</div>
+        <div class="recurring-item-freq">${VFSettings.t('recurring.monthly')}</div>
+      </div>
+      <div class="recurring-item-amount">$${(item.amountUSD || 0).toFixed(2)}</div>
+      <button class="recurring-item-del" onclick="deleteRecurringItem(${item.id})">&times;</button>
+    </div>`;
+  });
+
+  html += `<div class="recurring-total">
+    <span>${VFSettings.t('recurring.total')}</span>
+    <strong>$${total.toFixed(2)}/mes</strong>
+  </div>`;
+
+  list.innerHTML = html;
+}
+
+function openRecurringForm() {
+  document.getElementById('recurringFormOverlay').classList.add('visible');
+  document.getElementById('rf-name').value = '';
+  document.getElementById('rf-amount').value = '';
+  document.getElementById('rf-category').value = 'entertain';
+}
+
+function closeRecurringForm() {
+  document.getElementById('recurringFormOverlay').classList.remove('visible');
+}
+
+async function saveRecurring() {
+  const name = document.getElementById('rf-name').value.trim();
+  const amount = parseFloat(document.getElementById('rf-amount').value);
+  const category = document.getElementById('rf-category').value;
+
+  if (!name) { showToast('error', '⚠', 'Ingresa un nombre'); return; }
+  if (!amount || amount <= 0) { showToast('error', '⚠', 'Ingresa un monto valido'); return; }
+
+  const item = {
+    id: Date.now(),
+    name,
+    amountUSD: amount,
+    category,
+    frequency: 'monthly',
+    createdAt: Date.now()
+  };
+
+  try {
+    await VF.DB.putRecurring(item);
+    state.recurring.unshift(item);
+    renderRecurring();
+    closeRecurringForm();
+    showToast('success', '✓', 'Gasto recurrente guardado');
+  } catch (e) {
+    console.error('Save recurring error:', e);
+    showToast('error', '✗', 'Error al guardar');
+  }
+}
+
+async function deleteRecurringItem(id) {
+  try {
+    await VF.DB.deleteRecurring(id);
+    state.recurring = state.recurring.filter(r => r.id !== id);
+    renderRecurring();
+    showToast('success', '✓', 'Eliminado');
+  } catch (e) {
+    console.error('Delete recurring error:', e);
+  }
+}
+
+/* ═══════════════════════════════════════
+   BUDGET GOAL
+═══════════════════════════════════════ */
+function openBudgetGoal() {
+  document.getElementById('budgetGoalOverlay').classList.add('visible');
+  document.getElementById('budget-goal-input').value = state.budgetUSD || '';
+}
+
+function closeBudgetGoal() {
+  document.getElementById('budgetGoalOverlay').classList.remove('visible');
+}
+
+async function saveBudgetGoal() {
+  const budget = parseFloat(document.getElementById('budget-goal-input').value) || 0;
+  state.budgetUSD = budget;
+  await VF.DB.setBudget(getCurrentYM(), budget);
+  closeBudgetGoal();
+  renderBudget();
+  showToast('success', '✓', 'Meta actualizada');
+}
+
+function updateBudgetGoalDisplay() {
+  const el = document.getElementById('budget-goal-display');
+  if (el) el.textContent = '$' + (state.budgetUSD || 0).toFixed(0);
 }
 
 /* ═══════════════════════════════════════
