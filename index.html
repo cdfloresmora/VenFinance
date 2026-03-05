@@ -1029,25 +1029,25 @@
 <div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">⚙️ Preferencias</div>
+    <div class="prefs-title">⚙️ <span data-i18n="prefs.title">Preferencias</span></div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Presupuesto</div>
+      <div class="prefs-section-label" data-i18n="prefs.budget">Presupuesto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Presupuesto mensual</div>
-          <div class="pref-desc">Tu límite de gastos en USD por mes</div>
+          <div class="pref-label" data-i18n="prefs.budgetLabel">Presupuesto mensual</div>
+          <div class="pref-desc" data-i18n="prefs.budgetDesc">Tu límite de gastos en USD por mes</div>
         </div>
         <input class="pref-input" id="pref-budget" type="number" placeholder="300" inputmode="decimal">
       </div>
     </div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Moneda por defecto</div>
+      <div class="prefs-section-label" data-i18n="prefs.currencySection">Moneda por defecto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Moneda principal</div>
-          <div class="pref-desc">Para registrar gastos e inversiones</div>
+          <div class="pref-label" data-i18n="prefs.primaryCurrency">Moneda principal</div>
+          <div class="pref-desc" data-i18n="prefs.currencyDesc">Para registrar gastos e inversiones</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
@@ -1058,7 +1058,7 @@
     </div>
 
     <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
-      Guardar Preferencias
+      <span data-i18n="prefs.save">Guardar Preferencias</span>
     </button>
   </div>
 </div>
@@ -1067,21 +1067,21 @@
 <div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">👤 Configuración de cuenta</div>
+    <div class="prefs-title">👤 <span data-i18n="account.title">Configuración de cuenta</span></div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Perfil</div>
-      <div class="pref-row"><div><div class="pref-label">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
+      <div class="prefs-section-label" data-i18n="account.profile">Perfil</div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.name">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.email">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.type">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
     </div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Notificaciones</div>
+      <div class="prefs-section-label" data-i18n="account.notifications">Notificaciones</div>
       <div class="pref-row">
-        <div><div class="pref-label">Alerta de tasas</div><div class="pref-desc">Recuerda actualizar tasas diariamente</div></div>
+        <div><div class="pref-label" data-i18n="account.rateAlert">Alerta de tasas</div><div class="pref-desc" data-i18n="account.rateAlertDesc">Recuerda actualizar tasas diariamente</div></div>
         <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref()" style="padding:8px 14px;flex-shrink:0;">ON</button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">Guardar</button>
+    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;"><span data-i18n="account.save">Guardar</span></button>
   </div>
 </div>
 
@@ -1094,7 +1094,7 @@
   <div class="rates-bar">
     <div class="rate-chip" onclick="openPrefs()">
       <span class="rate-dot gold"></span>
-      <span class="rate-label">Paralelo</span>
+      <span class="rate-label" data-i18n="chip.parallel">Paralelo</span>
       <span class="rate-value" id="chip-parallel">—</span>
     </div>
     <div class="rate-chip" onclick="openPrefs()">
@@ -1104,7 +1104,7 @@
     </div>
     <div class="rate-chip">
       <span class="rate-dot green"></span>
-      <span class="rate-label">Saldo Bs</span>
+      <span class="rate-label" data-i18n="chip.saldoBs">Saldo Bs</span>
       <span class="rate-value" id="chip-saldo-bs">—</span>
     </div>
   </div>
@@ -1112,7 +1112,7 @@
   <!-- BUDGET CARD -->
   <div class="budget-card">
     <div class="budget-header">
-      <span class="budget-label">Disponible este mes</span>
+      <span class="budget-label" data-i18n="budget.available">Disponible este mes</span>
       <span class="budget-month" id="budget-month-label">—</span>
     </div>
     <div class="budget-amount">
@@ -1123,11 +1123,11 @@
       <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
     </div>
     <div class="budget-meta">
-      <div class="budget-meta-item">Gastado: <strong id="budget-spent">$0</strong></div>
-      <div class="budget-meta-item">Total: <strong id="budget-total">$0</strong></div>
+      <div class="budget-meta-item"><span data-i18n="budget.spent">Gastado</span>: <strong id="budget-spent">$0</strong></div>
+      <div class="budget-meta-item"><span data-i18n="budget.total">Total</span>: <strong id="budget-total">$0</strong></div>
     </div>
     <div class="advantage-badge">
-      ✦ Poder adquisitivo real: <strong id="advantage-pct">—</strong> superior al BCV
+      ✦ <span data-i18n="budget.advantage">Poder adquisitivo real</span>: <strong id="advantage-pct">—</strong> <span data-i18n="budget.aboveBcv">superior al BCV</span>
     </div>
     <button class="budget-goal-btn" id="budget-goal-btn" onclick="openBudgetGoal()">
       ⚙ <span data-i18n="budget.setGoal">Establecer meta</span>: <strong id="budget-goal-display">$0</strong>
@@ -1136,15 +1136,15 @@
 
   <!-- ── EXPENSE / INVESTMENT FORM ── -->
   <div class="form-card">
-    <div class="form-section-label" id="form-title">Registrar gasto</div>
+    <div class="form-section-label" id="form-title" data-i18n="form.registerExpense">Registrar gasto</div>
 
     <!-- Type toggle: Gasto / Inversión -->
     <div class="type-toggle-row">
       <button class="type-toggle-btn active-gasto" id="btn-type-gasto" onclick="setTransactionType('gasto')">
-        💸 Gasto
+        💸 <span data-i18n="form.expense">Gasto</span>
       </button>
       <button class="type-toggle-btn" id="btn-type-inversion" onclick="setTransactionType('inversion')">
-        📈 Inversión
+        📈 <span data-i18n="form.investment">Inversión</span>
       </button>
     </div>
 
@@ -1174,7 +1174,7 @@
     <!-- Rate type selector (greyed out when USD) -->
     <div id="rate-section">
       <div class="rate-type-row" id="rate-type-row">
-        <span class="form-section-label" style="margin-bottom:6px;">Tasa al comprar</span>
+        <span class="form-section-label" style="margin-bottom:6px;" data-i18n="form.rateLabel">Tasa al comprar</span>
         <div class="rate-type-options">
           <button class="rate-type-btn active" data-type="paralelo" onclick="setRateType('paralelo')">
             <span class="rate-type-dot" style="background:var(--gold)"></span>
@@ -1186,18 +1186,18 @@
           </button>
           <button class="rate-type-btn" data-type="custom" onclick="setRateType('custom')">
             <span class="rate-type-dot" style="background:var(--blue)"></span>
-            Otra
+            <span data-i18n="form.rateCustom">Otra</span>
           </button>
         </div>
         <div class="rate-custom-input hidden" id="rate-custom-wrap">
-          <input type="number" id="rate-custom-value" class="text-input" placeholder="Tasa personalizada (Bs/$)" inputmode="decimal" step="0.01" oninput="onRateTypeChange()">
+          <input type="number" id="rate-custom-value" class="text-input" placeholder="Tasa personalizada (Bs/$)" data-i18n-placeholder="form.ratePlaceholder" inputmode="decimal" step="0.01" oninput="onRateTypeChange()">
         </div>
       </div>
 
       <!-- Conversion strip -->
       <div class="conversion-strip hidden" id="conv-strip">
         <div class="conv-item">
-          <div class="conv-label">A tasa BCV</div>
+          <div class="conv-label" data-i18n="conv.bcvRate">A tasa BCV</div>
           <div class="conv-value" id="conv-official">—</div>
         </div>
         <div class="conv-sep"></div>
@@ -1207,7 +1207,7 @@
         </div>
         <div class="conv-sep"></div>
         <div class="conv-item">
-          <div class="conv-label">Diferencia</div>
+          <div class="conv-label" data-i18n="conv.diff">Diferencia</div>
           <div class="conv-value" id="conv-diff" style="color: var(--green)">—</div>
         </div>
       </div>
@@ -1215,30 +1215,30 @@
 
     <!-- Category grid (for Gastos) -->
     <div id="category-section">
-      <div class="form-section-label">Categoría</div>
+      <div class="form-section-label" data-i18n="form.category">Categoría</div>
       <div class="category-grid" id="category-grid"></div>
     </div>
 
     <!-- Investment type grid (for Inversiones, hidden by default) -->
     <div id="investment-section" style="display:none;">
-      <div class="form-section-label">Tipo de inversión</div>
+      <div class="form-section-label" data-i18n="form.investType">Tipo de inversión</div>
       <div class="invest-type-grid" id="invest-type-grid"></div>
     </div>
 
     <!-- Description + Date -->
     <div class="fields-row">
       <div class="input-wrap" style="position: relative;">
-        <span class="field-label">Descripción</span>
+        <span class="field-label" data-i18n="form.description">Descripción</span>
         <input
           class="text-input"
           id="desc-input"
           type="text"
-          placeholder="Opcional..."
+          placeholder="Opcional..." data-i18n-placeholder="form.optional"
           autocomplete="off"
         />
       </div>
       <div class="input-wrap" style="min-width: 120px; position: relative;">
-        <span class="field-label">Fecha</span>
+        <span class="field-label" data-i18n="form.date">Fecha</span>
         <input
           class="date-input"
           id="date-input"
@@ -1248,7 +1248,7 @@
     </div>
 
     <button class="submit-btn" id="submit-btn" onclick="submitExpense()">
-      + <span id="submit-label">Registrar Gasto</span>
+      + <span id="submit-label" data-i18n="form.submitExpense">Registrar Gasto</span>
     </button>
   </div>
 
@@ -1270,7 +1270,7 @@
   </div>
   <div class="tx-list" id="tx-list">
     <div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
-      Aún no hay gastos registrados.<br>¡Añade el primero arriba!
+      <span data-i18n="recent.empty">Aún no hay movimientos registrados.</span><br><span data-i18n="recent.emptyHint">¡Añade el primero arriba!</span>
     </div>
   </div>
 
@@ -1289,7 +1289,7 @@
 <!-- RECURRING FORM MODAL -->
 <div class="recurring-form-overlay" id="recurringFormOverlay" onclick="if(event.target===this)closeRecurringForm()">
   <div class="recurring-form">
-    <h3>+ Gasto recurrente</h3>
+    <h3>+ <span data-i18n="recurring.formTitle">Gasto recurrente</span></h3>
     <div class="rf-row">
       <label class="rf-label" data-i18n="recurring.name">Nombre</label>
       <input class="rf-input" id="rf-name" type="text" placeholder="Netflix, Spotify..." autocomplete="off">
@@ -1301,19 +1301,19 @@
     <div class="rf-row">
       <label class="rf-label" data-i18n="recurring.category">Categoria</label>
       <select class="rf-input" id="rf-category">
-        <option value="entertain">Ocio</option>
-        <option value="tech">Tech</option>
-        <option value="health">Salud</option>
-        <option value="home">Hogar</option>
-        <option value="personal">Personal</option>
-        <option value="food">Comida</option>
-        <option value="transport">Transporte</option>
-        <option value="other">Otro</option>
+        <option value="entertain" data-i18n="rcat.entertain">Ocio</option>
+        <option value="tech" data-i18n="rcat.tech">Tech</option>
+        <option value="health" data-i18n="rcat.health">Salud</option>
+        <option value="home" data-i18n="rcat.home">Hogar</option>
+        <option value="personal" data-i18n="rcat.personal">Personal</option>
+        <option value="food" data-i18n="rcat.food">Comida</option>
+        <option value="transport" data-i18n="rcat.transport">Transporte</option>
+        <option value="other" data-i18n="rcat.other">Otro</option>
       </select>
     </div>
     <div class="rf-actions">
-      <button class="rf-cancel" onclick="closeRecurringForm()">Cancelar</button>
-      <button class="rf-save" onclick="saveRecurring()">Guardar</button>
+      <button class="rf-cancel" onclick="closeRecurringForm()"><span data-i18n="recurring.cancel">Cancelar</span></button>
+      <button class="rf-save" onclick="saveRecurring()"><span data-i18n="recurring.save">Guardar</span></button>
     </div>
   </div>
 </div>
@@ -1400,6 +1400,12 @@ const INVESTMENT_TYPES = [
 ];
 
 /* ═══════════════════════════════════════
+   I18N HELPERS
+═══════════════════════════════════════ */
+function catLabel(cat) { return VFSettings.t('cat.' + cat.id) || cat.label; }
+function invLabel(inv) { return VFSettings.t('inv.' + inv.id) || inv.label; }
+
+/* ═══════════════════════════════════════
    STATE
 ═══════════════════════════════════════ */
 let state = {
@@ -1482,7 +1488,7 @@ async function savePrefs() {
   closePrefs();
   renderBudget();
   updateChips();
-  showToast('success', '✓', 'Preferencias guardadas');
+  showToast('success', '✓', VFSettings.t('toast.prefsSaved'));
 }
 
 // ── ACCOUNT SETTINGS ───────────────────────────────────────────
@@ -1493,7 +1499,7 @@ function openAccount() {
     document.getElementById('acctName').textContent  = session.name  || '--';
     document.getElementById('acctEmail').textContent = session.email || '--';
     document.getElementById('acctType').textContent  =
-      session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+      session.authType === 'google' ? 'Google Sign-In' : VFSettings.t('account.typeEmail');
   }
   VF.DB.getConfig('notifRates').then(v => {
     const on = v !== 'off';
@@ -1515,7 +1521,7 @@ async function saveAccount() {
   const notifOn = document.getElementById('acct-notif-rates').textContent === 'ON';
   await VF.DB.setConfig('notifRates', notifOn ? 'on' : 'off');
   closeAccount();
-  showToast('success', '✓', 'Cuenta actualizada');
+  showToast('success', '✓', VFSettings.t('account.updated'));
 }
 
 async function init() {
@@ -1525,7 +1531,7 @@ async function init() {
 
   // Header
   const now = new Date();
-  document.getElementById('monthBadge').textContent = now.toLocaleString('es',{month:'short'}).toUpperCase()+' '+now.getFullYear();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
   document.getElementById('menuUserName').textContent = session.name || 'Usuario';
   document.getElementById('menuUserEmail').textContent = session.email || '';
@@ -1534,7 +1540,7 @@ async function init() {
   const greetEl = document.getElementById('greeting-text');
   if (greetEl && session.name) {
     const h = new Date().getHours();
-    const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
+    const saludo = h < 12 ? VFSettings.t('greeting.morning') : h < 18 ? VFSettings.t('greeting.afternoon') : VFSettings.t('greeting.evening');
     greetEl.textContent = `${saludo}, ${session.name.split(' ')[0]}`;
   }
 
@@ -1623,9 +1629,8 @@ function updateChips() {
 ═══════════════════════════════════════ */
 function renderBudget() {
   const now    = new Date();
-  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   document.getElementById('budget-month-label').textContent =
-    `${months[now.getMonth()]} ${now.getFullYear()}`;
+    VFSettings.t('month.short.' + now.getMonth()) + ' ' + now.getFullYear();
 
   const budget = state.budgetUSD;
   document.getElementById('budget-total').textContent = `$${budget.toFixed(0)}`;
@@ -1658,7 +1663,7 @@ function renderCategories() {
     const btn = document.createElement('button');
     btn.className  = 'cat-btn';
     btn.dataset.id = cat.id;
-    btn.innerHTML  = `<span class="cat-icon">${cat.icon}</span><span class="cat-label">${cat.label}</span>`;
+    btn.innerHTML  = `<span class="cat-icon">${cat.icon}</span><span class="cat-label">${catLabel(cat)}</span>`;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -1688,8 +1693,8 @@ function getActiveRate() {
 
 function getRateLabel() {
   if (state.rateType === 'bcv') return 'BCV';
-  if (state.rateType === 'custom') return 'Personalizada';
-  return 'Paralelo';
+  if (state.rateType === 'custom') return VFSettings.t('form.rateCustomLabel');
+  return VFSettings.t('chip.parallel');
 }
 
 function onRateTypeChange() { onAmountChange(); }
@@ -1712,8 +1717,8 @@ function setTransactionType(type) {
   document.getElementById('investment-section').style.display  = isInv ? '' : 'none';
 
   // Update labels
-  document.getElementById('form-title').textContent    = isInv ? 'Registrar inversión' : 'Registrar gasto';
-  document.getElementById('submit-label').textContent  = isInv ? 'Registrar Inversión' : 'Registrar Gasto';
+  document.getElementById('form-title').textContent    = isInv ? VFSettings.t('form.registerInvestment') : VFSettings.t('form.registerExpense');
+  document.getElementById('submit-label').textContent  = isInv ? VFSettings.t('form.submitInvestment') : VFSettings.t('form.submitExpense');
 
   // Reset selections
   state.selectedCat = null;
@@ -1732,7 +1737,7 @@ function renderInvestmentTypes() {
     const btn = document.createElement('button');
     btn.className  = 'invest-btn';
     btn.dataset.id = inv.id;
-    btn.innerHTML  = `<span class="cat-icon">${inv.icon}</span><span class="cat-label">${inv.label}</span>`;
+    btn.innerHTML  = `<span class="cat-icon">${inv.icon}</span><span class="cat-label">${invLabel(inv)}</span>`;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.invest-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -1810,7 +1815,7 @@ function onAmountChange() {
     const pctOfSaldo = ((amountBs / saldoBs) * 100).toFixed(1);
     const remaining = saldoBs - amountBs;
     document.getElementById('saldo-comparison-text').innerHTML =
-      `Saldo: <strong>${fmtBs(saldoBs)} Bs</strong> → Quedan <strong>${fmtBs(Math.max(0, remaining))} Bs</strong> (${pctOfSaldo}% del saldo)`;
+      `${VFSettings.t('saldo.balance')}: <strong>${fmtBs(saldoBs)} Bs</strong> → ${VFSettings.t('saldo.remaining')} <strong>${fmtBs(Math.max(0, remaining))} Bs</strong> (${pctOfSaldo}% ${VFSettings.t('saldo.ofBalance')})`;
   } else {
     saldoComp.classList.add('hidden');
   }
@@ -1829,15 +1834,15 @@ async function submitExpense() {
   const date = document.getElementById('date-input').value;
   const isInv = state.txType === 'inversion';
 
-  if (!raw || raw <= 0) { showToast('error', '⚠', 'Ingresa un monto válido'); return; }
-  if (!date)            { showToast('error', '⚠', 'Selecciona una fecha'); return; }
+  if (!raw || raw <= 0) { showToast('error', '⚠', VFSettings.t('toast.invalidAmount')); return; }
+  if (!date)            { showToast('error', '⚠', VFSettings.t('toast.selectDate')); return; }
 
   // Validate category/investment type
   if (isInv && !state.selectedInvest) {
-    showToast('error', '⚠', 'Selecciona un tipo de inversión'); return;
+    showToast('error', '⚠', VFSettings.t('toast.selectInvType')); return;
   }
   if (!isInv && !state.selectedCat) {
-    showToast('error', '⚠', 'Selecciona una categoría'); return;
+    showToast('error', '⚠', VFSettings.t('toast.selectCategory')); return;
   }
 
   let amountBs, amountUSD_official, amountUSD_real, activeRate, rateLabel;
@@ -1859,12 +1864,12 @@ async function submitExpense() {
   } else {
     // Bs — need rates for conversion
     if (!state.rateOfficial || !state.rateParallel) {
-      showToast('warning', '⚙', 'Configura las tasas primero');
+      showToast('warning', '⚙', VFSettings.t('toast.configRates'));
       openPrefs();
       return;
     }
     activeRate = getActiveRate();
-    if (!activeRate) { showToast('error', '⚠', 'Ingresa una tasa válida'); return; }
+    if (!activeRate) { showToast('error', '⚠', VFSettings.t('toast.invalidRate')); return; }
     rateLabel = getRateLabel();
 
     amountBs           = raw;
@@ -1897,10 +1902,10 @@ async function submitExpense() {
   try {
     await VF.DB.putExpense(expense);
     state.expenses.unshift(expense);
-    showToast('success', '✓', isInv ? 'Inversión registrada' : 'Gasto guardado');
+    showToast('success', '✓', isInv ? VFSettings.t('toast.investmentSaved') : VFSettings.t('toast.expenseSaved'));
   } catch (e) {
     console.error('Save error:', e);
-    showToast('error', '✗', 'Error al guardar');
+    showToast('error', '✗', VFSettings.t('toast.saveError'));
   }
 
   btn.classList.remove('loading');
@@ -1928,7 +1933,7 @@ function renderTransactions() {
 
   if (recent.length === 0) {
     list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-3); font-size: 12px;">
-      Aún no hay movimientos registrados.<br>¡Añade el primero arriba!</div>`;
+      ${VFSettings.t('recent.empty')}<br>${VFSettings.t('recent.emptyHint')}</div>`;
     return;
   }
 
@@ -1940,11 +1945,11 @@ function renderTransactions() {
     if (isInv) {
       const inv = INVESTMENT_TYPES.find(i => i.id === exp.category);
       icon  = inv ? inv.icon : '📈';
-      label = inv ? inv.label : exp.category;
+      label = inv ? invLabel(inv) : exp.category;
     } else {
       const cat = CATEGORIES.find(c => c.id === exp.category);
       icon  = cat ? cat.icon : '📦';
-      label = cat ? cat.label : exp.category;
+      label = cat ? catLabel(cat) : exp.category;
     }
 
     const item = document.createElement('div');
@@ -1981,12 +1986,9 @@ function openAllExpenses() {
     groups[ym].push(exp);
   });
 
-  const monthNames = {
-    es: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-    en: ['January','February','March','April','May','June','July','August','September','October','November','December']
-  };
-  const lang = localStorage.getItem('vf_lang') || 'es';
-  const names = monthNames[lang] || monthNames.es;
+  // Month names via i18n
+  const names = [];
+  for (var mi = 0; mi < 12; mi++) names.push(VFSettings.t('month.long.' + mi));
 
   // Sort months descending
   const sortedMonths = Object.keys(groups).sort((a, b) => b.localeCompare(a));
@@ -2016,11 +2018,11 @@ function openAllExpenses() {
       if (isInv) {
         const inv = INVESTMENT_TYPES.find(i => i.id === exp.category);
         icon = inv ? inv.icon : '📈';
-        label = inv ? inv.label : exp.category;
+        label = inv ? invLabel(inv) : exp.category;
       } else {
         const cat = CATEGORIES.find(c => c.id === exp.category);
         icon = cat ? cat.icon : '📦';
-        label = cat ? cat.label : exp.category;
+        label = cat ? catLabel(cat) : exp.category;
       }
 
       html += `<div class="tx-item">
@@ -2098,8 +2100,8 @@ async function saveRecurring() {
   const amount = parseFloat(document.getElementById('rf-amount').value);
   const category = document.getElementById('rf-category').value;
 
-  if (!name) { showToast('error', '⚠', 'Ingresa un nombre'); return; }
-  if (!amount || amount <= 0) { showToast('error', '⚠', 'Ingresa un monto valido'); return; }
+  if (!name) { showToast('error', '⚠', VFSettings.t('toast.invalidAmount')); return; }
+  if (!amount || amount <= 0) { showToast('error', '⚠', VFSettings.t('toast.invalidAmount')); return; }
 
   const item = {
     id: Date.now(),
@@ -2115,10 +2117,10 @@ async function saveRecurring() {
     state.recurring.unshift(item);
     renderRecurring();
     closeRecurringForm();
-    showToast('success', '✓', 'Gasto recurrente guardado');
+    showToast('success', '✓', VFSettings.t('toast.recurringSaved'));
   } catch (e) {
     console.error('Save recurring error:', e);
-    showToast('error', '✗', 'Error al guardar');
+    showToast('error', '✗', VFSettings.t('toast.saveError'));
   }
 }
 
@@ -2127,7 +2129,7 @@ async function deleteRecurringItem(id) {
     await VF.DB.deleteRecurring(id);
     state.recurring = state.recurring.filter(r => r.id !== id);
     renderRecurring();
-    showToast('success', '✓', 'Eliminado');
+    showToast('success', '✓', VFSettings.t('toast.deleted'));
   } catch (e) {
     console.error('Delete recurring error:', e);
   }
@@ -2151,7 +2153,7 @@ async function saveBudgetGoal() {
   await VF.DB.setBudget(getCurrentYM(), budget);
   closeBudgetGoal();
   renderBudget();
-  showToast('success', '✓', 'Meta actualizada');
+  showToast('success', '✓', VFSettings.t('toast.goalUpdated'));
 }
 
 function updateBudgetGoalDisplay() {
@@ -2184,6 +2186,32 @@ function showToast(type, icon, msg) {
   t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+/* ═══════════════════════════════════════
+   LANGUAGE CHANGE LISTENER
+═══════════════════════════════════════ */
+document.addEventListener('vf-lang-changed', function() {
+  renderCategories();
+  renderInvestmentTypes();
+  renderBudget();
+  renderTransactions();
+  renderRecurring();
+  // Re-apply greeting
+  var greetEl = document.getElementById('greeting-text');
+  if (greetEl && state.session) {
+    var h = new Date().getHours();
+    var saludo = h < 12 ? VFSettings.t('greeting.morning') : h < 18 ? VFSettings.t('greeting.afternoon') : VFSettings.t('greeting.evening');
+    greetEl.textContent = saludo + ', ' + state.session.name.split(' ')[0];
+  }
+  // Month badge
+  var now = new Date();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase() + ' ' + now.getFullYear();
+  // Update form labels based on current transaction type
+  var isInv = state.txType === 'inversion';
+  document.getElementById('form-title').textContent = isInv ? VFSettings.t('form.registerInvestment') : VFSettings.t('form.registerExpense');
+  document.getElementById('submit-label').textContent = isInv ? VFSettings.t('form.submitInvestment') : VFSettings.t('form.submitExpense');
+  updateChips();
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

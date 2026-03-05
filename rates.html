@@ -223,21 +223,21 @@
 <div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">👤 Configuración de cuenta</div>
+    <div class="prefs-title">👤 <span data-i18n="account.title">Configuración de cuenta</span></div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Perfil</div>
-      <div class="pref-row"><div><div class="pref-label">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
-      <div class="pref-row"><div><div class="pref-label">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
+      <div class="prefs-section-label" data-i18n="account.profile">Perfil</div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.name">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.email">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label" data-i18n="account.type">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
     </div>
     <div class="prefs-section">
-      <div class="prefs-section-label">Notificaciones</div>
+      <div class="prefs-section-label" data-i18n="account.notifications">Notificaciones</div>
       <div class="pref-row">
-        <div><div class="pref-label">Alerta de tasas</div><div class="pref-desc">Recuerda actualizar tasas diariamente</div></div>
+        <div><div class="pref-label" data-i18n="account.rateAlert">Alerta de tasas</div><div class="pref-desc" data-i18n="account.rateAlertDesc">Recuerda actualizar tasas diariamente</div></div>
         <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref()" style="padding:8px 14px;flex-shrink:0;">ON</button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">Guardar</button>
+    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;"><span data-i18n="account.save">Guardar</span></button>
   </div>
 </div>
 
@@ -245,25 +245,25 @@
 <div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
   <div class="prefs-sheet">
     <div class="prefs-handle"></div>
-    <div class="prefs-title">⚙️ Preferencias</div>
+    <div class="prefs-title">⚙️ <span data-i18n="prefs.title">Preferencias</span></div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Presupuesto</div>
+      <div class="prefs-section-label" data-i18n="prefs.budget">Presupuesto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Presupuesto mensual</div>
-          <div class="pref-desc">Tu límite de gastos en USD por mes</div>
+          <div class="pref-label" data-i18n="prefs.budgetLabel">Presupuesto mensual</div>
+          <div class="pref-desc" data-i18n="prefs.budgetDesc">Tu límite de gastos en USD por mes</div>
         </div>
         <input class="pref-input" id="pref-budget" type="number" placeholder="300" inputmode="decimal">
       </div>
     </div>
 
     <div class="prefs-section">
-      <div class="prefs-section-label">Moneda por defecto</div>
+      <div class="prefs-section-label" data-i18n="prefs.currencySection">Moneda por defecto</div>
       <div class="pref-row">
         <div>
-          <div class="pref-label">Moneda principal</div>
-          <div class="pref-desc">Para registrar gastos e inversiones</div>
+          <div class="pref-label" data-i18n="prefs.primaryCurrency">Moneda principal</div>
+          <div class="pref-desc" data-i18n="prefs.currencyDesc">Para registrar gastos e inversiones</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
@@ -273,7 +273,7 @@
     </div>
 
     <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
-      Guardar Preferencias
+      <span data-i18n="prefs.save">Guardar Preferencias</span>
     </button>
   </div>
 </div>
@@ -286,51 +286,51 @@
   <!-- INFO NOTICE (replaces old red alert) -->
   <div class="info-notice hidden" id="alertBanner">
     <span class="info-notice-icon">💡</span>
-    <span class="info-notice-text">Aún no has registrado las tasas de hoy. Usa el formulario de abajo para actualizar.</span>
+    <span class="info-notice-text" data-i18n="rates.noRatesAlert">Aún no has registrado las tasas de hoy. Usa el formulario de abajo para actualizar.</span>
   </div>
 
   <!-- BALANCE SECTION: Your money at a glance -->
   <div class="balance-hero animate-in">
-    <div class="balance-hero-label">Tu balance actual</div>
+    <div class="balance-hero-label" data-i18n="rates.yourBalance">Tu balance actual</div>
     <div class="balance-row">
       <div class="balance-col">
-        <div class="balance-cur-label">Bolívares</div>
+        <div class="balance-cur-label" data-i18n="rates.bolivares">Bolívares</div>
         <div class="balance-cur-val" style="color:var(--gold);" id="balBs">0 Bs</div>
-        <div class="balance-cur-sub" id="balBsSub">Sin cambios registrados</div>
+        <div class="balance-cur-sub" id="balBsSub" data-i18n="rates.noCambios">Sin cambios registrados</div>
       </div>
       <div class="balance-divider"></div>
       <div class="balance-col">
-        <div class="balance-cur-label">Valor real (BCV)</div>
+        <div class="balance-cur-label" data-i18n="rates.realValueBcv">Valor real (BCV)</div>
         <div class="balance-cur-val" style="color:var(--teal);" id="balUsd">$0.00</div>
-        <div class="balance-cur-sub" id="balUsdSub">Equivalente a tasa BCV</div>
+        <div class="balance-cur-sub" id="balUsdSub" data-i18n="rates.equivBcv">Equivalente a tasa BCV</div>
       </div>
     </div>
   </div>
 
   <!-- CURRENT RATES -->
-  <div class="section-label animate-in delay-1">Tasas del día</div>
+  <div class="section-label animate-in delay-1" data-i18n="rates.todayRates">Tasas del día</div>
   <div class="rates-grid animate-in delay-1">
     <div class="rate-cell">
-      <div class="rate-cell-label"><span class="dot" style="background:#3b9eff;"></span>BCV Oficial</div>
+      <div class="rate-cell-label"><span class="dot" style="background:#3b9eff;"></span><span data-i18n="rates.bcvOfficial">BCV Oficial</span></div>
       <div class="rate-cell-value" id="dispBCV">--<small>Bs/$</small></div>
-      <div class="rate-cell-sub" id="dispBCVDate">Cargando...</div>
+      <div class="rate-cell-sub" id="dispBCVDate" data-i18n="rates.loading">Cargando...</div>
     </div>
     <div class="rate-cell">
-      <div class="rate-cell-label"><span class="dot" style="background:var(--gold);"></span>Tu tasa</div>
+      <div class="rate-cell-label"><span class="dot" style="background:var(--gold);"></span><span data-i18n="rates.yourRate">Tu tasa</span></div>
       <div class="rate-cell-value" id="dispMine" style="color:var(--gold);">--<small>Bs/$</small></div>
-      <div class="rate-cell-sub" id="dispMineDate">sin datos</div>
+      <div class="rate-cell-sub" id="dispMineDate" data-i18n="rates.noData">sin datos</div>
     </div>
     <div class="rate-cell">
-      <div class="rate-cell-label"><span class="dot" style="background:#2ecc71;"></span>EUR Oficial</div>
+      <div class="rate-cell-label"><span class="dot" style="background:#2ecc71;"></span><span data-i18n="rates.eurOfficial">EUR Oficial</span></div>
       <div class="rate-cell-value" id="dispEUR" style="color:#2ecc71;">--<small>Bs/€</small></div>
-      <div class="rate-cell-sub" id="dispEURDate">Cargando...</div>
+      <div class="rate-cell-sub" id="dispEURDate" data-i18n="rates.loading">Cargando...</div>
     </div>
   </div>
 
   <!-- REGISTER: Rate + Exchange in one step -->
-  <div class="section-label animate-in delay-2">Registrar compra de dólares</div>
+  <div class="section-label animate-in delay-2" data-i18n="rates.registerPurchase">Registrar compra de dólares</div>
   <div class="card animate-in delay-2" style="padding:18px;">
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;line-height:1.5;">
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;line-height:1.5;" data-i18n="rates.purchaseDesc">
       Registra cuántos dólares compraste, a qué tasa, y el sistema calculará tu saldo en bolívares automáticamente.
     </div>
 
@@ -338,7 +338,7 @@
     <div style="display:flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:14px;">
       <span style="font-size:16px;">🌐</span>
       <div style="flex:1;">
-        <div style="font-size:9px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;">Tasa BCV (automática)</div>
+        <div style="font-size:9px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;" data-i18n="rates.bcvAuto">Tasa BCV (automática)</div>
         <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#3b9eff;" id="autoBcvValue">--</div>
       </div>
       <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);" id="autoBcvStatus">...</div>
@@ -351,16 +351,16 @@
     <div class="input-row">
       <div class="input-row-inline">
         <div class="input-group">
-          <label>💵 Dólares que compraste</label>
+          <label>💵 <span data-i18n="rates.dollarsBought">Dólares que compraste</span></label>
           <input type="number" id="cambioUSD" placeholder="200" step="0.01" min="0" oninput="updatePreview()">
         </div>
         <div class="input-group">
-          <label>💱 Tu tasa de compra (Bs/$)</label>
+          <label>💱 <span data-i18n="rates.yourBuyRate">Tu tasa de compra (Bs/$)</span></label>
           <input type="number" id="cambioRate" placeholder="90.00" step="0.01" min="0" oninput="updatePreview()">
         </div>
       </div>
       <div class="input-group">
-        <label>📅 Fecha</label>
+        <label>📅 <span data-i18n="form.date">Fecha</span></label>
         <input type="date" id="cambioFecha">
       </div>
     </div>
@@ -368,44 +368,44 @@
     <!-- Live preview -->
     <div style="margin-top:12px;padding:14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.1em;text-transform:uppercase;">Recibes</span>
+        <span style="font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.1em;text-transform:uppercase;" data-i18n="rates.youReceive">Recibes</span>
         <span style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold);" id="previewBs">0 Bs</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.1em;text-transform:uppercase;">Valor real (BCV)</span>
+        <span style="font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.1em;text-transform:uppercase;" data-i18n="rates.realValueBcvLabel">Valor real (BCV)</span>
         <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--teal);" id="previewBcv">$0.00</span>
       </div>
       <div id="previewDiff" style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:6px;text-align:right;"></div>
     </div>
 
     <button class="btn btn-primary" onclick="saveCambio()" style="width:100%;margin-top:12px;">
-      <span class="label">💱 Registrar Compra</span>
+      <span class="label">💱 <span data-i18n="rates.registerBtn">Registrar Compra</span></span>
       <span class="spin">⟳</span>
     </button>
   </div>
 
   <!-- RECENT EXCHANGES -->
-  <div class="section-label animate-in delay-3">Historial de compras</div>
+  <div class="section-label animate-in delay-3" data-i18n="rates.purchaseHistory">Historial de compras</div>
   <div style="display:flex;flex-direction:column;gap:8px;" id="cambiosList">
-    <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">
+    <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;" data-i18n="rates.noPurchases">
       Aún no has registrado compras de dólares.
     </div>
   </div>
 
   <!-- CHART -->
-  <div class="section-label animate-in delay-4">Evolución de tasas</div>
+  <div class="section-label animate-in delay-4" data-i18n="rates.rateEvolution">Evolución de tasas</div>
   <div class="chart-card animate-in delay-4">
     <div class="chart-header">
-      <div class="chart-title">BCV vs Tu tasa</div>
+      <div class="chart-title" data-i18n="rates.bcvVsYours">BCV vs Tu tasa</div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-dot" style="background:#3b9eff"></div>BCV</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Tu tasa</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span data-i18n="rates.yourRate">Tu tasa</span></div>
       </div>
     </div>
     <div class="chart-tabs">
       <div class="chart-tab active" onclick="setChartRange('7d',this)">7D</div>
       <div class="chart-tab" onclick="setChartRange('30d',this)">30D</div>
-      <div class="chart-tab" onclick="setChartRange('all',this)">Todo</div>
+      <div class="chart-tab" onclick="setChartRange('all',this)" data-i18n="rates.all">Todo</div>
     </div>
     <div class="chart-container">
       <canvas id="rateChart"></canvas>
@@ -413,24 +413,24 @@
   </div>
 
   <!-- RATE HISTORY TABLE -->
-  <div class="section-label animate-in delay-5">Historial de tasas</div>
+  <div class="section-label animate-in delay-5" data-i18n="rates.rateHistory">Historial de tasas</div>
   <div class="history-card animate-in delay-5">
     <div class="history-header">
-      <div class="history-title">Registro</div>
+      <div class="history-title" data-i18n="rates.record">Registro</div>
       <div class="history-count" id="histCount">0 registros</div>
     </div>
     <table class="history-table">
       <thead>
         <tr>
-          <th>Fecha</th>
+          <th data-i18n="form.date">Fecha</th>
           <th>BCV</th>
-          <th>Tu tasa</th>
+          <th data-i18n="rates.yourRate">Tu tasa</th>
           <th>USD</th>
           <th>Bs</th>
         </tr>
       </thead>
       <tbody id="historyBody">
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;">Sin registros</td></tr>
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;" data-i18n="rates.noRecords">Sin registros</td></tr>
       </tbody>
     </table>
   </div>
@@ -513,7 +513,7 @@ function openAccount() {
     document.getElementById('acctName').textContent  = session.name  || '--';
     document.getElementById('acctEmail').textContent = session.email || '--';
     document.getElementById('acctType').textContent  =
-      session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+      session.authType === 'google' ? VFSettings.t('account.typeGoogle') : VFSettings.t('account.typeEmail');
   }
   VF.DB.getConfig('notifRates').then(v => {
     const on = v !== 'off';
@@ -535,7 +535,7 @@ async function saveAccount() {
   const notifOn = document.getElementById('acct-notif-rates').textContent === 'ON';
   await VF.DB.setConfig('notifRates', notifOn ? 'on' : 'off');
   closeAccount();
-  showToast('✅ Cuenta actualizada', 'success');
+  showToast('✅ ' + VFSettings.t('account.updated'), 'success');
 }
 
 // ── PREFERENCES ────────────────────────────────────────────────
@@ -567,7 +567,7 @@ async function savePrefs() {
   await VF.DB.setBudget(getCurrentYM(), budget);
   await VF.DB.setConfig('defaultCurrency', prefCurrency);
   closePrefs();
-  showToast('✅ Preferencias guardadas', 'success');
+  showToast('✅ ' + VFSettings.t('toast.prefsSaved'), 'success');
 }
 
 function getCurrentYM() {
@@ -620,14 +620,15 @@ async function fetchEURRate() {
       var rate = oficial ? (oficial.promedio || oficial.venta) : null;
       if (rate) {
         valEl.innerHTML = fmt(rate) + '<small>Bs/\u20AC</small>';
-        dateEl.textContent = new Date().toLocaleDateString('es-VE', { day:'numeric', month:'short' }).replace('.','');
+        var dateLang = VFSettings.getLang() === 'en' ? 'en-US' : 'es-VE';
+        dateEl.textContent = new Date().toLocaleDateString(dateLang, { day:'numeric', month:'short' }).replace('.','');
         dateEl.style.color = '';
         return;
       }
     }
   } catch (_) {}
   valEl.innerHTML = '--<small>Bs/\u20AC</small>';
-  dateEl.textContent = 'No disponible';
+  dateEl.textContent = VFSettings.t('rates.unavailable');
   dateEl.style.color = 'var(--red)';
 }
 
@@ -637,7 +638,7 @@ async function fetchBCVRate() {
   const statusEl = document.getElementById('autoBcvStatus');
   const valueEl = document.getElementById('autoBcvValue');
   btn.classList.add('loading');
-  statusEl.textContent = 'Consultando...';
+  statusEl.textContent = VFSettings.t('rates.querying');
 
   try {
     let bcv = null;
@@ -667,7 +668,7 @@ async function fetchBCVRate() {
       statusEl.style.color = 'var(--teal)';
     } else {
       valueEl.textContent = '--';
-      statusEl.textContent = 'No disponible';
+      statusEl.textContent = VFSettings.t('rates.unavailable');
       statusEl.style.color = 'var(--red)';
     }
   } catch (_) {
@@ -694,8 +695,8 @@ function updatePreview() {
     if (rate > 0) {
       const diff = bs - bsBcv;
       document.getElementById('previewDiff').innerHTML = diff > 0
-        ? `<span style="color:var(--teal);">+${fmtBs(diff)} Bs más</span> que a tasa BCV`
-        : `<span style="color:var(--red);">${fmtBs(diff)} Bs menos</span> que a tasa BCV`;
+        ? `<span style="color:var(--teal);">+${fmtBs(diff)} Bs</span> ${VFSettings.t('rates.moreBsThanBcv')}`
+        : `<span style="color:var(--red);">${fmtBs(diff)} Bs</span> ${VFSettings.t('rates.lessBsThanBcv')}`;
     }
   } else {
     document.getElementById('previewBcv').textContent = '$0.00';
@@ -709,9 +710,9 @@ async function saveCambio() {
   const rate = parseFloat(document.getElementById('cambioRate').value);
   const fecha = document.getElementById('cambioFecha').value;
 
-  if (!usd || usd <= 0) { showToast('⚠️ Ingresa los dólares que compraste', 'error'); return; }
-  if (!rate || rate <= 0) { showToast('⚠️ Ingresa tu tasa de compra', 'error'); return; }
-  if (!fecha) { showToast('⚠️ Selecciona una fecha', 'error'); return; }
+  if (!usd || usd <= 0) { showToast('⚠️ ' + VFSettings.t('rates.enterDollars'), 'error'); return; }
+  if (!rate || rate <= 0) { showToast('⚠️ ' + VFSettings.t('rates.enterRate'), 'error'); return; }
+  if (!fecha) { showToast('⚠️ ' + VFSettings.t('toast.selectDate'), 'error'); return; }
 
   const bcv = state.autoBcv || 0;
   const amountBs = Math.round(usd * rate * 100) / 100;
@@ -752,9 +753,9 @@ async function saveCambio() {
     state.tasas = state.tasas.filter(t => t.fecha !== fecha);
     state.tasas.push(rateRecord);
     state.tasas.sort((a,b) => a.fecha.localeCompare(b.fecha));
-    showToast('✅ Compra registrada', 'success');
+    showToast('✅ ' + VFSettings.t('rates.purchaseRegistered'), 'success');
   } catch (e) {
-    showToast('⚠️ Error al guardar', 'error');
+    showToast('⚠️ ' + VFSettings.t('toast.saveError'), 'error');
     console.error(e);
   }
 
@@ -792,8 +793,10 @@ function renderBalance() {
 
   if (state.cambios.length > 0) {
     const totalUsdSpent = state.cambios.reduce((s, c) => s + (c.amountUSD || 0), 0);
-    document.getElementById('balBsSub').textContent = `De $${totalUsdSpent.toFixed(0)} comprados`;
-    document.getElementById('balUsdSub').textContent = bcv > 0 ? `A tasa BCV ${fmt(bcv)}` : 'Sin tasa BCV';
+    document.getElementById('balBsSub').removeAttribute('data-i18n');
+    document.getElementById('balBsSub').textContent = VFSettings.t('dash.fromUsd').replace('${amount}', totalUsdSpent.toFixed(0));
+    document.getElementById('balUsdSub').removeAttribute('data-i18n');
+    document.getElementById('balUsdSub').textContent = bcv > 0 ? `${VFSettings.t('rates.at')} BCV ${fmt(bcv)}` : VFSettings.t('dash.noData');
   }
 }
 
@@ -810,7 +813,7 @@ function renderCambios() {
   const list = document.getElementById('cambiosList');
   const recent = state.cambios.slice(0, 8);
   if (!recent.length) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">Aún no has registrado compras de dólares.</div>';
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">' + VFSettings.t('rates.noPurchases') + '</div>';
     return;
   }
   list.innerHTML = recent.map(c => `
@@ -843,7 +846,7 @@ function renderChart() {
       labels,
       datasets: [
         { label:'BCV', data:filtered.map(t=>t.tasa_bcv), borderColor:'#3b9eff', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:'#3b9eff', tension:0.3, fill:false },
-        { label:'Tu tasa', data:filtered.map(t=>t.tasa_mi_compra), borderColor:'#D4A843', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:'#D4A843', tension:0.3, fill:false },
+        { label:VFSettings.t('rates.yourRate'), data:filtered.map(t=>t.tasa_mi_compra), borderColor:'#D4A843', borderWidth:2, pointRadius:filtered.length>20?0:3, pointBackgroundColor:'#D4A843', tension:0.3, fill:false },
       ],
     },
     options: {
@@ -865,9 +868,9 @@ function renderChart() {
 function renderHistory() {
   const sorted = [...state.tasas].reverse();
   const tbody = document.getElementById('historyBody');
-  document.getElementById('histCount').textContent = `${sorted.length} registros`;
+  document.getElementById('histCount').textContent = `${sorted.length} ${VFSettings.t('rates.records')}`;
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;">Sin registros</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;">' + VFSettings.t('rates.noRecords') + '</td></tr>';
     return;
   }
   tbody.innerHTML = sorted.map(t => `
@@ -915,7 +918,7 @@ function showToast(msg, type = 'success') {
 function fmt(n) { return n ? n.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--'; }
 function fmtBs(n) { return n ? n.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0}) : '0'; }
 function getTodayStr() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function formatDate(str) { if(!str) return '--'; const d=new Date(str+'T00:00:00'); return d.toLocaleDateString('es-VE',{day:'numeric',month:'short'}); }
+function formatDate(str) { if(!str) return '--'; const d=new Date(str+'T00:00:00'); var lang = VFSettings.getLang() === 'en' ? 'en-US' : 'es-VE'; return d.toLocaleDateString(lang,{day:'numeric',month:'short'}); }
 
 // ── SERVICE WORKER ─────────────────────────────────────────────
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -928,7 +931,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 
   // Header
   const now = new Date();
-  document.getElementById('monthBadge').textContent = now.toLocaleString('es',{month:'short'}).toUpperCase()+' '+now.getFullYear();
+  document.getElementById('monthBadge').textContent = VFSettings.t('month.short.' + now.getMonth()).toUpperCase()+' '+now.getFullYear();
   document.getElementById('userAvatarBtn').textContent = (session.name||'U')[0].toUpperCase();
   document.getElementById('menuUserName').textContent = session.name || 'Usuario';
   document.getElementById('menuUserEmail').textContent = session.email || '';
@@ -937,6 +940,8 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
   document.getElementById('cambioFecha').value = getTodayStr();
 
   loadData();
+
+  document.addEventListener('vf-lang-changed', function() { renderAll(); });
 })();
 </script>
 </body>
