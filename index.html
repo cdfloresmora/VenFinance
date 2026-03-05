@@ -721,6 +721,9 @@
           <button class="user-dropdown-item" onclick="openPrefs()">
             <span class="item-icon">⚙️</span> Preferencias
           </button>
+          <button class="user-dropdown-item" onclick="openAccount()">
+            <span class="item-icon">👤</span> Configuración de cuenta
+          </button>
           <div class="user-dropdown-divider"></div>
           <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
             <span class="item-icon">⏻</span> Cerrar sesión
@@ -766,6 +769,28 @@
     <button class="btn btn-primary" onclick="savePrefs()" style="width:100%;margin-top:8px;">
       Guardar Preferencias
     </button>
+  </div>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
+  <div class="prefs-sheet">
+    <div class="prefs-handle"></div>
+    <div class="prefs-title">👤 Configuración de cuenta</div>
+    <div class="prefs-section">
+      <div class="prefs-section-label">Perfil</div>
+      <div class="pref-row"><div><div class="pref-label">Nombre</div><div class="pref-desc" id="acctName">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label">Correo</div><div class="pref-desc" id="acctEmail">--</div></div></div>
+      <div class="pref-row"><div><div class="pref-label">Tipo de cuenta</div><div class="pref-desc" id="acctType">--</div></div></div>
+    </div>
+    <div class="prefs-section">
+      <div class="prefs-section-label">Notificaciones</div>
+      <div class="pref-row">
+        <div><div class="pref-label">Alerta de tasas</div><div class="pref-desc">Recuerda actualizar tasas diariamente</div></div>
+        <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref()" style="padding:8px 14px;flex-shrink:0;">ON</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">Guardar</button>
   </div>
 </div>
 
@@ -1078,9 +1103,43 @@ async function savePrefs() {
   showToast('success', '✓', 'Preferencias guardadas');
 }
 
+// ── ACCOUNT SETTINGS ───────────────────────────────────────────
+function openAccount() {
+  closeUserMenu();
+  const session = state.session;
+  if (session) {
+    document.getElementById('acctName').textContent  = session.name  || '--';
+    document.getElementById('acctEmail').textContent = session.email || '--';
+    document.getElementById('acctType').textContent  =
+      session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+  }
+  VF.DB.getConfig('notifRates').then(v => {
+    const on = v !== 'off';
+    document.getElementById('acct-notif-rates').textContent = on ? 'ON' : 'OFF';
+    document.getElementById('acct-notif-rates').classList.toggle('active', on);
+  });
+  document.getElementById('accountOverlay').classList.add('visible');
+}
+function closeAccount() {
+  document.getElementById('accountOverlay').classList.remove('visible');
+}
+function toggleAcctPref() {
+  const btn = document.getElementById('acct-notif-rates');
+  const isOn = btn.textContent === 'ON';
+  btn.textContent = isOn ? 'OFF' : 'ON';
+  btn.classList.toggle('active', !isOn);
+}
+async function saveAccount() {
+  const notifOn = document.getElementById('acct-notif-rates').textContent === 'ON';
+  await VF.DB.setConfig('notifRates', notifOn ? 'on' : 'off');
+  closeAccount();
+  showToast('success', '✓', 'Cuenta actualizada');
+}
+
 async function init() {
   const session = await VF.Auth.requireAuth();
   if (!session) return;
+  state.session = session;
 
   // Header
   const now = new Date();

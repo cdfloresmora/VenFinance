@@ -87,6 +87,32 @@
   .summary-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; color: var(--text-1); text-align: right; }
   .summary-val small { display: block; font-size: 10px; color: var(--text-2); margin-top: 1px; }
 
+  /* ── BS BALANCE CARD ── */
+  .saldo-card { padding: 20px; }
+  .saldo-bs-amount {
+    font-family: var(--font-mono); font-size: 36px; font-weight: 600;
+    line-height: 1; letter-spacing: -1px; color: var(--gold);
+    margin: 10px 0 4px;
+  }
+  .saldo-label-top { font-size: 10px; color: var(--text-3); letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--font-mono); }
+  .saldo-sub { font-size: 11px; color: var(--text-2); font-family: var(--font-mono); margin-bottom: 18px; }
+  .saldo-usd-row {
+    display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0;
+    background: var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 14px;
+  }
+  .saldo-usd-block { background: rgba(255,255,255,0.02); padding: 14px 16px; }
+  .saldo-usd-tag { font-size: 9px; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 5px; }
+  .saldo-usd-val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; line-height: 1; }
+  .saldo-usd-rate { font-family: var(--font-mono); font-size: 10px; color: var(--text-2); margin-top: 3px; }
+  .saldo-gap-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .saldo-gap-label { font-size: 11px; color: var(--text-2); font-family: var(--font-mono); }
+  .saldo-gap-val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+  .saldo-empty { text-align: center; padding: 24px; color: var(--text-3); font-size: 12px; font-family: var(--font-mono); line-height: 1.6; }
+
   /* ── CHARTS ── */
   .chart-wrap { padding: 16px 20px 20px; }
   .donut-layout { display: flex; align-items: center; gap: 16px; }
@@ -135,6 +161,9 @@
           <button class="user-dropdown-item" onclick="openPrefs()">
             <span class="item-icon">⚙️</span> Preferencias
           </button>
+          <button class="user-dropdown-item" onclick="openAccount()">
+            <span class="item-icon">👤</span> Configuración de cuenta
+          </button>
           <div class="user-dropdown-divider"></div>
           <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
             <span class="item-icon">⏻</span> Cerrar sesión
@@ -145,6 +174,51 @@
   </div>
 </header>
 <div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
+
+<!-- ACCOUNT MODAL -->
+<div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
+  <div class="prefs-sheet">
+    <div class="prefs-handle"></div>
+    <div class="prefs-title">👤 Configuración de cuenta</div>
+
+    <div class="prefs-section">
+      <div class="prefs-section-label">Perfil</div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Nombre</div>
+          <div class="pref-desc" id="acctName">--</div>
+        </div>
+      </div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Correo electrónico</div>
+          <div class="pref-desc" id="acctEmail">--</div>
+        </div>
+      </div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Tipo de cuenta</div>
+          <div class="pref-desc" id="acctType">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prefs-section">
+      <div class="prefs-section-label">Notificaciones</div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Alerta de tasas</div>
+          <div class="pref-desc">Recuerda actualizar tasas diariamente</div>
+        </div>
+        <button class="chart-tab" id="acct-notif-rates" onclick="toggleAcctPref('notifRates')" style="padding:8px 14px;flex-shrink:0;">ON</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveAccount()" style="width:100%;margin-top:8px;">
+      Guardar
+    </button>
+  </div>
+</div>
 
 <!-- PREFERENCES MODAL -->
 <div class="prefs-overlay" id="prefsOverlay" onclick="if(event.target===this)closePrefs()">
@@ -229,10 +303,40 @@
     </div>
   </div>
 
-  <!-- TASA DEL DÍA -->
-  <div class="section-label animate-in delay-2"><div class="live-dot"></div>Tasa del día</div>
+  <!-- SALDO BS — Real balance with BCV valuation -->
+  <div class="section-label animate-in delay-2">Saldo en Bolívares</div>
 
-  <div class="card card-glow-gold animate-in delay-2">
+  <div class="card animate-in delay-2" id="saldoCard">
+    <div class="saldo-card">
+      <div class="saldo-label-top">Balance disponible</div>
+      <div class="saldo-bs-amount" id="saldoBsAmount">0 Bs</div>
+      <div class="saldo-sub" id="saldoBsSub">Registra una compra de dólares en la sección Tasas para comenzar</div>
+
+      <div class="saldo-usd-row" id="saldoUsdRow" style="display:none;">
+        <div class="saldo-usd-block">
+          <div class="saldo-usd-tag">A tu tasa promedio</div>
+          <div class="saldo-usd-val" id="saldoAtMiTasa" style="color:var(--gold);">$0.00</div>
+          <div class="saldo-usd-rate" id="saldoMiTasaRate">-- Bs/$</div>
+        </div>
+        <div style="background:var(--border);"></div>
+        <div class="saldo-usd-block">
+          <div class="saldo-usd-tag">A tasa BCV</div>
+          <div class="saldo-usd-val" id="saldoAtBcv" style="color:var(--teal);">$0.00</div>
+          <div class="saldo-usd-rate" id="saldoBcvRate">-- Bs/$</div>
+        </div>
+      </div>
+
+      <div class="saldo-gap-row" id="saldoGapRow" style="display:none;">
+        <div class="saldo-gap-label">Diferencia BCV vs tu tasa</div>
+        <div class="saldo-gap-val" id="saldoGapVal">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASA DEL DÍA -->
+  <div class="section-label animate-in delay-3">Tasa del día</div>
+
+  <div class="card card-glow-gold animate-in delay-3">
     <div class="rate-card">
       <div class="card-header" style="padding:0;">
         <span class="card-label">Tasas de cambio</span>
@@ -398,11 +502,12 @@ async function renderDashboard() {
   const ym = `${y}-${String(m).padStart(2,'0')}`;
 
   // Load data from Firestore
-  const [expenses, incomes, rates, budgetDoc] = await Promise.all([
+  const [expenses, incomes, rates, budgetDoc, cambios] = await Promise.all([
     VF.DB.getExpenses(),
     VF.DB.getIncomes(),
     VF.DB.getRates(),
     VF.DB.getBudget(ym),
+    VF.DB.getCambios(),
   ]);
 
   const budget = budgetDoc ? budgetDoc.budgetUSD : 0;
@@ -437,6 +542,9 @@ async function renderDashboard() {
   const dLeft  = dTotal - dToday + 1;
   const leftUsd = Math.max(0, budget - totalExpense);
   const pct = budget > 0 ? Math.min(100, (totalExpense / budget * 100)) : 0;
+
+  // ── Saldo Bs (all-time cambios minus all-time Bs expenses) ──
+  renderSaldoBs(cambios, expenses, tasa_bcv);
 
   // ── Greeting ──
   document.getElementById('monthBadge').textContent =
@@ -617,9 +725,104 @@ async function savePrefs() {
   await renderDashboard(); // refresh dashboard with new budget
 }
 
+// ── Saldo de Bolívares + BCV Valuation ───────────────────────────────────────
+function renderSaldoBs(cambios, expenses, bcvRate) {
+  const fmtN = n => n.toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  // Bs that came IN (from registering dollar purchases — user records how many Bs they hold)
+  const totalBsIn  = cambios.reduce((s, c) => s + (c.amountBs || 0), 0);
+  // Bs that went OUT (gastos in Bs currency)
+  const totalBsOut = expenses
+    .filter(e => e.currency === 'Bs')
+    .reduce((s, e) => s + (e.amountBs || 0), 0);
+  const saldoBs = Math.max(0, totalBsIn - totalBsOut);
+
+  document.getElementById('saldoBsAmount').textContent = `${fmtN(saldoBs)} Bs`;
+
+  if (cambios.length === 0) {
+    document.getElementById('saldoBsSub').textContent =
+      'Registra una compra de dólares en la sección Tasas para ver tu balance';
+    document.getElementById('saldoUsdRow').style.display = 'none';
+    document.getElementById('saldoGapRow').style.display = 'none';
+    return;
+  }
+
+  // Weighted average purchase rate: total Bs paid / total USD bought
+  const totalUsd    = cambios.reduce((s, c) => s + (c.amountUSD || 0), 0);
+  const weightedRate = totalUsd > 0 ? totalBsIn / totalUsd : 0;
+
+  // USD equivalents
+  const usdAtMiTasa = weightedRate > 0 ? saldoBs / weightedRate : 0;
+  const usdAtBcv    = bcvRate    > 0 ? saldoBs / bcvRate    : 0;
+
+  document.getElementById('saldoBsSub').textContent =
+    `De $${totalUsd.toFixed(0)} USD comprados · saldo neto`;
+  document.getElementById('saldoAtMiTasa').textContent = fmtUsd(usdAtMiTasa);
+  document.getElementById('saldoMiTasaRate').textContent =
+    weightedRate > 0 ? `Tasa prom. ${fmt(weightedRate)} Bs/$` : 'Sin datos';
+  document.getElementById('saldoAtBcv').textContent = bcvRate > 0 ? fmtUsd(usdAtBcv) : '--';
+  document.getElementById('saldoBcvRate').textContent =
+    bcvRate > 0 ? `BCV ${fmt(bcvRate)} Bs/$` : 'Sin tasa BCV';
+
+  document.getElementById('saldoUsdRow').style.display = '';
+  document.getElementById('saldoGapRow').style.display = '';
+
+  // Gap: positive = your Bs buy MORE USD at BCV (you paid a higher rate, which is typical)
+  if (bcvRate > 0 && weightedRate > 0) {
+    const gapUsd = usdAtBcv - usdAtMiTasa;
+    const gapPct = ((usdAtBcv - usdAtMiTasa) / usdAtMiTasa * 100);
+    const gapEl  = document.getElementById('saldoGapVal');
+    if (gapUsd > 0) {
+      gapEl.textContent  = `+${fmtUsd(gapUsd)} (+${gapPct.toFixed(1)}%)`;
+      gapEl.style.color  = 'var(--teal)';
+    } else if (gapUsd < 0) {
+      gapEl.textContent  = `${fmtUsd(gapUsd)} (${gapPct.toFixed(1)}%)`;
+      gapEl.style.color  = 'var(--red)';
+    } else {
+      gapEl.textContent  = 'Sin diferencia';
+      gapEl.style.color  = 'var(--text-2)';
+    }
+  }
+}
+
+// ── Account Settings ──────────────────────────────────────────────────────────
+let _session = null;
+
+function openAccount() {
+  closeUserMenu();
+  if (_session) {
+    document.getElementById('acctName').textContent  = _session.name  || '--';
+    document.getElementById('acctEmail').textContent = _session.email || '--';
+    document.getElementById('acctType').textContent  =
+      _session.authType === 'google' ? 'Google Sign-In' : 'Correo y contraseña';
+  }
+  // Load saved notification preference
+  VF.DB.getConfig('notifRates').then(v => {
+    const on = v !== 'off';
+    document.getElementById('acct-notif-rates').textContent = on ? 'ON' : 'OFF';
+    document.getElementById('acct-notif-rates').classList.toggle('active', on);
+  });
+  document.getElementById('accountOverlay').classList.add('visible');
+}
+function closeAccount() {
+  document.getElementById('accountOverlay').classList.remove('visible');
+}
+async function toggleAcctPref(key) {
+  const btn = document.getElementById('acct-notif-rates');
+  const isOn = btn.textContent === 'ON';
+  btn.textContent = isOn ? 'OFF' : 'ON';
+  btn.classList.toggle('active', !isOn);
+}
+async function saveAccount() {
+  const notifOn = document.getElementById('acct-notif-rates').textContent === 'ON';
+  await VF.DB.setConfig('notifRates', notifOn ? 'on' : 'off');
+  closeAccount();
+}
+
 async function boot() {
   const session = await VF.Auth.requireAuth();
   if (!session) return;
+  _session = session;
 
   // Header
   const now = new Date();
