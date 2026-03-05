@@ -1052,6 +1052,7 @@
         <div style="display:flex;gap:6px;">
           <button class="chart-tab active" id="pref-cur-bs" onclick="setPrefCurrency('Bs')" style="padding:8px 14px;">Bs</button>
           <button class="chart-tab" id="pref-cur-usd" onclick="setPrefCurrency('$')" style="padding:8px 14px;">USD</button>
+          <button class="chart-tab" id="pref-cur-eur" onclick="setPrefCurrency('€')" style="padding:8px 14px;">EUR</button>
         </div>
       </div>
     </div>
@@ -1152,6 +1153,7 @@
       <div class="currency-toggle">
         <button class="currency-btn active" id="btn-bs" onclick="setCurrency('Bs')">Bs</button>
         <button class="currency-btn" id="btn-usd" onclick="setCurrency('$')">$</button>
+        <button class="currency-btn" id="btn-eur" onclick="setCurrency('€')">€</button>
       </div>
       <input
         id="amount-input"
@@ -1460,6 +1462,7 @@ function openPrefs() {
     prefCurrency = c || 'Bs';
     document.getElementById('pref-cur-bs').classList.toggle('active', prefCurrency === 'Bs');
     document.getElementById('pref-cur-usd').classList.toggle('active', prefCurrency === '$');
+    document.getElementById('pref-cur-eur').classList.toggle('active', prefCurrency === '€');
   });
 }
 function closePrefs() {
@@ -1469,6 +1472,7 @@ function setPrefCurrency(cur) {
   prefCurrency = cur;
   document.getElementById('pref-cur-bs').classList.toggle('active', cur === 'Bs');
   document.getElementById('pref-cur-usd').classList.toggle('active', cur === '$');
+  document.getElementById('pref-cur-eur').classList.toggle('active', cur === '€');
 }
 async function savePrefs() {
   const budget = parseFloat(document.getElementById('pref-budget').value) || 0;
@@ -1745,10 +1749,11 @@ function setCurrency(cur) {
   state.currency = cur;
   document.getElementById('btn-bs').classList.toggle('active',  cur === 'Bs');
   document.getElementById('btn-usd').classList.toggle('active', cur === '$');
+  document.getElementById('btn-eur').classList.toggle('active', cur === '€');
 
-  // Grey out rate section when USD — no conversion needed
-  const rateSection = document.getElementById('rate-section');
-  if (cur === '$') {
+  // Grey out rate section when USD or EUR — no Bs conversion needed
+  var rateSection = document.getElementById('rate-section');
+  if (cur === '$' || cur === '€') {
     rateSection.classList.add('rate-section-disabled');
   } else {
     rateSection.classList.remove('rate-section-disabled');
@@ -1766,8 +1771,8 @@ function onAmountChange() {
   const saldoComp = document.getElementById('saldo-comparison');
   const activeRate = getActiveRate();
 
-  // When USD is selected, hide conversion strip and saldo comparison
-  if (state.currency === '$') {
+  // When USD or EUR is selected, hide conversion strip and saldo comparison
+  if (state.currency === '$' || state.currency === '€') {
     strip.classList.add('hidden');
     saldoComp.classList.add('hidden');
     return;
@@ -1844,6 +1849,13 @@ async function submitExpense() {
     amountBs           = state.rateOfficial ? Math.round(raw * state.rateOfficial * 100) / 100 : 0;
     activeRate         = 0;
     rateLabel          = 'USD directo';
+  } else if (state.currency === '€') {
+    // EUR — store as EUR, estimate USD via EUR/USD cross rate
+    amountUSD_official = raw; // treat 1 EUR ~ 1 USD as fallback
+    amountUSD_real     = raw;
+    amountBs           = state.rateOfficial ? Math.round(raw * state.rateOfficial * 100) / 100 : 0;
+    activeRate         = 0;
+    rateLabel          = 'EUR directo';
   } else {
     // Bs — need rates for conversion
     if (!state.rateOfficial || !state.rateParallel) {
@@ -1874,7 +1886,7 @@ async function submitExpense() {
     amountUSD_real: amountUSD_real,
     rateOfficial:   state.rateOfficial,
     rateParallel:   state.rateParallel,
-    rateType:       state.currency === '$' ? 'direct' : state.rateType,
+    rateType:       (state.currency === '$' || state.currency === '€') ? 'direct' : state.rateType,
     rateUsed:       activeRate,
     rateLabel,
   };
@@ -1944,12 +1956,8 @@ function renderTransactions() {
         <div class="tx-desc">${exp.description ? exp.description + ' · ' + exp.date : exp.date}</div>
       </div>
       <div class="tx-amounts">
-        <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${exp.currency === 'Bs'
-          ? fmtBs(exp.amountRaw) + ' Bs'
-          : '$' + exp.amountRaw.toFixed(2)}</div>
-        <div class="tx-secondary">${exp.currency === 'Bs'
-          ? '$' + exp.amountUSD.toFixed(2)
-          : fmtBs(exp.amountBs) + ' Bs'}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
+        <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${fmtExpPrimary(exp)}</div>
+        <div class="tx-secondary">${fmtExpSecondary(exp)}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
       </div>
     `;
     list.appendChild(item);
@@ -2022,12 +2030,8 @@ function openAllExpenses() {
           <div class="tx-desc">${exp.description ? exp.description + ' · ' + exp.date : exp.date}</div>
         </div>
         <div class="tx-amounts">
-          <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${exp.currency === 'Bs'
-            ? fmtBs(exp.amountRaw) + ' Bs'
-            : '$' + exp.amountRaw.toFixed(2)}</div>
-          <div class="tx-secondary">${exp.currency === 'Bs'
-            ? '$' + exp.amountUSD.toFixed(2)
-            : fmtBs(exp.amountBs) + ' Bs'}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
+          <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${fmtExpPrimary(exp)}</div>
+          <div class="tx-secondary">${fmtExpSecondary(exp)}${exp.rateLabel ? ' · ' + exp.rateLabel : ''}</div>
         </div>
       </div>`;
     });
@@ -2160,6 +2164,17 @@ function updateBudgetGoalDisplay() {
 ═══════════════════════════════════════ */
 function fmtBs(n) {
   return new Intl.NumberFormat('es-VE', { maximumFractionDigits: 2 }).format(n);
+}
+
+function fmtExpPrimary(exp) {
+  if (exp.currency === 'Bs') return fmtBs(exp.amountRaw) + ' Bs';
+  if (exp.currency === '€') return '€' + exp.amountRaw.toFixed(2);
+  return '$' + exp.amountRaw.toFixed(2);
+}
+
+function fmtExpSecondary(exp) {
+  if (exp.currency === 'Bs') return '$' + exp.amountUSD.toFixed(2);
+  return fmtBs(exp.amountBs) + ' Bs';
 }
 
 function showToast(type, icon, msg) {
