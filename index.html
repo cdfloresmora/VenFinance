@@ -1941,7 +1941,7 @@ function renderTransactions() {
       <div class="tx-cat-icon" ${isInv ? 'style="background:rgba(0,212,170,0.1);"' : ''}>${icon}</div>
       <div class="tx-info">
         <div class="tx-cat-name">${isInv ? '📈 ' : ''}${label}</div>
-        <div class="tx-desc">${exp.description || exp.date}</div>
+        <div class="tx-desc">${exp.description ? exp.description + ' · ' + exp.date : exp.date}</div>
       </div>
       <div class="tx-amounts">
         <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${exp.currency === 'Bs'
@@ -2019,7 +2019,7 @@ function openAllExpenses() {
         <div class="tx-cat-icon" ${isInv ? 'style="background:rgba(0,212,170,0.1);"' : ''}>${icon}</div>
         <div class="tx-info">
           <div class="tx-cat-name">${isInv ? '📈 ' : ''}${label}</div>
-          <div class="tx-desc">${exp.description || exp.date}</div>
+          <div class="tx-desc">${exp.description ? exp.description + ' · ' + exp.date : exp.date}</div>
         </div>
         <div class="tx-amounts">
           <div class="tx-primary" ${isInv ? 'style="color:var(--teal)"' : ''}>${exp.currency === 'Bs'

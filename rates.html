@@ -49,7 +49,8 @@
   .balance-divider { width:1px; background:var(--border); margin:4px 0; }
 
   /* Rate display cards */
-  .rates-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .rates-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media (max-width: 399px) { .rates-grid { grid-template-columns:1fr 1fr; } }
   .rate-cell {
     background:var(--bg-elevated);
     border:1px solid var(--border);
@@ -318,6 +319,11 @@
       <div class="rate-cell-label"><span class="dot" style="background:var(--gold);"></span>Tu tasa</div>
       <div class="rate-cell-value" id="dispMine" style="color:var(--gold);">--<small>Bs/$</small></div>
       <div class="rate-cell-sub" id="dispMineDate">sin datos</div>
+    </div>
+    <div class="rate-cell">
+      <div class="rate-cell-label"><span class="dot" style="background:#2ecc71;"></span>EUR Oficial</div>
+      <div class="rate-cell-value" id="dispEUR" style="color:#2ecc71;">--<small>Bs/€</small></div>
+      <div class="rate-cell-sub" id="dispEURDate">Cargando...</div>
     </div>
   </div>
 
@@ -597,6 +603,32 @@ async function loadData() {
   }
   renderAll();
   fetchBCVRate();
+  fetchEURRate();
+}
+
+// ── AUTO-FETCH EUR ─────────────────────────────────────────────
+async function fetchEURRate() {
+  var valEl = document.getElementById('dispEUR');
+  var dateEl = document.getElementById('dispEURDate');
+  try {
+    var res = await fetch('https://ve.dolarapi.com/v1/euros', { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      var data = await res.json();
+      var oficial = Array.isArray(data)
+        ? data.find(function(d) { return d.fuente === 'oficial' || (d.nombre && d.nombre.toLowerCase().includes('oficial')); })
+        : data;
+      var rate = oficial ? (oficial.promedio || oficial.venta) : null;
+      if (rate) {
+        valEl.innerHTML = fmt(rate) + '<small>Bs/\u20AC</small>';
+        dateEl.textContent = new Date().toLocaleDateString('es-VE', { day:'numeric', month:'short' }).replace('.','');
+        dateEl.style.color = '';
+        return;
+      }
+    }
+  } catch (_) {}
+  valEl.innerHTML = '--<small>Bs/\u20AC</small>';
+  dateEl.textContent = 'No disponible';
+  dateEl.style.color = 'var(--red)';
 }
 
 // ── AUTO-FETCH BCV ─────────────────────────────────────────────
