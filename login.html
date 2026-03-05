@@ -307,6 +307,71 @@
     z-index: 1;
   }
 
+  /* ── Rates Ticker ── */
+  .rates-ticker {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rate-tile {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px 10px;
+    text-align: center;
+    transition: border-color .3s;
+  }
+
+  .rate-tile-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .rate-tile-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+  }
+
+  .rate-tile-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-1);
+    line-height: 1.2;
+  }
+
+  .rate-tile-value small {
+    font-size: 10px;
+    color: var(--text-3);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  .rate-tile-date {
+    font-size: 9px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    margin-top: 4px;
+  }
+
+  .rate-tile.loading .rate-tile-value {
+    color: var(--text-3);
+  }
+
   @media (min-width: 640px) {
     .login-card {
       padding: 44px 36px 40px;
@@ -318,6 +383,9 @@
     }
     .login-logo-text {
       font-size: 28px;
+    }
+    .rates-ticker {
+      max-width: 420px;
     }
   }
 </style>
@@ -399,6 +467,26 @@
     </div>
 
   </div>
+
+  <!-- Live Rates Ticker -->
+  <div class="rates-ticker">
+    <div class="rate-tile loading" id="tile-bcv">
+      <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--teal);box-shadow:0 0 6px var(--teal);"></span>BCV</div>
+      <div class="rate-tile-value" id="login-rate-bcv">--<small>Bs/$</small></div>
+      <div class="rate-tile-date" id="login-date-bcv">Cargando...</div>
+    </div>
+    <div class="rate-tile loading" id="tile-parallel">
+      <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold);"></span>Paralelo</div>
+      <div class="rate-tile-value" id="login-rate-parallel">--<small>Bs/$</small></div>
+      <div class="rate-tile-date" id="login-date-parallel">Cargando...</div>
+    </div>
+    <div class="rate-tile loading" id="tile-eur">
+      <div class="rate-tile-label"><span class="rate-tile-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></span>EUR</div>
+      <div class="rate-tile-value" id="login-rate-eur">--<small>Bs/&euro;</small></div>
+      <div class="rate-tile-date" id="login-date-eur">Cargando...</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Toast -->
@@ -564,6 +652,66 @@ function checkExistingSession() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// ── Live Rates on Login ──────────────────────────────────────
+function fmtRate(n) {
+  return new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+}
+
+async function fetchLoginRates() {
+  var dateStr = new Date().toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }).replace('.', '');
+
+  // Fetch USD rates (BCV + Paralelo)
+  try {
+    var res = await fetch('https://ve.dolarapi.com/v1/dolares', { signal: AbortSignal.timeout(6000) });
+    if (res.ok) {
+      var data = await res.json();
+      var oficial = data.find(function(d) { return d.fuente === 'oficial' || (d.nombre && d.nombre.toLowerCase().includes('oficial')); });
+      var paralelo = data.find(function(d) { return d.fuente === 'paralelo' || (d.nombre && d.nombre.toLowerCase().includes('paralelo')); });
+
+      if (oficial) {
+        var bcvRate = oficial.promedio || oficial.venta;
+        if (bcvRate) {
+          document.getElementById('login-rate-bcv').innerHTML = fmtRate(bcvRate) + '<small>Bs/$</small>';
+          document.getElementById('login-date-bcv').textContent = dateStr;
+          document.getElementById('tile-bcv').classList.remove('loading');
+        }
+      }
+      if (paralelo) {
+        var parRate = paralelo.promedio || paralelo.venta;
+        if (parRate) {
+          document.getElementById('login-rate-parallel').innerHTML = fmtRate(parRate) + '<small>Bs/$</small>';
+          document.getElementById('login-date-parallel').textContent = dateStr;
+          document.getElementById('tile-parallel').classList.remove('loading');
+        }
+      }
+    }
+  } catch (_) {
+    document.getElementById('login-date-bcv').textContent = 'No disponible';
+    document.getElementById('login-date-parallel').textContent = 'No disponible';
+  }
+
+  // Fetch EUR rate
+  try {
+    var res2 = await fetch('https://ve.dolarapi.com/v1/euros', { signal: AbortSignal.timeout(6000) });
+    if (res2.ok) {
+      var data2 = await res2.json();
+      var eurOficial = Array.isArray(data2)
+        ? data2.find(function(d) { return d.fuente === 'oficial' || (d.nombre && d.nombre.toLowerCase().includes('oficial')); })
+        : data2;
+      var eurRate = eurOficial ? (eurOficial.promedio || eurOficial.venta) : null;
+      if (eurRate) {
+        document.getElementById('login-rate-eur').innerHTML = fmtRate(eurRate) + '<small>Bs/\u20AC</small>';
+        document.getElementById('login-date-eur').textContent = dateStr;
+        document.getElementById('tile-eur').classList.remove('loading');
+      }
+    }
+  } catch (_) {
+    document.getElementById('login-date-eur').textContent = 'No disponible';
+  }
+}
+
+fetchLoginRates();
 
 // ── Init ─────────────────────────────────────────────────────
 checkExistingSession();
