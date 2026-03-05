@@ -468,11 +468,8 @@ body::after {
 .logo-icon {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);
   border-radius: var(--r-sm);
-  display: grid;
-  place-items: center;
-  font-size: 16px;
+  object-fit: cover;
   box-shadow: 0 0 16px var(--gold-glow);
 }
 

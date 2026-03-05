@@ -87,11 +87,8 @@
 
   .login-logo-icon {
     width: 56px; height: 56px;
-    background: linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);
     border-radius: var(--r-md);
-    display: grid;
-    place-items: center;
-    font-size: 28px;
+    object-fit: cover;
     box-shadow: 0 0 32px var(--gold-glow);
   }
 
@@ -439,7 +436,6 @@
     }
     .login-logo-icon {
       width: 64px; height: 64px;
-      font-size: 32px;
     }
     .login-logo-text {
       font-size: 28px;
@@ -501,7 +497,7 @@
 
       <!-- Logo -->
       <div class="login-logo">
-        <div class="login-logo-icon">&#8383;</div>
+        <img class="login-logo-icon" src="assets/icons/icon-192.png" alt="VenFinance">
         <span class="login-logo-text">VenFinance</span>
       </div>
 
