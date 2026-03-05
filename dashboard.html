@@ -155,42 +155,42 @@
       <div class="month-badge" id="monthBadge">--</div>
       <div class="user-menu-wrap">
         <button class="user-avatar-btn" id="userAvatarBtn" onclick="toggleUserMenu()">U</button>
-        <div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
-        <div class="user-dropdown" id="userDropdown">
-          <div class="user-dropdown-header">
-            <div class="user-dropdown-name" id="menuUserName">Usuario</div>
-            <div class="user-dropdown-email" id="menuUserEmail">--</div>
-          </div>
-          <button class="user-dropdown-item" onclick="openPrefs()">
-            <span class="item-icon">⚙️</span> <span data-i18n="menu.preferences">Preferencias</span>
-          </button>
-          <button class="user-dropdown-item" onclick="openAccount()">
-            <span class="item-icon">👤</span> <span data-i18n="menu.account">Configuracion de cuenta</span>
-          </button>
-          <div class="user-dropdown-divider"></div>
-          <div class="settings-section">
-            <div class="settings-section-title" data-i18n="settings.title">Configuracion</div>
-            <div class="settings-row">
-              <span class="settings-row-label"><span class="row-icon">🌐</span> <span data-i18n="settings.language">Idioma</span></span>
-              <select class="settings-select" id="vf-lang-select">
-                <option value="es">Espanol</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-            <div class="settings-row" onclick="document.getElementById('vf-theme-toggle').click()">
-              <span class="settings-row-label"><span class="row-icon">🌙</span> <span data-i18n="settings.darkmode">Modo Claro</span></span>
-              <button class="settings-toggle" id="vf-theme-toggle" type="button"></button>
-            </div>
-          </div>
-          <div class="user-dropdown-divider"></div>
-          <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
-            <span class="item-icon">⏻</span> <span data-i18n="menu.logout">Cerrar sesion</span>
-          </button>
-        </div>
       </div>
     </div>
   </div>
 </header>
+<div class="user-dropdown-backdrop" id="userBackdrop" onclick="closeUserMenu()"></div>
+<div class="user-dropdown" id="userDropdown">
+  <div class="user-dropdown-header">
+    <div class="user-dropdown-name" id="menuUserName">Usuario</div>
+    <div class="user-dropdown-email" id="menuUserEmail">--</div>
+  </div>
+  <button class="user-dropdown-item" onclick="openPrefs()">
+    <span class="item-icon">⚙️</span> <span data-i18n="menu.preferences">Preferencias</span>
+  </button>
+  <button class="user-dropdown-item" onclick="openAccount()">
+    <span class="item-icon">👤</span> <span data-i18n="menu.account">Configuración de cuenta</span>
+  </button>
+  <div class="user-dropdown-divider"></div>
+  <div class="settings-section">
+    <div class="settings-section-title" data-i18n="settings.title">Configuración</div>
+    <div class="settings-row">
+      <span class="settings-row-label"><span class="row-icon">🌐</span> <span data-i18n="settings.language">Idioma</span></span>
+      <select class="settings-select" id="vf-lang-select">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <div class="settings-row" onclick="document.getElementById('vf-theme-toggle').click()">
+      <span class="settings-row-label"><span class="row-icon">🌙</span> <span data-i18n="settings.darkmode">Modo Claro</span></span>
+      <button class="settings-toggle" id="vf-theme-toggle" type="button"></button>
+    </div>
+  </div>
+  <div class="user-dropdown-divider"></div>
+  <button class="user-dropdown-item danger" onclick="VF.Auth.logout()">
+    <span class="item-icon">⏻</span> <span data-i18n="menu.logout">Cerrar sesión</span>
+  </button>
+</div>
 
 <!-- ACCOUNT MODAL -->
 <div class="prefs-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccount()">
@@ -694,10 +694,22 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── USER MENU ──────────────────────────────────────────────────
+function positionDropdown() {
+  var btn = document.getElementById('userAvatarBtn');
+  var dd = document.getElementById('userDropdown');
+  if (!btn || !dd) return;
+  var r = btn.getBoundingClientRect();
+  dd.style.top = (r.bottom + 8) + 'px';
+  var rightPos = window.innerWidth - r.right;
+  var ddWidth = dd.offsetWidth || 280;
+  if (r.right - ddWidth < 12) rightPos = window.innerWidth - ddWidth - 12;
+  dd.style.right = rightPos + 'px';
+}
 function toggleUserMenu() {
-  const dd = document.getElementById('userDropdown');
-  const bd = document.getElementById('userBackdrop');
-  const isOpen = dd.classList.contains('open');
+  var dd = document.getElementById('userDropdown');
+  var bd = document.getElementById('userBackdrop');
+  var isOpen = dd.classList.contains('open');
+  if (!isOpen) positionDropdown();
   dd.classList.toggle('open', !isOpen);
   bd.classList.toggle('open', !isOpen);
 }
