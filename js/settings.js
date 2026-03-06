@@ -394,6 +394,7 @@
       'err.cancelled': 'Solicitud cancelada',
       'err.network': 'Error de conexión. Verifica tu internet',
       'err.default': 'Error inesperado. Intenta de nuevo.',
+      'err.notWhitelisted': 'Tu correo no tiene acceso. Contacta al administrador.',
 
       /* ── Months ── */
       'month.short.0': 'Ene', 'month.short.1': 'Feb', 'month.short.2': 'Mar',
@@ -738,6 +739,7 @@
       'err.cancelled': 'Request cancelled',
       'err.network': 'Connection error. Check your internet',
       'err.default': 'Unexpected error. Try again.',
+      'err.notWhitelisted': 'Your email is not authorized. Contact the administrator.',
 
       /* ── Months ── */
       'month.short.0': 'Jan', 'month.short.1': 'Feb', 'month.short.2': 'Mar',

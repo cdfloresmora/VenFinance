@@ -699,6 +699,7 @@ function firebaseErrorMsg(err) {
     'auth/popup-closed-by-user':      VFSettings.t('err.popupClosed'),
     'auth/cancelled-popup-request':   VFSettings.t('err.cancelled'),
     'auth/network-request-failed':    VFSettings.t('err.network'),
+    'auth/not-whitelisted':           VFSettings.t('err.notWhitelisted'),
   };
   return map[code] || err.message || VFSettings.t('err.default');
 }
@@ -722,10 +723,18 @@ function checkExistingSession() {
   const content = document.getElementById('authContent');
   loading.classList.add('show');
 
-  firebaseAuth.onAuthStateChanged(user => {
+  firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
-      // Already logged in — redirect
-      window.location.href = 'index.html';
+      // Check whitelist before redirecting
+      const allowed = await VF.Auth.isWhitelisted(user.email);
+      if (allowed) {
+        window.location.href = 'index.html';
+      } else {
+        await firebaseAuth.signOut();
+        loading.classList.remove('show');
+        content.style.display = 'block';
+        showMsg(VFSettings.t('err.notWhitelisted'), 'error');
+      }
     } else {
       // No session — show login form
       loading.classList.remove('show');
